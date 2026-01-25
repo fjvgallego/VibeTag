@@ -12,7 +12,7 @@ import SwiftData
 struct VibeTagApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Song.self,
+            VTSong.self,
             Tag.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)

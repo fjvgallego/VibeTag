@@ -2,7 +2,7 @@ import Foundation
 import SwiftData
 
 @Model
-final class Song {
+final class VTSong {
     @Attribute(.unique) var id: String // Apple Music ID / ISRC
     var title: String
     var artist: String

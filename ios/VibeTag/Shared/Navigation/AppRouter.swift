@@ -8,7 +8,7 @@ enum AppRoute: Hashable {
 
 @Observable
 class AppRouter {
-    var path = NavigationPath()
+    var path: [AppRoute] = []
     
     func navigate(to route: AppRoute) {
         path.append(route)
@@ -21,6 +21,6 @@ class AppRouter {
     }
     
     func reset() {
-        path = NavigationPath()
+        path = []
     }
 }

@@ -6,7 +6,7 @@ struct HomeView: View {
     @Environment(AppRouter.self) private var router
     
     // SwiftData Query
-    @Query(sort: \Song.dateAdded, order: .reverse) private var songs: [Song]
+    @Query(sort: \VTSong.dateAdded, order: .reverse) private var songs: [VTSong]
     
     var body: some View {
         List {
@@ -36,5 +36,5 @@ struct HomeView: View {
 #Preview {
     HomeView()
         .environment(AppRouter())
-        .modelContainer(for: [Song.self, Tag.self], inMemory: true)
+        .modelContainer(for: [VTSong.self, Tag.self], inMemory: true)
 }
