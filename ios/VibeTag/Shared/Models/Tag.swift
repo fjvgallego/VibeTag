@@ -8,7 +8,7 @@ final class Tag {
     var hexColor: String
     var isSystemTag: Bool
     
-    var songs: [VTSong]?
+    var songs: [VTSong] = []
     
     init(id: UUID = UUID(), name: String, hexColor: String, isSystemTag: Bool = false) {
         self.id = id

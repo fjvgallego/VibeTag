@@ -2,13 +2,24 @@ import Foundation
 import SwiftData
 import SwiftUI
 
+@MainActor
 @Observable
 class HomeViewModel {
     var searchText: String = ""
+    var isSyncing: Bool = false
+    var errorMessage: String?
     
-    // Future logic for filtering or fetching data will go here.
-    // Since we use @Query in the View for SwiftData, the ViewModel handles 
-    // UI state (like search text, sheet presentation) and Service calls.
-    
-    init() {}
+    func syncLibrary(modelContext: ModelContext) async {
+        isSyncing = true
+        errorMessage = nil
+        
+        do {
+            let service = MusicSyncService(modelContext: modelContext)
+            try await service.syncLibrary()
+        } catch {
+            errorMessage = "Failed to sync library: \(error.localizedDescription)"
+        }
+        
+        isSyncing = false
+    }
 }

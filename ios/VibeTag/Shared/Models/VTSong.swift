@@ -10,7 +10,7 @@ final class VTSong {
     var dateAdded: Date
     
     @Relationship(deleteRule: .nullify, inverse: \Tag.songs)
-    var tags: [Tag]? = []
+    var tags: [Tag] = []
     
     init(id: String, title: String, artist: String, artworkUrl: String? = nil, dateAdded: Date = Date()) {
         self.id = id
