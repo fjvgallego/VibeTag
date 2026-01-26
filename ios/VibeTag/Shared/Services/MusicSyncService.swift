@@ -49,10 +49,27 @@ class MusicSyncService {
                  print("MusicSyncService: User cannot play catalog content (No Subscription).")
             }
             
-            let songs = try await provider.fetchSongs(limit: 50)
+            let remoteSongs = try await provider.fetchSongs(limit: 50)
+            let remoteSongIDs = Set(remoteSongs.map { $0.id.rawValue })
             
-            for song in songs {
-                try await processSong(song)
+            let localSongs = try storage.fetchAllSongs()
+            
+            let songsToDelete = localSongs.filter { !remoteSongIDs.contains($0.id) }
+            
+            for song in songsToDelete {
+                storage.deleteSong(song)
+            }
+            
+            let localSongIDs = Set(localSongs.map { $0.id })
+            
+            for song in remoteSongs {
+                let songID = song.id.rawValue
+                
+                if localSongIDs.contains(songID) {
+                    continue 
+                }
+                
+                try await processNewSong(song)
             }
             
             try storage.saveChanges()
@@ -62,17 +79,11 @@ class MusicSyncService {
         }
     }
     
-    private func processSong(_ song: Song) async throws {
-        let songID = song.id.rawValue
-        
-        if try storage.songExists(id: songID) {
-            return
-        }
-        
+    private func processNewSong(_ song: Song) async throws {
         let artworkUrl = song.artwork?.url(width: 300, height: 300)?.absoluteString
         
         let newSong = VTSong(
-            id: songID,
+            id: song.id.rawValue,
             title: song.title,
             artist: song.artistName,
             artworkUrl: artworkUrl,
@@ -91,7 +102,7 @@ class MusicSyncService {
         
         if combinedError.contains("privacy") || 
            combinedError.contains("acknowledgement") || 
-           combinedError.contains("terms") ||
+           combinedError.contains("terms") || 
            combinedError.contains("agreement") {
             
             return .privacyAcknowledgementRequired

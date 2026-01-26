@@ -9,10 +9,11 @@ struct HomeView: View {
     @Query(sort: \VTSong.dateAdded, order: .reverse) private var songs: [VTSong]
     
     var body: some View {
-        List(songs) { song in
-            VStack(alignment: .leading) {
-                Text(song.title)
-                Text(song.artist).font(.caption)
+        ScrollView {
+            LazyVStack(spacing: 0) {
+                ForEach(songs) { song in
+                    SongRowView(song: song)
+                }
             }
         }
         .searchable(text: $viewModel.searchText)
