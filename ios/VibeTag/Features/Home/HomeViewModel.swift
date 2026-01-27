@@ -9,6 +9,10 @@ class HomeViewModel {
     var isSyncing: Bool = false
     var errorMessage: String?
     
+    var searchTokens: [String] {
+        SearchQueryExpander.expandSearchTerm(searchText)
+    }
+    
     func syncLibrary(modelContext: ModelContext) async {
         isSyncing = true
         errorMessage = nil

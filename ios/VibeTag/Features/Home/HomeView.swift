@@ -8,7 +8,7 @@ struct HomeView: View {
     
     var body: some View {
         ScrollView {
-            SongListView(searchTokens: SearchQueryExpander.expandSearchTerm(viewModel.searchText))
+            SongListView(searchTokens: viewModel.searchTokens)
         }
         .searchable(text: $viewModel.searchText)
         .navigationTitle("Home")

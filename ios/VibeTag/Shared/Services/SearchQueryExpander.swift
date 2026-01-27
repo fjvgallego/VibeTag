@@ -12,9 +12,8 @@ struct SearchQueryExpander {
         let tagger = NLTagger(tagSchemes: [.lemma])
         tagger.string = trimmed
         
-        if let deviceLanguage = Locale.current.nlLanguage {
-            tagger.setLanguage(deviceLanguage, range: trimmed.startIndex..<trimmed.endIndex)
-        }
+        let deviceLanguage = Locale.current.nlLanguage ?? .english
+        tagger.setLanguage(deviceLanguage, range: trimmed.startIndex..<trimmed.endIndex)
         
         // We handle the whole string as a phrase or word. 
         // If the user types a sentence, we might want to tokenize words.
