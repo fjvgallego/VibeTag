@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SongRowView: View {
     let song: VTSong
+    @State private var showTagsSheet = false
     
     var body: some View {
         HStack(spacing: 12) {
@@ -42,6 +43,24 @@ struct SongRowView: View {
         .padding(.vertical, 4)
         .padding(.horizontal)
         .contentShape(Rectangle())
+        .contextMenu {
+            Button {
+                showTagsSheet = true
+            } label: {
+                Label("Manage Tags", systemImage: "tag")
+            }
+        }
+        .swipeActions(edge: .trailing) {
+            Button {
+                showTagsSheet = true
+            } label: {
+                Label("Tags", systemImage: "tag")
+            }
+            .tint(.blue)
+        }
+        .sheet(isPresented: $showTagsSheet) {
+            TagSheetView(song: song)
+        }
     }
 }
 
