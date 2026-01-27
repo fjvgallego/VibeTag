@@ -4,17 +4,11 @@ import SwiftData
 struct HomeView: View {
     @State private var viewModel = HomeViewModel()
     @Environment(AppRouter.self) private var router
-    
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \VTSong.dateAdded, order: .reverse) private var songs: [VTSong]
     
     var body: some View {
         ScrollView {
-            LazyVStack(spacing: 0) {
-                ForEach(songs) { song in
-                    SongRowView(song: song)
-                }
-            }
+            SongListView(searchTokens: SearchQueryExpander.expandSearchTerm(viewModel.searchText))
         }
         .searchable(text: $viewModel.searchText)
         .navigationTitle("Home")
