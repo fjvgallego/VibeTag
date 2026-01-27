@@ -2,53 +2,37 @@ import SwiftUI
 import SwiftData
 
 struct SongListView: View {
-    @Query private var songs: [VTSong]
+    @Query(sort: \VTSong.dateAdded, order: .reverse) private var allSongs: [VTSong]
+    let searchTokens: [String]
     
     init(searchTokens: [String]) {
-        let predicate: Predicate<VTSong>
+        self.searchTokens = searchTokens
+    }
+    
+    var filteredSongs: [VTSong] {
+        if searchTokens.isEmpty {
+            return allSongs
+        }
         
-        // Filter out empty tokens and take max 3 to avoid excessive complexity
-        let tokens = searchTokens.filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }.prefix(3).map { $0 }
-        
-        if tokens.isEmpty {
-            predicate = #Predicate<VTSong> { _ in true }
-        } else if tokens.count == 1 {
-            let t0 = tokens[0]
-            predicate = #Predicate<VTSong> { song in
-                song.title.localizedStandardContains(t0) ||
-                song.artist.localizedStandardContains(t0) ||
-                song.tags.contains { $0.name.localizedStandardContains(t0) }
-            }
-        } else if tokens.count == 2 {
-            let t0 = tokens[0]
-            let t1 = tokens[1]
-            predicate = #Predicate<VTSong> { song in
-                (song.title.localizedStandardContains(t0) || song.title.localizedStandardContains(t1)) ||
-                (song.artist.localizedStandardContains(t0) || song.artist.localizedStandardContains(t1)) ||
+        return allSongs.filter { song in
+            // Check if ANY token matches (OR logic across tokens for broad search)
+            // or modify to ALL if strict matching is desired.
+            // Based on context of "Semantic Search" (Lemma expansion), ANY is usually correct
+            // because "Running" -> ["Running", "Run"]. We want songs with EITHER.
+            
+            searchTokens.contains { token in
+                song.title.localizedStandardContains(token) ||
+                song.artist.localizedStandardContains(token) ||
                 song.tags.contains { tag in
-                    tag.name.localizedStandardContains(t0) || tag.name.localizedStandardContains(t1)
-                }
-            }
-        } else {
-            // Max 3 tokens
-            let t0 = tokens[0]
-            let t1 = tokens[1]
-            let t2 = tokens[2]
-            predicate = #Predicate<VTSong> { song in
-                (song.title.localizedStandardContains(t0) || song.title.localizedStandardContains(t1) || song.title.localizedStandardContains(t2)) ||
-                (song.artist.localizedStandardContains(t0) || song.artist.localizedStandardContains(t1) || song.artist.localizedStandardContains(t2)) ||
-                song.tags.contains { tag in
-                    tag.name.localizedStandardContains(t0) || tag.name.localizedStandardContains(t1) || tag.name.localizedStandardContains(t2)
+                    tag.name.localizedStandardContains(token)
                 }
             }
         }
-        
-        _songs = Query(filter: predicate, sort: \.dateAdded, order: .reverse)
     }
     
     var body: some View {
         LazyVStack(spacing: 0) {
-            ForEach(songs) { song in
+            ForEach(filteredSongs) { song in
                 SongRowView(song: song)
             }
         }
