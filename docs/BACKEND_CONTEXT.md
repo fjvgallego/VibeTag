@@ -16,7 +16,12 @@
   - *Note:* This must be an **explicit pivot table** to handle the user-specific relationship.
 
 ## Architecture & API
-- **Pattern:** Layered Architecture (Routes -> Controllers -> Services -> Prisma).
+- **Pattern:** Clean Architecture.
+  - **Domain:** Enterprise business rules (Entities, Value Objects, Domain Errors). Dependency free.
+  - **Application:** Application business rules (Use Cases, DTOs, Ports/Interfaces). Depends only on Domain.
+  - **Infrastructure:** Frameworks & Drivers (Database/Prisma, Web/Express Controllers, External Services). Implements interfaces defined in Application.
+  - **Composition:** Dependency Injection (Containers, Config). Wires everything together.
+  - **Shared:** Common utilities (Result Type, specialized types).
 - **Auth:** Passport Strategy (or similar middleware) to validate Apple `identityToken`.
 - **Key Endpoints:**
   - `POST /auth/apple`: Handles Login/Registration.
@@ -25,19 +30,24 @@
 
 ## 🛡️ Coding Guidelines (The "Rules of Engagement")
 
-### 1. Layered Architecture (Strict Separation)
-- **Controllers:** Input/Output only. They validate inputs (Zod/DTOs), call a Service, and return a JSON response. NO business logic here.
-- **Services:** Pure business logic. This is where the magic happens.
-- **Repositories/Prisma:** Database interaction only.
+### 1. Clean Architecture (Strict Separation)
+- **Domain:** Pure TypeScript. No dependencies on frameworks or libraries.
+  - *Entities* & *Value Objects* encapsulate core logic.
+- **Application:** Orchestrates the flow of data.
+  - *Use Cases* implement specific user stories (`Execute(Input) -> Result<Output>`).
+  - *Ports* (Repositories/Services) are interfaces defined here, implemented in Infrastructure.
+- **Infrastructure:**
+  - *Controllers* (HTTP): Validate input (Zod), invoke Use Cases, map Results to HTTP responses.
+  - *Repositories* (Database): Implement the repository interfaces using Prisma.
 
 ### 2. Clean Code & SOLID
 - **Avoid Magic Strings:** Use Enums or Constants.
-- **Error Handling:** Don't just `console.log`. Throw custom errors that the Global Error Handler can catch and format standard HTTP responses.
-- **Tests:** Business logic must be unit tested with Vitest.
+- **Result Pattern:** Use the `Result<T, E>` type for all return values in Application and Domain layers. Do not throw exceptions for flow control.
+- **Tests:** Domain and Application logic must be unit tested with Vitest.
 
 ### 3. TypeScript Specifics
 - **Strict Typing:** No `any`. Define interfaces for everything.
-- **Naming:** PascalCase for Classes (`UserService`), camelCase for variables/functions (`getUser`). NO prefixes (`VTUser` is forbidden).
+- **Naming:** PascalCase for Classes (`CreateUserUseCase`), camelCase for variables/functions. NO prefixes.
 
 ## 🛡️ Security Standards (OWASP Top 10)
 **Principle:** Security by Design & Default.
