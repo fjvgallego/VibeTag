@@ -65,6 +65,17 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
         },
       });
 
+      // Persist pivot relation. `userId` is required by schema.
+      // For AI-generated tags, we assign them to a 'SYSTEM' user.
+      const systemUser = await tx.user.upsert({
+        where: { appleUserIdentifier: 'SYSTEM' },
+        update: {},
+        create: {
+          appleUserIdentifier: 'SYSTEM',
+        },
+      });
+      const placeholderUserId = systemUser.id;
+
       for (const tag of analysis.tags) {
         const tagType = tag.source === 'ai' ? 'SYSTEM' : 'USER';
 
@@ -81,17 +92,6 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
             type: tagType,
           },
         });
-
-        // Persist pivot relation. `userId` is required by schema.
-        // For AI-generated tags, we assign them to a 'SYSTEM' user.
-        const systemUser = await tx.user.upsert({
-          where: { appleUserIdentifier: 'SYSTEM' },
-          update: {},
-          create: {
-            appleUserIdentifier: 'SYSTEM',
-          },
-        });
-        const placeholderUserId = systemUser.id;
 
         await tx.songTag.upsert({
           where: {

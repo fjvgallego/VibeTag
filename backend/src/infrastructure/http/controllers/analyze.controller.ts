@@ -24,7 +24,7 @@ export class AnalyzeController {
       }
 
       return res.status(500).json({
-        message: err instanceof Error ? err.message : 'Internal server error',
+        message: 'Internal server error',
       });
     } catch (e) {
       console.error(e);

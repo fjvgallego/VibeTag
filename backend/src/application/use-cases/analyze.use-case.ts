@@ -49,6 +49,9 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
       });
     } catch (error) {
       console.error(error);
+      if (error instanceof AppError) {
+        return Result.fail<AnalyzeResponseDTO, AppError>(error);
+      }
       return Result.fail<AnalyzeResponseDTO, AppError>(new UseCaseError('Failed to analyze song'));
     }
   }

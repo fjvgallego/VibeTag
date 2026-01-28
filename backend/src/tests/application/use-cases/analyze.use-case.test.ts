@@ -6,6 +6,7 @@ import { Analysis } from '../../../domain/entities/analysis';
 import { SongMetadata } from '../../../domain/value-objects/song-metadata';
 import { VibeTag } from '../../../domain/entities/vibe-tag';
 import { AnalyzeRequestDTO } from '../../../application/dtos/analyze.dto';
+import { ValidationError } from '../../../domain/errors/app-error';
 
 describe('AnalyzeUseCase', () => {
   let analyzeUseCase: AnalyzeUseCase;
@@ -89,5 +90,18 @@ describe('AnalyzeUseCase', () => {
     expect(result.isFailure).toBe(true);
     expect(result.error).toBeDefined();
     // Verify error message if possible, or just that it failed
+  });
+
+  it('should pass through AppError instances (e.g., ValidationError)', async () => {
+    // Arrange
+    const validationError = new ValidationError('Invalid song metadata');
+    vi.mocked(mockAnalysisRepository.findBySong).mockRejectedValue(validationError);
+
+    // Act
+    const result = await analyzeUseCase.execute(request);
+
+    // Assert
+    expect(result.isFailure).toBe(true);
+    expect(result.error).toBe(validationError);
   });
 });
