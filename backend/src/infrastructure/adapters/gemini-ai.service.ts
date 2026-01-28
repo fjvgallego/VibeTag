@@ -1,16 +1,19 @@
-import { GenerativeModel, GoogleGenerativeAI } from '@google/generative-ai';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import { generateText } from 'ai';
 import { IAIService } from '../../domain/services/ai-service.interface';
 import { SongMetadata } from '../../domain/value-objects/song-metadata';
 import { ITextSanitizer } from '../../shared/text-sanitizer';
 
 export class GeminiAIService implements IAIService {
-  private readonly genAI: GoogleGenerativeAI;
-  private readonly model: GenerativeModel;
+  private readonly google: ReturnType<typeof createGoogleGenerativeAI>;
+  private readonly modelName: string;
   private readonly sanitizer: ITextSanitizer;
 
   constructor(apiKey: string, sanitizer: ITextSanitizer, modelName: string = 'gemini-2.5-flash') {
-    this.genAI = new GoogleGenerativeAI(apiKey);
-    this.model = this.genAI.getGenerativeModel({ model: modelName });
+    this.google = createGoogleGenerativeAI({
+      apiKey,
+    });
+    this.modelName = modelName;
     this.sanitizer = sanitizer;
   }
 
@@ -18,13 +21,14 @@ export class GeminiAIService implements IAIService {
     const prompt = this.constructPrompt(song);
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = result.response;
-      const text = response.text();
+      const { text } = await generateText({
+        model: this.google(this.modelName),
+        prompt: prompt,
+      });
 
       return this.parseResponse(text);
     } catch (error) {
-      console.error('Error calling Gemini API:', error);
+      console.error('Error calling Gemini API via AI SDK:', error);
       throw new Error('Failed to get vibes from Gemini AI');
     }
   }
@@ -40,7 +44,7 @@ export class GeminiAIService implements IAIService {
         Task: Return strictly a valid JSON array containing exactly 3 short, descriptive mood/context tags (e.g., "Night Drive", "Gym Focus", "Melancholy").
         Example Output: ["Chill", "Summer", "Road Trip"]
         
-        IMPORTANT: Return ONLY the JSON array. Do not include markdown formatting like \`\`\`json or \`\`\`.
+        IMPORTANT: Return ONLY the JSON array. Do not include markdown formatting like  \`\`\`json or \`\`\`. 
       `;
   }
 
