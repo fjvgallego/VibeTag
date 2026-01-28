@@ -1,0 +1,34 @@
+import { Router, Request, Response } from 'express';
+import { AnalyzeUseCase } from '../../../application/use-cases/analyze.use-case';
+import { ValidationError } from '../../../domain/errors/app-error';
+
+export class AnalyzeController {
+  constructor(private readonly analyzeUseCase: AnalyzeUseCase) {}
+
+  public registerRoutes(router: Router): void {
+    router.post('/analyze', this.analyze.bind(this));
+  }
+
+  public async analyze(req: Request, res: Response): Promise<Response> {
+    try {
+      const result = await this.analyzeUseCase.execute(req.body);
+
+      if (result.success) {
+        return res.json(result.data);
+      }
+
+      // Map known errors
+      const err = result.error;
+      if (err instanceof ValidationError) {
+        return res.status(400).json({ message: err.message });
+      }
+
+      return res.status(500).json({
+        message: err instanceof Error ? err.message : 'Internal server error',
+      });
+    } catch (e) {
+      console.error(e);
+      return res.status(500).json({ message: 'Unexpected error' });
+    }
+  }
+}
