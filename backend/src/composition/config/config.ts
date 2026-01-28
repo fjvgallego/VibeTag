@@ -7,6 +7,7 @@ export const envSchema = z.object({
   NODE_ENV: z.enum(['dev', 'pro']).default('dev'),
   DATABASE_URL_DEV: z.url(),
   DATABASE_URL_PRO: z.url(),
+  GEMINI_API_KEY: z.string(),
   PORT: z
     .string()
     .default('3000')
@@ -26,4 +27,5 @@ export const config = {
   NODE_ENV: env.NODE_ENV,
   PORT: env.PORT,
   DATABASE_URL: env.NODE_ENV === 'pro' ? env.DATABASE_URL_PRO : env.DATABASE_URL_DEV,
+  GEMINI_API_KEY: env.GEMINI_API_KEY,
 };
