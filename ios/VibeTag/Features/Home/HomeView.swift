@@ -3,6 +3,7 @@ import SwiftData
 
 struct HomeView: View {
     @State private var viewModel = HomeViewModel()
+    @State private var showingLogin = false
     @Environment(AppRouter.self) private var router
     @Environment(\.modelContext) private var modelContext
     
@@ -13,12 +14,25 @@ struct HomeView: View {
         .searchable(text: $viewModel.searchText)
         .navigationTitle("Home")
         .toolbar {
-            Button("Sync Library") {
-                Task {
-                    await viewModel.syncLibrary(modelContext: modelContext)
+            ToolbarItem(placement: .topBarTrailing) {
+                HStack {
+                    Button("Sync Library") {
+                        Task {
+                            await viewModel.syncLibrary(modelContext: modelContext)
+                        }
+                    }
+                    .disabled(viewModel.isSyncing)
+                    
+                    Button {
+                        showingLogin = true
+                    } label: {
+                        Image(systemName: "person.circle")
+                    }
                 }
             }
-            .disabled(viewModel.isSyncing)
+        }
+        .sheet(isPresented: $showingLogin) {
+            LoginView()
         }
         .alert("Sync Error", isPresented: Binding(
             get: { viewModel.errorMessage != nil },
