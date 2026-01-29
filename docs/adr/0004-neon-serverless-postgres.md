@@ -12,7 +12,7 @@ Use **Neon** as the primary PostgreSQL provider.
 * **Integration:** Connected to the Render backend via standard connection strings (Pooled).
 
 ## Consequences
-* ✅ **Positive:** **Permanence.** Unlike Render's free tier, Neon's free tier does not expire the database.
+* ✅ **Positive:** **Permanence.** Unlike Render's free-tier, Neon's free tier does not expire the database.
 * ✅ **Positive:** **Database Branching.** Allows creating instant, copy-on-write clones of the database for testing or development without duplicating data manually.
 * ✅ **Positive:** **Scale-to-Zero.** Compute suspends when inactive to save costs (though this may introduce cold starts).
 * ⚠️ **Neutral:** **Network Latency.** The database (Neon) and Application (Render) are on different clouds. We must ensure both are provisioned in the same region (e.g., Frankfurt/Germany) to minimize latency.
