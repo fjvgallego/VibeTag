@@ -2,7 +2,9 @@ export abstract class AppError extends Error {
   constructor(message: string) {
     super(message);
     this.name = this.constructor.name;
-    Error.captureStackTrace(this, this.constructor);
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, this.constructor);
+    }
   }
 }
 
@@ -20,6 +22,18 @@ export class UseCaseError extends AppError {
 
 export class ValidationError extends AppError {
   constructor(message: string = 'Validation failed') {
+    super(message);
+  }
+}
+
+export class AuthError extends AppError {
+  constructor(message: string = 'Authentication failed') {
+    super(message);
+  }
+}
+
+export class UserNotFoundError extends AppError {
+  constructor(message: string = 'User not found') {
     super(message);
   }
 }

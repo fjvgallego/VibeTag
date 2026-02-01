@@ -10,9 +10,20 @@ import SwiftData
 
 @main
 struct VibeTagApp: App {
+    @State private var sessionManager: SessionManager
+    
+    init() {
+        // Composition Root: Configure APIClient
+        let tokenStorage = KeychainTokenStorage()
+        APIClient.shared.setup(tokenStorage: tokenStorage)
+        
+        self._sessionManager = State(initialValue: SessionManager(tokenStorage: tokenStorage))
+    }
+    
     var body: some Scene {
         WindowGroup {
             RootView()
+                .environment(sessionManager)
         }
         .modelContainer(for: [VTSong.self, Tag.self])
     }

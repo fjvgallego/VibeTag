@@ -10,7 +10,7 @@ class HomeViewModel {
     var errorMessage: String?
     
     var searchTokens: [String] {
-        SearchQueryExpander.expandSearchTerm(searchText)
+        SearchQueryHelper.expand(text: searchText)
     }
     
     func syncLibrary(modelContext: ModelContext) async {

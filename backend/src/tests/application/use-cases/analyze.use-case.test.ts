@@ -3,10 +3,11 @@ import { AnalyzeUseCase } from '../../../application/use-cases/analyze.use-case'
 import { IAnalysisRepository } from '../../../application/ports/analysis.repository';
 import { IAIService } from '../../../domain/services/ai-service.interface';
 import { Analysis } from '../../../domain/entities/analysis';
-import { SongMetadata } from '../../../domain/value-objects/song-metadata';
+import { SongMetadata } from '../../../domain/value-objects/song-metadata.vo';
 import { VibeTag } from '../../../domain/entities/vibe-tag';
 import { AnalyzeRequestDTO } from '../../../application/dtos/analyze.dto';
 import { ValidationError } from '../../../domain/errors/app-error';
+import { VTDate } from '../../../domain/value-objects/vt-date.vo';
 
 describe('AnalyzeUseCase', () => {
   let analyzeUseCase: AnalyzeUseCase;
@@ -41,7 +42,7 @@ describe('AnalyzeUseCase', () => {
   it('should return cached vibes if analysis exists (Cache Hit)', async () => {
     // Arrange
     const existingTags = [VibeTag.create('Chill', 'ai'), VibeTag.create('Happy', 'user')];
-    const existingAnalysis = Analysis.create(songMetadata, existingTags, new Date());
+    const existingAnalysis = Analysis.create(songMetadata, existingTags, VTDate.now());
 
     vi.mocked(mockAnalysisRepository.findBySong).mockResolvedValue(existingAnalysis);
 

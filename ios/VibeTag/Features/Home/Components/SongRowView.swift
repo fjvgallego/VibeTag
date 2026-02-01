@@ -29,11 +29,11 @@ struct SongRowView: View {
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(song.title)
-                    .font(.headline)
+                    .font(.nunito(.headline, weight: .semibold))
                     .lineLimit(1)
                 
                 Text(song.artist)
-                    .font(.subheadline)
+                    .font(.nunito(.subheadline))
                     .foregroundStyle(.gray)
                     .lineLimit(1)
             }

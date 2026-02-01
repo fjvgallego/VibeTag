@@ -11,17 +11,17 @@ struct WelcomeView: View {
                 .padding(.bottom, 20)
             
             Text("Welcome to VibeTag")
-                .font(.largeTitle)
-                .fontWeight(.bold)
+                .font(.nunito(.largeTitle, weight: .bold))
             
             Text("To organize your library by vibes, we need access to your Apple Music library.")
+                .font(.nunito(.body))
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
                 .padding(.horizontal)
             
             Button(action: onRequestPermissions) {
                 Text("Connect Music Library")
-                    .font(.headline)
+                    .font(.nunito(.headline, weight: .semibold))
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(Color.accentColor)

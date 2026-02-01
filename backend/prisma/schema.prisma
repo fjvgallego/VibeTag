@@ -2,10 +2,12 @@ generator client {
   provider = "prisma-client-js"
   output = "./generated"
   engineType = "library"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
   provider = "postgresql"
+  extensions = [citext]
 }
 
 enum TagType {
@@ -15,7 +17,11 @@ enum TagType {
 
 model User {
   id                  String    @id @default(uuid())
+  email               String?   @unique @db.Citext
+  firstName           String?
+  lastName            String?
   appleUserIdentifier String    @unique
+  createdAt           DateTime  @default(now())
   tags                Tag[]
   songTags            SongTag[]
 }

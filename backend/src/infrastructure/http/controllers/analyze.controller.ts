@@ -1,13 +1,9 @@
-import { Router, Request, Response } from 'express';
+import { Request, Response } from 'express';
 import { AnalyzeUseCase } from '../../../application/use-cases/analyze.use-case';
 import { ValidationError } from '../../../domain/errors/app-error';
 
 export class AnalyzeController {
   constructor(private readonly analyzeUseCase: AnalyzeUseCase) {}
-
-  public registerRoutes(router: Router): void {
-    router.post('/analyze', this.analyze.bind(this));
-  }
 
   public async analyze(req: Request, res: Response): Promise<Response> {
     try {
