@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { TokenPayload } from '../../application/ports/token-service';
+import { TokenPayload } from '../../../application/ports/token-service';
 
 export function verifyToken(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers['authorization'];
