@@ -9,19 +9,22 @@ class KeychainTokenStorage: TokenStorage {
     func save(token: String) throws {
         let data = Data(token.utf8)
         
-        // Create a query for the item
-        let query: [String: Any] = [
+        // Create the search query for the item
+        let searchQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
-            kSecAttrAccount as String: account,
-            kSecValueData as String: data
+            kSecAttrAccount as String: account
         ]
         
         // Delete any existing item
-        SecItemDelete(query as CFDictionary)
+        SecItemDelete(searchQuery as CFDictionary)
+        
+        // Add the data to the query for addition
+        var addQuery = searchQuery
+        addQuery[kSecValueData as String] = data
         
         // Add the new item
-        let status = SecItemAdd(query as CFDictionary, nil)
+        let status = SecItemAdd(addQuery as CFDictionary, nil)
         
         guard status == errSecSuccess else {
             throw TokenStorageError.saveFailed(status: status)

@@ -31,3 +31,9 @@ export class AuthError extends AppError {
     super(message);
   }
 }
+
+export class UserNotFoundError extends AppError {
+  constructor(message: string = 'User not found') {
+    super(message);
+  }
+}

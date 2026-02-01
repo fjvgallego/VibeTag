@@ -1,8 +1,8 @@
 import Foundation
 import NaturalLanguage
 
-struct SearchQueryExpander {
-    static func expandSearchTerm(_ text: String) -> [String] {
+enum SearchQueryHelper {
+    static func expand(text: String) -> [String] {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return [] }
         
@@ -15,7 +15,7 @@ struct SearchQueryExpander {
         let deviceLanguage = Locale.current.nlLanguage ?? .english
         tagger.setLanguage(deviceLanguage, range: trimmed.startIndex..<trimmed.endIndex)
         
-        // We handle the whole string as a phrase or word. 
+        // We handle the whole string as a phrase or word.
         // If the user types a sentence, we might want to tokenize words.
         // For now, let's treat the input as potential keywords.
         // Let's tokenize by word to be safe if user types "running fast"

@@ -23,12 +23,7 @@ enum AuthEndpoint: Endpoint {
     }
     
     var headers: [String: String]? {
-        switch self {
-        case .login:
-            return ["Content-Type": "application/json"]
-        case .deleteAccount:
-            return nil
-        }
+        return nil
     }
     
     var body: Encodable? {

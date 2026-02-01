@@ -22,6 +22,7 @@ class LoginViewModel: NSObject {
             guard let appleIDCredential = auth.credential as? ASAuthorizationAppleIDCredential,
                   let identityTokenData = appleIDCredential.identityToken,
                   let identityTokenString = String(data: identityTokenData, encoding: .utf8) else {
+                self.errorMessage = "Failed to process Apple Sign In credentials"
                 return
             }
             

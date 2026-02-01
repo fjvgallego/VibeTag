@@ -22,6 +22,9 @@ class APIClient {
         var request = URLRequest(url: url)
         request.httpMethod = endpoint.method.rawValue
         
+        // Default Content-Type
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
         // Add Authorization header if token is available
         if let token = tokenStorage?.getToken() {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -64,6 +67,9 @@ class APIClient {
         
         var request = URLRequest(url: url)
         request.httpMethod = endpoint.method.rawValue
+        
+        // Default Content-Type
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         // Add Authorization header if token is available
         if let token = tokenStorage?.getToken() {
