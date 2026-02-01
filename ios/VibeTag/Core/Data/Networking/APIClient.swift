@@ -6,8 +6,13 @@ class APIClient {
     // NOTE: This needs to be the local IP for physical devices.
     // localhost works for Simulator.
     private let baseURL = VTEnvironment.baseURL
+    private var tokenStorage: TokenStorage?
     
     private init() {}
+    
+    func setup(tokenStorage: TokenStorage) {
+        self.tokenStorage = tokenStorage
+    }
     
     func request<T: Decodable>(_ endpoint: Endpoint) async throws -> T {
         guard let url = URL(string: "\(baseURL)\(endpoint.path)") else {
@@ -16,6 +21,11 @@ class APIClient {
         
         var request = URLRequest(url: url)
         request.httpMethod = endpoint.method.rawValue
+        
+        // Add Authorization header if token is available
+        if let token = tokenStorage?.getToken() {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
         
         if let headers = endpoint.headers {
             for (key, value) in headers {
