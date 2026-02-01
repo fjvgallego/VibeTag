@@ -75,6 +75,6 @@ struct HomeView: View {
 #Preview {
     HomeView()
         .environment(AppRouter())
-        .environment(SessionManager(tokenStorage: KeychainTokenStorage(), authRepository: VibeTagAuthRepository()))
+        .environment(SessionManager(tokenStorage: KeychainTokenStorage(), authRepository: VibeTagAuthRepositoryImpl()))
         .modelContainer(for: [VTSong.self, Tag.self], inMemory: true)
 }

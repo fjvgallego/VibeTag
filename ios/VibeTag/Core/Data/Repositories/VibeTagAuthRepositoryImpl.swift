@@ -6,7 +6,7 @@ struct AppleLoginRequest: Encodable {
     let lastName: String?
 }
 
-class VibeTagAuthRepository: AuthRepository {
+class VibeTagAuthRepositoryImpl: AuthRepository {
     
     init() {}
     

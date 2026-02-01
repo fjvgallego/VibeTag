@@ -13,7 +13,7 @@ struct RootView: View {
                         .navigationDestination(for: AppRoute.self) { route in
                             switch route {
                             case .songDetail(let songID):
-                                Text("Song Detail: \(songID)") // Placeholder
+                                SongDetailDestinationView(songID: songID)
                             case .tagDetail(let tagID):
                                 Text("Tag Detail: \(tagID)") // Placeholder
                             }
@@ -28,6 +28,31 @@ struct RootView: View {
         }
         .onAppear {
             viewModel.updateAuthorizationStatus()
+        }
+    }
+}
+
+struct SongDetailDestinationView: View {
+    let songID: String
+    @Query private var songs: [VTSong]
+    @Environment(\.modelContext) private var modelContext
+    
+    init(songID: String) {
+        self.songID = songID
+        self._songs = Query(filter: #Predicate<VTSong> { $0.id == songID })
+    }
+    
+    var body: some View {
+        if let song = songs.first {
+            SongDetailView(viewModel: SongDetailViewModel(
+                song: song,
+                useCase: AnalyzeSongUseCase(
+                    remoteRepository: AppleMusicSongRepositoryImpl(),
+                    localRepository: LocalSongStorageRepositoryImpl(modelContext: modelContext)
+                )
+            ))
+        } else {
+            ContentUnavailableView("Song Not Found", systemImage: "music.note.list")
         }
     }
 }

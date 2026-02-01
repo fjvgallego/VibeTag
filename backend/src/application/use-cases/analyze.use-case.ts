@@ -27,7 +27,7 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
 
       if (existingAnalysis) {
         return Result.ok<AnalyzeResponseDTO, AppError>({
-          vibes: existingAnalysis.tags.map((tag) => tag.name),
+          tags: existingAnalysis.tags.map((tag) => tag.name),
         });
       }
 
@@ -49,7 +49,7 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
       await this.analysisRepository.save(newAnalysis);
 
       return Result.ok<AnalyzeResponseDTO, AppError>({
-        vibes: newAnalysis.tags.map((tag) => tag.name),
+        tags: newAnalysis.tags.map((tag) => tag.name),
       });
     } catch (error) {
       console.error(error);

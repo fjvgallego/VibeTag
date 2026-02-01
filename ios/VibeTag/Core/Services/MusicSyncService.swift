@@ -21,23 +21,26 @@ enum MusicSyncError: LocalizedError {
 
 @MainActor
 class MusicSyncService: SyncService {
-    private let repository: MusicRepository
+    private let musicAuthRepository: MusicAuthRepository
+    private let songRepository: SongRepository
     private let storage: SongStorageRepository
     
-    init(repository: MusicRepository, storage: SongStorageRepository) {
-        self.repository = repository
+    init(authRepository: MusicAuthRepository, songRepository: SongRepository, storage: SongStorageRepository) {
+        self.musicAuthRepository = authRepository
+        self.songRepository = songRepository
         self.storage = storage
     }
     
     init(modelContext: ModelContext) {
-        self.repository = AppleMusicRepository()
-        self.storage = LocalSongStorageRepository(modelContext: modelContext)
+        self.musicAuthRepository = AppleMusicAuthRepositoryImpl()
+        self.songRepository = AppleMusicSongRepositoryImpl()
+        self.storage = LocalSongStorageRepositoryImpl(modelContext: modelContext)
     }
     
     func syncLibrary() async throws {
-        var status = repository.getAuthorizationStatus()
+        var status = musicAuthRepository.getAuthorizationStatus()
         if status == .notDetermined {
-            status = await repository.requestAuthorization()
+            status = await musicAuthRepository.requestAuthorization()
         }
         
         guard status == .authorized else {
@@ -45,11 +48,11 @@ class MusicSyncService: SyncService {
         }
         
         do {
-            if try await repository.canPlayCatalogContent() == false {
+            if try await musicAuthRepository.canPlayCatalogContent() == false {
                  print("MusicSyncService: User cannot play catalog content (No Subscription).")
             }
             
-            let remoteSongs = try await repository.fetchSongs(limit: 50)
+            let remoteSongs = try await songRepository.fetchSongs(limit: 50)
             let remoteSongIDs = Set(remoteSongs.map { $0.id })
             
             let localSongs = try storage.fetchAllSongs()

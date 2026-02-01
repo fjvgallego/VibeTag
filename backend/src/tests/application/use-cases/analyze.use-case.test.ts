@@ -51,7 +51,7 @@ describe('AnalyzeUseCase', () => {
 
     // Assert
     expect(result.success).toBe(true);
-    expect(result.getValue().vibes).toEqual(['chill', 'happy']);
+    expect(result.getValue().tags).toEqual(['chill', 'happy']);
     expect(mockAnalysisRepository.findBySong).toHaveBeenCalledWith(request.title, request.artist);
     expect(mockAiService.getVibesForSong).not.toHaveBeenCalled();
     expect(mockAnalysisRepository.save).not.toHaveBeenCalled();
@@ -68,7 +68,7 @@ describe('AnalyzeUseCase', () => {
 
     // Assert
     expect(result.success).toBe(true);
-    expect(result.getValue().vibes).toEqual(['melancholic', 'dreamy']);
+    expect(result.getValue().tags).toEqual(['melancholic', 'dreamy']);
     expect(mockAnalysisRepository.findBySong).toHaveBeenCalledWith(request.title, request.artist);
     expect(mockAiService.getVibesForSong).toHaveBeenCalledWith(
       expect.objectContaining({

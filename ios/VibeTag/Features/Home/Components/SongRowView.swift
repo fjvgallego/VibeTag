@@ -3,6 +3,7 @@ import SwiftUI
 struct SongRowView: View {
     let song: VTSong
     @State private var showTagsSheet = false
+    @Environment(AppRouter.self) private var router
     
     var body: some View {
         HStack(spacing: 12) {
@@ -43,6 +44,9 @@ struct SongRowView: View {
         .padding(.vertical, 4)
         .padding(.horizontal)
         .contentShape(Rectangle())
+        .onTapGesture {
+            router.navigate(to: .songDetail(songID: song.id))
+        }
         .contextMenu {
             Button {
                 showTagsSheet = true

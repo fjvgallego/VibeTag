@@ -6,5 +6,5 @@ export interface AnalyzeRequestDTO {
 }
 
 export interface AnalyzeResponseDTO {
-  vibes: string[];
+  tags: string[];
 }
