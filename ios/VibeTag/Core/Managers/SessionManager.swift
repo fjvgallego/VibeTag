@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 
+@MainActor
 @Observable
 class SessionManager {
     var isAuthenticated: Bool = false
@@ -26,21 +27,20 @@ class SessionManager {
     func deleteAccount() async {
         do {
             try await authRepository.deleteAccount()
-            await MainActor.run {
-                self.logout()
-            }
+            self.logout()
         } catch {
             print("Delete account failed: \(error)")
             // Optionally handle error (e.g. show alert)
         }
     }
     
-    func login(token: String) {
+    func login(token: String) throws {
         do {
             try tokenStorage.save(token: token)
             isAuthenticated = true
         } catch {
             print("Saving token failed: \(error)")
+            throw error
         }
     }
 }

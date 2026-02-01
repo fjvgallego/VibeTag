@@ -42,7 +42,7 @@ struct LoginView: View {
         }
         .padding()
         .onAppear {
-            viewModel = LoginViewModel(sessionManager: sessionManager)
+            viewModel.sessionManager = sessionManager
         }
         .onChange(of: viewModel.isAuthenticated) { _, newValue in
             if newValue {

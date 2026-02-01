@@ -47,6 +47,18 @@ export class PrismaUserRepository implements UserRepository {
     });
   }
 
+  async upsertByAppleId(user: User): Promise<User> {
+    const data = UserMapper.toPersistence(user);
+    const savedUser = await this.prisma.user.upsert({
+      where: {
+        appleUserIdentifier: user.appleId.value,
+      },
+      update: {},
+      create: data,
+    });
+    return UserMapper.toDomain(savedUser);
+  }
+
   async delete(id: UserId): Promise<void> {
     await this.prisma.user.delete({
       where: {

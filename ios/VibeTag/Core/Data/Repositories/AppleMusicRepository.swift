@@ -35,7 +35,7 @@ class AppleMusicRepository: MusicRepository {
             title: song.title,
             artist: song.artistName,
             artworkUrl: song.artwork?.url(width: 300, height: 300)?.absoluteString,
-            dateAdded: Date()
+            dateAdded: song.libraryAddedDate ?? Date()
         )
     }
 }

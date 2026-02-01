@@ -37,7 +37,9 @@ class APIClient {
         }
         
         if let body = endpoint.body {
-            request.httpBody = try JSONEncoder().encode(body)
+            let encoder = JSONEncoder()
+            encoder.dateEncodingStrategy = .iso8601
+            request.httpBody = try encoder.encode(AnyEncodable(body))
         }
         
         let (data, response) = try await URLSession.shared.data(for: request)
@@ -83,7 +85,9 @@ class APIClient {
         }
         
         if let body = endpoint.body {
-            request.httpBody = try JSONEncoder().encode(body)
+            let encoder = JSONEncoder()
+            encoder.dateEncodingStrategy = .iso8601
+            request.httpBody = try encoder.encode(AnyEncodable(body))
         }
         
         let (_, response) = try await URLSession.shared.data(for: request)

@@ -6,9 +6,9 @@ import AuthenticationServices
 class LoginViewModel: NSObject {
     var errorMessage: String?
     var isAuthenticated: Bool = false
+    var sessionManager: SessionManager?
     
     private let authRepository: AuthRepository
-    private let sessionManager: SessionManager?
     
     init(authRepository: AuthRepository = VibeTagAuthRepository(),
          sessionManager: SessionManager? = nil) {
@@ -38,13 +38,13 @@ class LoginViewModel: NSObject {
                     )
                     
                     if let sessionManager = sessionManager {
-                        sessionManager.login(token: response.token)
+                        try sessionManager.login(token: response.token)
+                        self.isAuthenticated = sessionManager.isAuthenticated
                     } else {
                         // Fallback if sessionManager is not provided (e.g. tests)
                         try KeychainTokenStorage().save(token: response.token)
+                        self.isAuthenticated = true
                     }
-                    
-                    self.isAuthenticated = true
                 } catch {
                     self.errorMessage = error.localizedDescription
                     print("Login Error: \(error)")

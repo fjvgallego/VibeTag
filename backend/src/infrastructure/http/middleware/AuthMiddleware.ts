@@ -1,10 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-
-interface UserPayload {
-  userId: string;
-  email: string;
-}
+import { TokenPayload } from '../../application/ports/token-service';
 
 export function verifyToken(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers['authorization'];
@@ -24,7 +20,7 @@ export function verifyToken(req: Request, res: Response, next: NextFunction) {
   }
 
   try {
-    const decoded = jwt.verify(token, secret) as UserPayload;
+    const decoded = jwt.verify(token, secret) as TokenPayload;
     req.user = decoded;
     next();
   } catch (error) {

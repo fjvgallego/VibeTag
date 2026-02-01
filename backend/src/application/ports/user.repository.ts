@@ -6,5 +6,6 @@ export interface UserRepository {
   findByAppleId(appleId: AppleId): Promise<User | null>;
   findById(id: UserId): Promise<User | null>;
   save(user: User): Promise<void>;
+  upsertByAppleId(user: User): Promise<User>;
   delete(id: UserId): Promise<void>;
 }

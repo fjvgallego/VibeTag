@@ -19,6 +19,8 @@ describe('LoginWithAppleUseCase', () => {
       findByAppleId: vi.fn(),
       save: vi.fn(),
       findById: vi.fn(),
+      upsertByAppleId: vi.fn(),
+      delete: vi.fn(),
     };
 
     mockAuthProvider = {
@@ -37,7 +39,7 @@ describe('LoginWithAppleUseCase', () => {
     );
   });
 
-  it('should verify token, find user, and return user + token', async () => {
+  it('should verify token and return user + token (using upsert)', async () => {
     const request: LoginWithAppleRequestDTO = {
       identityToken: 'valid-token',
       firstName: 'John',
@@ -49,7 +51,7 @@ describe('LoginWithAppleUseCase', () => {
       email: 'john@example.com',
     };
 
-    const existingUser = User.create(
+    const user = User.create(
       Email.create('john@example.com'),
       'John',
       'Doe',
@@ -57,7 +59,7 @@ describe('LoginWithAppleUseCase', () => {
     );
 
     vi.mocked(mockAuthProvider.verifyAppleToken).mockResolvedValue(appleUserData);
-    vi.mocked(mockUserRepository.findByAppleId).mockResolvedValue(existingUser);
+    vi.mocked(mockUserRepository.upsertByAppleId).mockResolvedValue(user);
     vi.mocked(mockTokenService.generate).mockReturnValue('generated-jwt-token');
 
     const result = await loginWithAppleUseCase.execute(request);
@@ -68,8 +70,9 @@ describe('LoginWithAppleUseCase', () => {
     expect(value.token).toBe('generated-jwt-token');
 
     expect(mockAuthProvider.verifyAppleToken).toHaveBeenCalledWith('valid-token');
+    expect(mockUserRepository.upsertByAppleId).toHaveBeenCalled();
     expect(mockTokenService.generate).toHaveBeenCalledWith({
-      userId: existingUser.id.value,
+      userId: user.id.value,
       email: 'john@example.com',
     });
   });
@@ -87,8 +90,15 @@ describe('LoginWithAppleUseCase', () => {
       email: 'jane@example.com',
     };
 
+    const newUser = User.create(
+      Email.create('jane@example.com'),
+      'Jane',
+      'Doe',
+      AppleId.create('apple-456'),
+    );
+
     vi.mocked(mockAuthProvider.verifyAppleToken).mockResolvedValue(appleUserData);
-    vi.mocked(mockUserRepository.findByAppleId).mockResolvedValue(null);
+    vi.mocked(mockUserRepository.upsertByAppleId).mockResolvedValue(newUser);
     vi.mocked(mockTokenService.generate).mockReturnValue('new-user-token');
 
     const result = await loginWithAppleUseCase.execute(request);
@@ -98,9 +108,9 @@ describe('LoginWithAppleUseCase', () => {
     expect(value.user.email).toBe('jane@example.com');
     expect(value.token).toBe('new-user-token');
 
-    expect(mockUserRepository.save).toHaveBeenCalled();
-    const savedUserArg = vi.mocked(mockUserRepository.save).mock.calls[0][0];
-    expect(savedUserArg.email?.value).toBe('jane@example.com');
-    expect(savedUserArg.appleId?.value).toBe('apple-456');
+    expect(mockUserRepository.upsertByAppleId).toHaveBeenCalled();
+    const upsertArg = vi.mocked(mockUserRepository.upsertByAppleId).mock.calls[0][0];
+    expect(upsertArg.email?.value).toBe('jane@example.com');
+    expect(upsertArg.appleId?.value).toBe('apple-456');
   });
 });

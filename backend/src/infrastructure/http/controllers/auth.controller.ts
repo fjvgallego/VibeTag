@@ -11,7 +11,7 @@ export class AuthController {
 
   public async loginWithApple(req: Request, res: Response): Promise<Response> {
     try {
-      const { identityToken, firstName, lastName } = req.body || {};
+      const { identityToken, firstName, lastName, email } = req.body || {};
 
       if (!identityToken) {
         return res.status(400).json({ message: 'Missing identityToken' });
@@ -21,6 +21,7 @@ export class AuthController {
         identityToken,
         firstName,
         lastName,
+        email,
       });
 
       if (result.success) {

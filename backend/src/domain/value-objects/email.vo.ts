@@ -12,7 +12,7 @@ export class Email {
       throw new ValidationError('Email is required');
     }
 
-    const trimmedEmail = email.trim();
+    const trimmedEmail = email.trim().toLowerCase();
     // Basic email validation regex
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

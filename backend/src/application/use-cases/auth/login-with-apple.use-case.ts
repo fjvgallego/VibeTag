@@ -36,17 +36,14 @@ export class LoginWithAppleUseCase implements UseCase<
         email = Email.create(request.email);
       }
 
-      let user = await this.userRepository.findByAppleId(appleIdResult);
+      const userCandidate = User.create(
+        email,
+        request.firstName || null,
+        request.lastName || null,
+        appleIdResult,
+      );
 
-      if (!user) {
-        user = User.create(
-          email,
-          request.firstName || null,
-          request.lastName || null,
-          appleIdResult,
-        );
-        await this.userRepository.save(user);
-      }
+      const user = await this.userRepository.upsertByAppleId(userCandidate);
 
       const token = this.tokenService.generate({
         userId: user.id.value,

@@ -22,6 +22,7 @@ class KeychainTokenStorage: TokenStorage {
         // Add the data to the query for addition
         var addQuery = searchQuery
         addQuery[kSecValueData as String] = data
+        addQuery[kSecAttrAccessible as String] = kSecAttrAccessibleWhenUnlockedThisDeviceOnly
         
         // Add the new item
         let status = SecItemAdd(addQuery as CFDictionary, nil)
