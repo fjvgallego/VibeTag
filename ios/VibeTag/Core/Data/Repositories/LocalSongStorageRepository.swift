@@ -1,15 +1,7 @@
 import Foundation
 import SwiftData
 
-protocol SongPersistenceService {
-    func fetchAllSongs() throws -> [VTSong]
-    func songExists(id: String) throws -> Bool
-    func saveSong(_ song: VTSong)
-    func deleteSong(_ song: VTSong)
-    func saveChanges() throws
-}
-
-class SwiftDataSongStorage: SongPersistenceService {
+class LocalSongStorageRepository: SongStorageRepository {
     private let modelContext: ModelContext
     
     init(modelContext: ModelContext) {

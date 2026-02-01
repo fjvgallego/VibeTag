@@ -1,7 +1,7 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { generateText } from 'ai';
 import { IAIService } from '../../domain/services/ai-service.interface';
-import { SongMetadata } from '../../domain/value-objects/song-metadata';
+import { SongMetadata } from '../../domain/value-objects/song-metadata.vo';
 import { ITextSanitizer } from '../../shared/text-sanitizer';
 
 export class GeminiAIService implements IAIService {

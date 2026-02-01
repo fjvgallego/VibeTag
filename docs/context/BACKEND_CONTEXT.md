@@ -19,14 +19,13 @@
 - **Pattern:** Clean Architecture.
   - **Domain:** Enterprise business rules (Entities, Value Objects, Domain Errors). Dependency free.
   - **Application:** Application business rules (Use Cases, DTOs, Ports/Interfaces). Depends only on Domain.
-  - **Infrastructure:** Frameworks & Drivers (Database/Prisma, Web/Express Controllers, External Services). Implements interfaces defined in Application.
+  - **Infrastructure:** Frameworks & Drivers (Database/Prisma, Web/Express Routes & Controllers, External Services). Implements interfaces defined in Application.
   - **Composition:** Dependency Injection (Containers, Config). Wires everything together.
   - **Shared:** Common utilities (Result Type, specialized types).
-- **Auth:** Passport Strategy (or similar middleware) to validate Apple `identityToken`.
-- **Key Endpoints:**
-  - `POST /auth/apple`: Handles Login/Registration.
-  - `POST /sync`: Accepts a JSON diff of local changes.
-  - `POST /analyze`: Receives song metadata, calls generic LLM service.
+- **Auth:** JWT-based authentication for protected routes. Apple Sign-In used for initial authentication.
+- **Key Endpoints (v1):**
+  - `POST /api/v1/login/apple`: Handles Login/Registration via Apple Sign-In.
+  - `POST /api/v1/analyze`: Receives song metadata, calls generic LLM service.
 
 ## 🛡️ Coding Guidelines (The "Rules of Engagement")
 
@@ -37,7 +36,8 @@
   - *Use Cases* implement specific user stories (`Execute(Input) -> Result<Output>`).
   - *Ports* (Repositories/Services) are interfaces defined here, implemented in Infrastructure.
 - **Infrastructure:**
-  - *Controllers* (HTTP): Validate input (Zod), invoke Use Cases, map Results to HTTP responses.
+  - *Routes*: Define the HTTP endpoints and map them to Controller methods. Mounted under `/api/v1`.
+  - *Controllers* (HTTP): Orchestrate the request/response cycle. Invoke Use Cases and map Results to HTTP responses.
   - *Repositories* (Database): Implement the repository interfaces using Prisma.
 
 ### 2. Clean Code & SOLID

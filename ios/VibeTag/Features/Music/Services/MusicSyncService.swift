@@ -21,23 +21,23 @@ enum MusicSyncError: LocalizedError {
 
 @MainActor
 class MusicSyncService {
-    private let provider: MusicLibraryProvider
-    private let storage: SongPersistenceService
+    private let repository: MusicRepository
+    private let storage: SongStorageRepository
     
-    init(provider: MusicLibraryProvider, storage: SongPersistenceService) {
-        self.provider = provider
+    init(repository: MusicRepository, storage: SongStorageRepository) {
+        self.repository = repository
         self.storage = storage
     }
     
     init(modelContext: ModelContext) {
-        self.provider = MusicKitProvider()
-        self.storage = SwiftDataSongStorage(modelContext: modelContext)
+        self.repository = AppleMusicRepository()
+        self.storage = LocalSongStorageRepository(modelContext: modelContext)
     }
     
     func syncLibrary() async throws {
-        var status = provider.getAuthorizationStatus()
+        var status = repository.getAuthorizationStatus()
         if status == .notDetermined {
-            status = await provider.requestAuthorization()
+            status = await repository.requestAuthorization()
         }
         
         guard status == .authorized else {
@@ -45,12 +45,12 @@ class MusicSyncService {
         }
         
         do {
-            if try await provider.canPlayCatalogContent() == false {
+            if try await repository.canPlayCatalogContent() == false {
                  print("MusicSyncService: User cannot play catalog content (No Subscription).")
             }
             
-            let remoteSongs = try await provider.fetchSongs(limit: 50)
-            let remoteSongIDs = Set(remoteSongs.map { $0.id.rawValue })
+            let remoteSongs = try await repository.fetchSongs(limit: 50)
+            let remoteSongIDs = Set(remoteSongs.map { $0.id })
             
             let localSongs = try storage.fetchAllSongs()
             
@@ -63,13 +63,11 @@ class MusicSyncService {
             let localSongIDs = Set(localSongs.map { $0.id })
             
             for song in remoteSongs {
-                let songID = song.id.rawValue
-                
-                if localSongIDs.contains(songID) {
+                if localSongIDs.contains(song.id) {
                     continue 
                 }
                 
-                try await processNewSong(song)
+                storage.saveSong(song)
             }
             
             try storage.saveChanges()
@@ -77,20 +75,6 @@ class MusicSyncService {
         } catch {
             throw mapError(error)
         }
-    }
-    
-    private func processNewSong(_ song: Song) async throws {
-        let artworkUrl = song.artwork?.url(width: 300, height: 300)?.absoluteString
-        
-        let newSong = VTSong(
-            id: song.id.rawValue,
-            title: song.title,
-            artist: song.artistName,
-            artworkUrl: artworkUrl,
-            dateAdded: Date()
-        )
-        
-        storage.saveSong(newSong)
     }
     
     private func mapError(_ error: Error) -> MusicSyncError {

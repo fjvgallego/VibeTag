@@ -7,23 +7,41 @@ class LoginViewModel: NSObject {
     var errorMessage: String?
     var isAuthenticated: Bool = false
     
+    private let authRepository: AuthRepository
+    private let tokenStorage: TokenStorage
+    
+    init(authRepository: AuthRepository = VibeTagAuthRepository(),
+         tokenStorage: TokenStorage = KeychainTokenStorage()) {
+        self.authRepository = authRepository
+        self.tokenStorage = tokenStorage
+    }
+    
     func handleAuthorization(result: Result<ASAuthorization, Error>) {
         switch result {
         case .success(let auth):
-            if let appleIDCredential = auth.credential as? ASAuthorizationAppleIDCredential {
-                // User ID: appleIDCredential.user
-                // Identity Token: appleIDCredential.identityToken
-                // Authorization Code: appleIDCredential.authorizationCode
-                // Name: appleIDCredential.fullName
-                // Email: appleIDCredential.email
-                
-                if let identityTokenData = appleIDCredential.identityToken,
-                   let identityTokenString = String(data: identityTokenData, encoding: .utf8) {
+            guard let appleIDCredential = auth.credential as? ASAuthorizationAppleIDCredential,
+                  let identityTokenData = appleIDCredential.identityToken,
+                  let identityTokenString = String(data: identityTokenData, encoding: .utf8) else {
+                return
+            }
+            
+            let firstName = appleIDCredential.fullName?.givenName
+            let lastName = appleIDCredential.fullName?.familyName
+            
+            Task {
+                do {
+                    let response = try await authRepository.login(
+                        identityToken: identityTokenString,
+                        firstName: firstName,
+                        lastName: lastName
+                    )
                     
-                    // TODO: Call the backend
-                    // loginWithBackend(token: identityTokenString)
+                    try tokenStorage.save(token: response.token)
                     
-                    isAuthenticated = true
+                    self.isAuthenticated = true
+                } catch {
+                    self.errorMessage = error.localizedDescription
+                    print("Login Error: \(error)")
                 }
             }
         case .failure(let error):

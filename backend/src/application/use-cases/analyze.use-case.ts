@@ -4,9 +4,10 @@ import { AnalyzeRequestDTO, AnalyzeResponseDTO } from '../dtos/analyze.dto';
 import { IAnalysisRepository } from '../ports/analysis.repository';
 import { IAIService } from '../../domain/services/ai-service.interface';
 import { Analysis } from '../../domain/entities/analysis';
-import { SongMetadata } from '../../domain/value-objects/song-metadata';
+import { SongMetadata } from '../../domain/value-objects/song-metadata.vo';
 import { VibeTag } from '../../domain/entities/vibe-tag';
 import { AppError, UseCaseError } from '../../domain/errors/app-error';
+import { VTDate } from '../../domain/value-objects/vt-date.vo';
 
 export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeResponseDTO, AppError> {
   constructor(
@@ -16,9 +17,12 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
 
   public async execute(request: AnalyzeRequestDTO): Promise<Result<AnalyzeResponseDTO, AppError>> {
     try {
+      const normalizedTitle = request.title?.trim();
+      const normalizedArtist = request.artist?.trim();
+
       const existingAnalysis = await this.analysisRepository.findBySong(
-        request.title,
-        request.artist,
+        normalizedTitle,
+        normalizedArtist,
       );
 
       if (existingAnalysis) {
@@ -28,8 +32,8 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
       }
 
       const songMetadata = SongMetadata.create(
-        request.title,
-        request.artist,
+        normalizedTitle,
+        normalizedArtist,
         request.album,
         request.genre,
       );
@@ -40,7 +44,7 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
       // Map strings to VibeTag entities
       const newTags = aiVibes.map((vibe) => VibeTag.create(vibe, 'ai'));
 
-      const newAnalysis = Analysis.create(songMetadata, newTags, new Date());
+      const newAnalysis = Analysis.create(songMetadata, newTags, VTDate.now());
 
       await this.analysisRepository.save(newAnalysis);
 

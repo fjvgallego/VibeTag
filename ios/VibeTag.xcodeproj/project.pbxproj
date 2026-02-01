@@ -29,9 +29,22 @@
 		095FC5952F26216F0011E85F /* VibeTagUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = VibeTagUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		09ED37612F2DED4E00E06F4D /* Exceptions for "VibeTag" folder in "VibeTag" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 095FC57B2F26216C0011E85F /* VibeTag */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		095FC57E2F26216C0011E85F /* VibeTag */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				09ED37612F2DED4E00E06F4D /* Exceptions for "VibeTag" folder in "VibeTag" target */,
+			);
 			path = VibeTag;
 			sourceTree = "<group>";
 		};
@@ -402,6 +415,7 @@
 				DEVELOPMENT_TEAM = MJWN87DYML;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = VibeTag/Info.plist;
 				INFOPLIST_KEY_NSAppleMusicUsageDescription = "VibeTag needs access to your music library to analyze songs and save your tags.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -442,6 +456,7 @@
 				DEVELOPMENT_TEAM = MJWN87DYML;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = VibeTag/Info.plist;
 				INFOPLIST_KEY_NSAppleMusicUsageDescription = "VibeTag needs access to your music library to analyze songs and save your tags.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

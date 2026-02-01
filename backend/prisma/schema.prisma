@@ -15,7 +15,11 @@ enum TagType {
 
 model User {
   id                  String    @id @default(uuid())
+  email               String?   @unique
+  firstName           String?
+  lastName            String?
   appleUserIdentifier String    @unique
+  createdAt           DateTime  @default(now())
   tags                Tag[]
   songTags            SongTag[]
 }

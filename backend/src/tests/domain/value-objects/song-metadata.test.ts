@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { SongMetadata } from '../../../domain/value-objects/song-metadata';
+import { SongMetadata } from '../../../domain/value-objects/song-metadata.vo';
 
 describe('SongMetadata Value Object', () => {
   it('should create a valid SongMetadata with all fields', () => {

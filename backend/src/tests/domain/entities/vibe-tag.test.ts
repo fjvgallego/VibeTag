@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { VibeTag } from '../../../domain/entities/vibe-tag';
+import { VibeTagId } from '../../../domain/value-objects/ids/vibe-tag-id.vo';
 
 describe('VibeTag Entity', () => {
   it('should create a valid VibeTag', () => {
@@ -7,7 +8,7 @@ describe('VibeTag Entity', () => {
     expect(tag).toBeInstanceOf(VibeTag);
     expect(tag.name).toBe('chill');
     expect(tag.source).toBe('ai');
-    expect(tag.id).toBeDefined();
+    expect(tag.id).toBeInstanceOf(VibeTagId);
   });
 
   it('should normalize tag name to lowercase', () => {
@@ -23,6 +24,6 @@ describe('VibeTag Entity', () => {
   it('should preserve provided ID if supplied', () => {
     const existingId = '123-abc';
     const tag = VibeTag.create('chill', 'ai', existingId);
-    expect(tag.id).toBe(existingId);
+    expect(tag.id.value).toBe(existingId);
   });
 });

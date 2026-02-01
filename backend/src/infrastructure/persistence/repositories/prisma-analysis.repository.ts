@@ -1,8 +1,9 @@
-import { IAnalysisRepository } from '../../application/ports/analysis.repository';
-import { Analysis } from '../../domain/entities/analysis';
-import { SongMetadata } from '../../domain/value-objects/song-metadata';
-import { VibeTag, VibeTagSource } from '../../domain/entities/vibe-tag';
-import { prisma } from '../database/prisma.client';
+import { IAnalysisRepository } from '../../../application/ports/analysis.repository';
+import { Analysis } from '../../../domain/entities/analysis';
+import { SongMetadata } from '../../../domain/value-objects/song-metadata.vo';
+import { VibeTag, VibeTagSource } from '../../../domain/entities/vibe-tag';
+import { prisma } from '../../database/prisma.client';
+import { VTDate } from '../../../domain/value-objects/vt-date.vo';
 
 export class PrismaAnalysisRepository implements IAnalysisRepository {
   public async findBySong(title: string, artist: string): Promise<Analysis | null> {
@@ -44,7 +45,7 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
     });
 
     // We assume a 'createdAt' exists or we use a fallback
-    return Analysis.create(metadata, tags, new Date(), song.id);
+    return Analysis.create(metadata, tags, VTDate.now(), song.id);
   }
 
   public async save(analysis: Analysis): Promise<void> {
@@ -52,13 +53,13 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
     // Note: This uses simple defaults for fields like `color` and `userId`.
     await prisma.$transaction(async (tx) => {
       await tx.song.upsert({
-        where: { id: analysis.id },
+        where: { id: analysis.id.value },
         update: {
           title: analysis.songMetadata.title,
           artist: analysis.songMetadata.artist,
         },
         create: {
-          id: analysis.id,
+          id: analysis.id.value,
           title: analysis.songMetadata.title,
           artist: analysis.songMetadata.artist,
           artworkUrl: '',
@@ -80,13 +81,13 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
         const tagType = tag.source === 'ai' ? 'SYSTEM' : 'USER';
 
         await tx.tag.upsert({
-          where: { id: tag.id },
+          where: { id: tag.id.value },
           update: {
             name: tag.name,
             type: tagType,
           },
           create: {
-            id: tag.id,
+            id: tag.id.value,
             name: tag.name,
             color: '',
             type: tagType,
@@ -95,12 +96,16 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
 
         await tx.songTag.upsert({
           where: {
-            songId_tagId_userId: { songId: analysis.id, tagId: tag.id, userId: placeholderUserId },
+            songId_tagId_userId: {
+              songId: analysis.id.value,
+              tagId: tag.id.value,
+              userId: placeholderUserId,
+            },
           },
           update: {},
           create: {
-            songId: analysis.id,
-            tagId: tag.id,
+            songId: analysis.id.value,
+            tagId: tag.id.value,
             userId: placeholderUserId,
           },
         });

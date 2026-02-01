@@ -4,7 +4,7 @@
 * **Date:** 2026-01-26
 
 ## Context
-While Render handles our application hosting effectively, its free tier PostgreSQL database has significant limitations for a persistent project: it expires after 90 days and lacks advanced features like branching or autoscaling. We need a permanent, scalable, and cost-effective PostgreSQL solution that aligns with our "Serverless" philosophy.
+While Render handles our application hosting effectively, its free-tier PostgreSQL database has significant limitations for a persistent project: it expires after 30 days and lacks advanced features like branching or autoscaling.
 
 ## Decision
 Use **Neon** as the primary PostgreSQL provider.

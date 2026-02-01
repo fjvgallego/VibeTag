@@ -13,10 +13,10 @@ struct LoginView: View {
                 .padding(.bottom, 20)
             
             Text("Welcome to VibeTag")
-                .font(.largeTitle)
-                .fontWeight(.bold)
+                .font(.nunito(.largeTitle, weight: .bold))
             
             Text("Sign in to sync your vibes across devices.")
+                .font(.nunito(.body))
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
                 .padding(.horizontal)
@@ -36,7 +36,7 @@ struct LoginView: View {
             if let error = viewModel.errorMessage {
                 Text(error)
                     .foregroundStyle(.red)
-                    .font(.caption)
+                    .font(.nunito(.caption))
             }
         }
         .padding()

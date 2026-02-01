@@ -6,7 +6,7 @@
   - Light Mode: `#FFFBFB` (Off-white/Blush).
   - Dark Mode: Midnight Blue.
 - **Style:** "Soft Glass" (Native iOS Glassmorphism).
-- **Typography:** SF Pro Rounded.
+- **Typography:** Nunito (Rounded Google Font).
 
 ## Key Components
 
