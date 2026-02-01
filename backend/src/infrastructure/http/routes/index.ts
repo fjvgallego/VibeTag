@@ -10,7 +10,10 @@ export function createAppRouter(container: Dependencies): Router {
 
   // Instantiate controllers
   const analyzeController = new AnalyzeController(container.analyzeUseCase);
-  const authController = new AuthController(container.loginWithAppleUseCase);
+  const authController = new AuthController(
+    container.loginWithAppleUseCase,
+    container.deleteAccountUseCase,
+  );
 
   // Register routes
   const apiV1Router = Router();

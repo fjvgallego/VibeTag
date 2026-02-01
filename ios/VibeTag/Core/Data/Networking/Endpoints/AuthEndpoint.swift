@@ -2,11 +2,14 @@ import Foundation
 
 enum AuthEndpoint: Endpoint {
     case login(request: Encodable)
+    case deleteAccount
     
     var path: String {
         switch self {
         case .login:
             return "/auth/apple"
+        case .deleteAccount:
+            return "/auth/me"
         }
     }
     
@@ -14,6 +17,8 @@ enum AuthEndpoint: Endpoint {
         switch self {
         case .login:
             return .POST
+        case .deleteAccount:
+            return .DELETE
         }
     }
     
@@ -21,6 +26,8 @@ enum AuthEndpoint: Endpoint {
         switch self {
         case .login:
             return ["Content-Type": "application/json"]
+        case .deleteAccount:
+            return nil
         }
     }
     
@@ -28,6 +35,8 @@ enum AuthEndpoint: Endpoint {
         switch self {
         case .login(let request):
             return request
+        case .deleteAccount:
+            return nil
         }
     }
 }

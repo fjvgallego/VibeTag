@@ -26,4 +26,14 @@ class VibeTagAuthRepository: AuthRepository {
             throw AppError.networkError(original: error)
         }
     }
+    
+    func deleteAccount() async throws {
+        do {
+            try await APIClient.shared.requestVoid(AuthEndpoint.deleteAccount)
+        } catch let error as APIError {
+            throw error.toAppError
+        } catch {
+            throw AppError.networkError(original: error)
+        }
+    }
 }

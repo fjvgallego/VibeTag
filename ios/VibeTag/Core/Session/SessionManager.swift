@@ -6,9 +6,11 @@ class SessionManager {
     var isAuthenticated: Bool = false
     
     private let tokenStorage: TokenStorage
+    private let authRepository: AuthRepository
     
-    init(tokenStorage: TokenStorage = KeychainTokenStorage()) {
+    init(tokenStorage: TokenStorage = KeychainTokenStorage(), authRepository: AuthRepository = VibeTagAuthRepository()) {
         self.tokenStorage = tokenStorage
+        self.authRepository = authRepository
         self.isAuthenticated = tokenStorage.getToken() != nil
     }
     
@@ -18,6 +20,18 @@ class SessionManager {
             isAuthenticated = false
         } catch {
             print("Logout failed: \(error)")
+        }
+    }
+    
+    func deleteAccount() async {
+        do {
+            try await authRepository.deleteAccount()
+            await MainActor.run {
+                self.logout()
+            }
+        } catch {
+            print("Delete account failed: \(error)")
+            // Optionally handle error (e.g. show alert)
         }
     }
     

@@ -4,6 +4,7 @@ import SwiftData
 struct HomeView: View {
     @State private var viewModel = HomeViewModel()
     @State private var showingLogin = false
+    @State private var showingDeleteConfirmation = false
     @Environment(AppRouter.self) private var router
     @Environment(\.modelContext) private var modelContext
     @Environment(SessionManager.self) var sessionManager
@@ -27,8 +28,11 @@ struct HomeView: View {
                     if sessionManager.isAuthenticated {
                         Menu {
                             Button("Logged in", action: {}).disabled(true)
-                            Button("Logout", role: .destructive) {
+                            Button("Logout") {
                                 sessionManager.logout()
+                            }
+                            Button("Delete Account", role: .destructive) {
+                                showingDeleteConfirmation = true
                             }
                         } label: {
                             Image(systemName: "person.circle.fill")
@@ -54,6 +58,16 @@ struct HomeView: View {
             Button("OK", role: .cancel) { }
         } message: {
             Text(viewModel.errorMessage ?? "Unknown error")
+        }
+        .confirmationDialog("Are you sure?", isPresented: $showingDeleteConfirmation, titleVisibility: .visible) {
+            Button("Delete Account", role: .destructive) {
+                Task {
+                    await sessionManager.deleteAccount()
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This action cannot be undone.")
         }
     }
 }

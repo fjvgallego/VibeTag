@@ -56,4 +56,38 @@ class APIClient {
             throw APIError.decodingError
         }
     }
+    
+    func requestVoid(_ endpoint: Endpoint) async throws {
+        guard let url = URL(string: "\(baseURL)\(endpoint.path)") else {
+            throw APIError.invalidURL
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = endpoint.method.rawValue
+        
+        // Add Authorization header if token is available
+        if let token = tokenStorage?.getToken() {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        
+        if let headers = endpoint.headers {
+            for (key, value) in headers {
+                request.setValue(value, forHTTPHeaderField: key)
+            }
+        }
+        
+        if let body = endpoint.body {
+            request.httpBody = try JSONEncoder().encode(body)
+        }
+        
+        let (_, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.unknown
+        }
+        
+        guard (200...299).contains(httpResponse.statusCode) else {
+            throw APIError.httpError(statusCode: httpResponse.statusCode)
+        }
+    }
 }
