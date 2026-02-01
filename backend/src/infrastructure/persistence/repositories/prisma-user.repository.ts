@@ -1,4 +1,4 @@
-import { PrismaClient } from '../../../../prisma/generated';
+import { PrismaClient, Prisma } from '../../../../prisma/generated';
 import { UserRepository } from '../../../application/ports/user.repository';
 import { User } from '../../../domain/entities/user';
 import { AppleId } from '../../../domain/value-objects/ids/apple-id.vo';
@@ -49,11 +49,18 @@ export class PrismaUserRepository implements UserRepository {
 
   async upsertByAppleId(user: User): Promise<User> {
     const data = UserMapper.toPersistence(user);
+
+    // Build update object with non-null fields
+    const updateData: Prisma.UserUpdateInput = {};
+    if (data.email !== null) updateData.email = data.email;
+    if (data.firstName !== null) updateData.firstName = data.firstName;
+    if (data.lastName !== null) updateData.lastName = data.lastName;
+
     const savedUser = await this.prisma.user.upsert({
       where: {
         appleUserIdentifier: user.appleId.value,
       },
-      update: {},
+      update: updateData,
       create: data,
     });
     return UserMapper.toDomain(savedUser);
