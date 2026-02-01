@@ -1,6 +1,7 @@
 import Foundation
 import MusicKit
 
+@MainActor
 class AppleMusicRepository: MusicRepository {
     
     func requestAuthorization() async -> MusicAuthorization.Status {

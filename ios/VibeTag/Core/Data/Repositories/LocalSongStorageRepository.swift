@@ -1,6 +1,7 @@
 import Foundation
 import SwiftData
 
+@MainActor
 class LocalSongStorageRepository: SongStorageRepository {
     private let modelContext: ModelContext
     

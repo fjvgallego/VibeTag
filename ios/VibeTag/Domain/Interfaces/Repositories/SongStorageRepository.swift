@@ -1,5 +1,6 @@
 import Foundation
 
+@MainActor
 protocol SongStorageRepository {
     func fetchAllSongs() throws -> [VTSong]
     func songExists(id: String) throws -> Bool

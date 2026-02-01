@@ -8,9 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		09ED37662F2DED4E00E06F4D /* Nunito-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 09ED37622F2DED4E00E06F4D /* Nunito-Regular.ttf */; };
-		09ED37672F2DED4E00E06F4D /* Nunito-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 09ED37632F2DED4E00E06F4D /* Nunito-Bold.ttf */; };
-		09ED37682F2DED4E00E06F4D /* Nunito-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 09ED37642F2DED4E00E06F4D /* Nunito-SemiBold.ttf */; };
-		09ED37692F2DED4E00E06F4D /* Nunito-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 09ED37652F2DED4E00E06F4D /* Nunito-Medium.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -45,6 +42,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
+				"Resources/Fonts/Nunito-Regular.ttf",
 			);
 			target = 095FC57B2F26216C0011E85F /* VibeTag */;
 		};
@@ -103,6 +101,7 @@
 				095FC58E2F26216F0011E85F /* VibeTagTests */,
 				095FC5982F26216F0011E85F /* VibeTagUITests */,
 				095FC57D2F26216C0011E85F /* Products */,
+				09622ED22F2F91A400F3BF8F /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -114,6 +113,17 @@
 				095FC5952F26216F0011E85F /* VibeTagUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		09622ED22F2F91A400F3BF8F /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				09ED37622F2DED4E00E06F4D /* Nunito-Regular.ttf */,
+				09ED37632F2DED4E00E06F4D /* Nunito-Bold.ttf */,
+				09ED37642F2DED4E00E06F4D /* Nunito-SemiBold.ttf */,
+				09ED37652F2DED4E00E06F4D /* Nunito-Medium.ttf */,
+			);
+			name = "Recovered References";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -237,9 +247,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				09ED37662F2DED4E00E06F4D /* Nunito-Regular.ttf in Resources */,
-				09ED37672F2DED4E00E06F4D /* Nunito-Bold.ttf in Resources */,
-				09ED37682F2DED4E00E06F4D /* Nunito-SemiBold.ttf in Resources */,
-				09ED37692F2DED4E00E06F4D /* Nunito-Medium.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -454,7 +461,7 @@
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
@@ -495,7 +502,7 @@
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;

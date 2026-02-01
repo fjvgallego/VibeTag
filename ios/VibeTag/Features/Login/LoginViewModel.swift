@@ -10,7 +10,7 @@ class LoginViewModel: NSObject {
     
     private let authRepository: AuthRepository
     
-    init(authRepository: AuthRepository = VibeTagAuthRepository(),
+    init(authRepository: AuthRepository,
          sessionManager: SessionManager? = nil) {
         self.authRepository = authRepository
         self.sessionManager = sessionManager

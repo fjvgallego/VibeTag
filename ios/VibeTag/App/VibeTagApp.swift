@@ -17,7 +17,9 @@ struct VibeTagApp: App {
         let tokenStorage = KeychainTokenStorage()
         APIClient.shared.setup(tokenStorage: tokenStorage)
         
-        self._sessionManager = State(initialValue: SessionManager(tokenStorage: tokenStorage))
+        let authRepository = VibeTagAuthRepository()
+        
+        self._sessionManager = State(initialValue: SessionManager(tokenStorage: tokenStorage, authRepository: authRepository))
     }
     
     var body: some Scene {

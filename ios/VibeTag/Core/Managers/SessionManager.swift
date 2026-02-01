@@ -9,7 +9,7 @@ class SessionManager {
     private let tokenStorage: TokenStorage
     private let authRepository: AuthRepository
     
-    init(tokenStorage: TokenStorage = KeychainTokenStorage(), authRepository: AuthRepository = VibeTagAuthRepository()) {
+    init(tokenStorage: TokenStorage, authRepository: AuthRepository) {
         self.tokenStorage = tokenStorage
         self.authRepository = authRepository
         self.isAuthenticated = tokenStorage.getToken() != nil

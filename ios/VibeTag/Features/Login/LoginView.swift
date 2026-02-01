@@ -2,7 +2,7 @@ import SwiftUI
 import AuthenticationServices
 
 struct LoginView: View {
-    @State private var viewModel = LoginViewModel()
+    @State private var viewModel = LoginViewModel(authRepository: VibeTagAuthRepository())
     @Environment(\.dismiss) private var dismiss
     @Environment(SessionManager.self) var sessionManager
     
@@ -54,5 +54,5 @@ struct LoginView: View {
 
 #Preview {
     LoginView()
-        .environment(SessionManager())
+        .environment(SessionManager(tokenStorage: KeychainTokenStorage(), authRepository: VibeTagAuthRepository()))
 }

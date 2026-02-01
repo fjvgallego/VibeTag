@@ -1,6 +1,7 @@
 import Foundation
 import MusicKit
 
+@MainActor
 protocol MusicRepository {
     func searchSongs(query: String) async throws -> [VTSong]
     func requestAuthorization() async -> MusicAuthorization.Status
