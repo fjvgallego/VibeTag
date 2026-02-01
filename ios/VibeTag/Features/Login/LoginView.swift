@@ -4,6 +4,7 @@ import AuthenticationServices
 struct LoginView: View {
     @State private var viewModel = LoginViewModel()
     @Environment(\.dismiss) private var dismiss
+    @Environment(SessionManager.self) var sessionManager
     
     var body: some View {
         VStack(spacing: 20) {
@@ -40,6 +41,9 @@ struct LoginView: View {
             }
         }
         .padding()
+        .onAppear {
+            viewModel = LoginViewModel(sessionManager: sessionManager)
+        }
         .onChange(of: viewModel.isAuthenticated) { _, newValue in
             if newValue {
                 dismiss()
@@ -50,4 +54,5 @@ struct LoginView: View {
 
 #Preview {
     LoginView()
+        .environment(SessionManager())
 }

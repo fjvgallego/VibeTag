@@ -6,6 +6,7 @@ struct HomeView: View {
     @State private var showingLogin = false
     @Environment(AppRouter.self) private var router
     @Environment(\.modelContext) private var modelContext
+    @Environment(SessionManager.self) var sessionManager
     
     var body: some View {
         ScrollView {
@@ -23,10 +24,22 @@ struct HomeView: View {
                     }
                     .disabled(viewModel.isSyncing)
                     
-                    Button {
-                        showingLogin = true
-                    } label: {
-                        Image(systemName: "person.circle")
+                    if sessionManager.isAuthenticated {
+                        Menu {
+                            Button("Logged in", action: {}).disabled(true)
+                            Button("Logout", role: .destructive) {
+                                sessionManager.logout()
+                            }
+                        } label: {
+                            Image(systemName: "person.circle.fill")
+                                .foregroundColor(.blue)
+                        }
+                    } else {
+                        Button {
+                            showingLogin = true
+                        } label: {
+                            Image(systemName: "person.circle")
+                        }
                     }
                 }
             }
@@ -48,5 +61,6 @@ struct HomeView: View {
 #Preview {
     HomeView()
         .environment(AppRouter())
+        .environment(SessionManager())
         .modelContainer(for: [VTSong.self, Tag.self], inMemory: true)
 }

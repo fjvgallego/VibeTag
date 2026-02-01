@@ -10,9 +10,12 @@ import SwiftData
 
 @main
 struct VibeTagApp: App {
+    @State private var sessionManager = SessionManager()
+    
     var body: some Scene {
         WindowGroup {
             RootView()
+                .environment(sessionManager)
         }
         .modelContainer(for: [VTSong.self, Tag.self])
     }

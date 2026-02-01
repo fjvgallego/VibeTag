@@ -8,12 +8,12 @@ class LoginViewModel: NSObject {
     var isAuthenticated: Bool = false
     
     private let authRepository: AuthRepository
-    private let tokenStorage: TokenStorage
+    private let sessionManager: SessionManager?
     
     init(authRepository: AuthRepository = VibeTagAuthRepository(),
-         tokenStorage: TokenStorage = KeychainTokenStorage()) {
+         sessionManager: SessionManager? = nil) {
         self.authRepository = authRepository
-        self.tokenStorage = tokenStorage
+        self.sessionManager = sessionManager
     }
     
     func handleAuthorization(result: Result<ASAuthorization, Error>) {
@@ -36,7 +36,12 @@ class LoginViewModel: NSObject {
                         lastName: lastName
                     )
                     
-                    try tokenStorage.save(token: response.token)
+                    if let sessionManager = sessionManager {
+                        sessionManager.login(token: response.token)
+                    } else {
+                        // Fallback if sessionManager is not provided (e.g. tests)
+                        try KeychainTokenStorage().save(token: response.token)
+                    }
                     
                     self.isAuthenticated = true
                 } catch {
