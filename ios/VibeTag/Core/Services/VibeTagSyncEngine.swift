@@ -18,12 +18,6 @@ class VibeTagSyncEngine: SyncEngine {
         self.networkMonitor = networkMonitor
         
         setupObservation()
-        
-        // Sync on Launch
-        Task {
-            await pullRemoteData()
-            await syncPendingChanges()
-        }
     }
     
     private func setupObservation() {
@@ -67,7 +61,7 @@ class VibeTagSyncEngine: SyncEngine {
                 let tagsToSync = song.tags.map { $0.name }.sorted()
                 
                 do {
-                    let dto = UpdateSongDTO(tags: tagsToSync)
+                    let dto = UpdateSongDTO(tags: tagsToSync, title: song.title, artist: song.artist)
                     try await APIClient.shared.requestVoid(SongEndpoint.updateSong(id: song.id, dto: dto))
                     
                     // Check if tags changed during upload (Race Condition Fix)

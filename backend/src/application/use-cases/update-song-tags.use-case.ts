@@ -16,12 +16,11 @@ export class UpdateSongTagsUseCase implements UseCase<UpdateSongTagsInput, void,
   public async execute(request: UpdateSongTagsInput): Promise<Result<void, AppError>> {
     try {
       const userId = UserId.create(request.userId);
-      
-      await this.analysisRepository.updateSongTags(
-        userId,
-        request.songId,
-        request.tags
-      );
+
+      await this.analysisRepository.updateSongTags(userId, request.songId, request.tags, {
+        title: request.title,
+        artist: request.artist,
+      });
 
       return Result.ok<void, AppError>(undefined);
     } catch (error) {

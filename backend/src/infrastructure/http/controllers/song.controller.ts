@@ -6,7 +6,7 @@ import { AppError } from '../../../domain/errors/app-error';
 export class SongController {
   constructor(
     private readonly updateSongTagsUseCase: UpdateSongTagsUseCase,
-    private readonly getUserLibraryUseCase: GetUserLibraryUseCase
+    private readonly getUserLibraryUseCase: GetUserLibraryUseCase,
   ) {}
 
   public async getSyncedSongs(req: Request, res: Response): Promise<void> {
@@ -30,8 +30,8 @@ export class SongController {
   }
 
   public async updateTags(req: Request, res: Response): Promise<void> {
-    const songId = req.params.id as string;
-    const { tags } = req.body;
+    const songId = req.params.id;
+    const { tags, title, artist } = req.body;
     const userId = req.user?.userId;
 
     if (!userId) {
@@ -39,10 +39,32 @@ export class SongController {
       return;
     }
 
+    if (!songId || typeof songId !== 'string') {
+      res.status(400).json({ error: 'Invalid song ID' });
+      return;
+    }
+
+    if (!Array.isArray(tags) || !tags.every((t) => typeof t === 'string')) {
+      res.status(400).json({ error: 'Tags must be an array of strings' });
+      return;
+    }
+
+    if (!title || typeof title !== 'string') {
+      res.status(400).json({ error: 'Title is required and must be a string' });
+      return;
+    }
+
+    if (!artist || typeof artist !== 'string') {
+      res.status(400).json({ error: 'Artist is required and must be a string' });
+      return;
+    }
+
     const result = await this.updateSongTagsUseCase.execute({
       userId,
       songId,
       tags,
+      title,
+      artist,
     });
 
     if (result.isFailure) {

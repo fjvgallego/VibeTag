@@ -1,5 +1,5 @@
 //
-//  SyncService.swift
+//  LibraryImportSyncService.swift
 //  VibeTag
 //
 //  Created by Francisco Javier Gallego Lahera on 1/2/26.

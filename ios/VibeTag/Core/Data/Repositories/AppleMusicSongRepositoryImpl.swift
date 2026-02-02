@@ -1,6 +1,8 @@
 import Foundation
 import MusicKit
+import Observation
 
+@Observable
 @MainActor
 class AppleMusicSongRepositoryImpl: SongRepository {
     

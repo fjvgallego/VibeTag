@@ -1,6 +1,8 @@
 import Foundation
 import SwiftData
+import Observation
 
+@Observable
 @MainActor
 class LocalSongStorageRepositoryImpl: SongStorageRepository {
     private let modelContext: ModelContext

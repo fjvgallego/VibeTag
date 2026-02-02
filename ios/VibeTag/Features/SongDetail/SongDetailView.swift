@@ -5,7 +5,13 @@ struct SongDetailView: View {
     @State private var showingAddTagAlert = false
     @State private var newTagName = ""
     
-    init(viewModel: SongDetailViewModel) {
+    init(song: VTSong, container: AppContainer, syncEngine: SyncEngine) {
+        let viewModel = SongDetailViewModel(
+            song: song,
+            useCase: container.analyzeSongUseCase,
+            repository: container.localRepo,
+            syncEngine: syncEngine
+        )
         self._viewModel = State(initialValue: viewModel)
     }
     
@@ -110,9 +116,10 @@ struct SongDetailView: View {
             TextField("Tag name", text: $newTagName)
                 .textInputAutocapitalization(.never)
             Button("Add") {
-                viewModel.addTag(newTagName)
+                viewModel.addTag(newTagName.trimmingCharacters(in: .whitespacesAndNewlines))
                 newTagName = ""
             }
+            .disabled(newTagName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             Button("Cancel", role: .cancel) {
                 newTagName = ""
             }

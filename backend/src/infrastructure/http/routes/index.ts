@@ -18,7 +18,7 @@ export function createAppRouter(container: Dependencies): Router {
   );
   const songController = new SongController(
     container.updateSongTagsUseCase,
-    container.getUserLibraryUseCase
+    container.getUserLibraryUseCase,
   );
 
   // Register routes

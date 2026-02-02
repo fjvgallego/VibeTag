@@ -7,13 +7,25 @@ import { VTDate } from '../../../domain/value-objects/vt-date.vo';
 import { UserId } from '../../../domain/value-objects/ids/user-id.vo';
 
 export class PrismaAnalysisRepository implements IAnalysisRepository {
-  public async findBySong(title: string, artist: string, userId?: string, songId?: string): Promise<Analysis | null> {
+  public async findBySong(
+    title: string,
+    artist: string,
+    userId?: string,
+    songId?: string,
+  ): Promise<Analysis | null> {
+    const userFilter = userId ? { userId: userId } : undefined;
+
     const song = await prisma.song.findFirst({
-      where: songId ? { id: songId } : { title: title, artist: artist },
+      where: songId
+        ? { id: songId }
+        : {
+            title: { equals: title, mode: 'insensitive' },
+            artist: { equals: artist, mode: 'insensitive' },
+          },
       include: {
         songTags: {
           where: {
-            OR: [{ tag: { type: 'SYSTEM' } }, ...(userId ? [{ userId: userId }] : [])],
+            OR: [{ tag: { type: 'SYSTEM' } }, ...(userFilter ? [userFilter] : [])],
           },
           include: {
             tag: true,
@@ -26,13 +38,6 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
       return null;
     }
 
-    const metadata = SongMetadata.create(
-      song.title,
-      song.artist,
-      undefined, // album and genre mapping depends on schema
-      undefined,
-    );
-
     const tags = song.songTags.map((st) => {
       let source: VibeTagSource = 'user';
       if (st.tag.type === 'SYSTEM') {
@@ -41,14 +46,14 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
       return VibeTag.create(st.tag.name, source, st.tag.id);
     });
 
-    // We assume a 'createdAt' exists or we use a fallback
+    const metadata = SongMetadata.create(song.title, song.artist, undefined, undefined);
+
     return Analysis.create(metadata, tags, VTDate.now(), song.id);
   }
 
   public async save(analysis: Analysis): Promise<void> {
-    // Persist Analysis aggregate: song, tags and pivot SongTag rows.
-    // Note: This uses simple defaults for fields like `color` and `userId`.
     await prisma.$transaction(async (tx) => {
+      // 1. Upsert Song
       await tx.song.upsert({
         where: { id: analysis.id.value },
         update: {
@@ -63,8 +68,7 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
         },
       });
 
-      // Persist pivot relation. `userId` is required by schema.
-      // For AI-generated tags, we assign them to a 'SYSTEM' user.
+      // 2. Ensure System User exists
       const systemUser = await tx.user.upsert({
         where: { appleUserIdentifier: 'SYSTEM' },
         update: {},
@@ -72,89 +76,87 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
           appleUserIdentifier: 'SYSTEM',
         },
       });
-      const placeholderUserId = systemUser.id;
+      const systemUserId = systemUser.id;
 
-      for (const tag of analysis.tags) {
-        const tagType = tag.source === 'ai' ? 'SYSTEM' : 'USER';
+      // 3. Process Tags (FIX: Lookup by Name, not ID)
+      for (const tagDomain of analysis.tags) {
+        const targetType = tagDomain.source === 'ai' ? 'SYSTEM' : 'USER';
 
-        await tx.tag.upsert({
-          where: { id: tag.id.value },
-          update: {
-            name: tag.name,
-            type: tagType,
-          },
-          create: {
-            id: tag.id.value,
-            name: tag.name,
-            color: '',
-            type: tagType,
+        let dbTag = await tx.tag.findFirst({
+          where: {
+            name: tagDomain.name,
+            type: targetType,
           },
         });
+
+        if (!dbTag) {
+          dbTag = await tx.tag.create({
+            data: {
+              name: tagDomain.name,
+              color: '#808080',
+              type: targetType,
+              ownerId: targetType === 'USER' ? '...' : systemUserId,
+            },
+          });
+        }
 
         await tx.songTag.upsert({
           where: {
             songId_tagId_userId: {
               songId: analysis.id.value,
-              tagId: tag.id.value,
-              userId: placeholderUserId,
+              tagId: dbTag.id,
+              userId: systemUserId,
             },
           },
           update: {},
           create: {
             songId: analysis.id.value,
-            tagId: tag.id.value,
-            userId: placeholderUserId,
+            tagId: dbTag.id,
+            userId: systemUserId,
           },
         });
       }
     });
   }
 
-  public async updateSongTags(userId: UserId, songId: string, tags: string[]): Promise<void> {
+  public async updateSongTags(
+    userId: UserId,
+    songId: string,
+    tags: string[],
+    metadata: { title: string; artist: string },
+  ): Promise<void> {
+    const uniqueTags = Array.from(new Set(tags));
     await prisma.$transaction(async (tx) => {
-      // 1. Ensure the song exists
+      // Upsert Song
       await tx.song.upsert({
         where: { id: songId },
-        update: {},
-        create: {
-          id: songId,
-          title: 'Unknown Title',
-          artist: 'Unknown Artist',
-        },
+        update: { title: metadata.title, artist: metadata.artist },
+        create: { id: songId, title: metadata.title, artist: metadata.artist, artworkUrl: '' },
       });
 
-      // 2. Remove existing tags for this user and song
+      // Delete old relations
       await tx.songTag.deleteMany({
-        where: {
-          userId: userId.value,
-          songId: songId,
-        },
+        where: { userId: userId.value, songId: songId },
       });
 
-      // 3. Link new tags
-      for (const tagName of tags) {
-        // Find if a system tag or user tag already exists with this name
+      // Create new ones
+      for (const tagName of uniqueTags) {
+        // Find reusable tag (SYSTEM or MINE)
         let tag = await tx.tag.findFirst({
-          where: { name: tagName },
+          where: {
+            name: tagName,
+            OR: [{ type: 'SYSTEM' }, { ownerId: userId.value }],
+          },
         });
 
         if (!tag) {
           tag = await tx.tag.create({
-            data: {
-              name: tagName,
-              color: '#808080',
-              type: 'USER',
-              ownerId: userId.value,
-            },
+            data: { name: tagName, color: '#808080', type: 'USER', ownerId: userId.value },
           });
         }
 
         await tx.songTag.create({
-          data: {
-            songId: songId,
-            tagId: tag.id,
-            userId: userId.value,
-          },
+          data: { songId, tagId: tag.id, userId: userId.value },
         });
       }
     });

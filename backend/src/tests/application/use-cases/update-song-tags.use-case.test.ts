@@ -30,9 +30,9 @@ describe('UpdateSongTagsUseCase', () => {
     expect(mockAnalysisRepository.updateSongTags).toHaveBeenCalledWith(
       expect.any(UserId),
       songId,
-      tags
+      tags,
     );
-    
+
     const callUserId = (mockAnalysisRepository.updateSongTags as Mock).mock.calls[0][0];
     expect(callUserId.value).toBe(userId);
   });
