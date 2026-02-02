@@ -5,6 +5,7 @@ struct LoginView: View {
     @State private var viewModel = LoginViewModel(authRepository: VibeTagAuthRepositoryImpl())
     @Environment(\.dismiss) private var dismiss
     @Environment(SessionManager.self) var sessionManager
+    @Environment(VibeTagSyncEngine.self) var syncEngine
     
     var body: some View {
         VStack(spacing: 20) {
@@ -43,6 +44,7 @@ struct LoginView: View {
         .padding()
         .onAppear {
             viewModel.sessionManager = sessionManager
+            viewModel.syncEngine = syncEngine
         }
         .onChange(of: viewModel.isAuthenticated) { _, newValue in
             if newValue {

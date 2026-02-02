@@ -7,7 +7,11 @@ export class AnalyzeController {
 
   public async analyze(req: Request, res: Response): Promise<Response> {
     try {
-      const result = await this.analyzeUseCase.execute(req.body);
+      const userId = req.user?.userId;
+      const result = await this.analyzeUseCase.execute({
+        ...req.body,
+        userId,
+      });
 
       if (result.success) {
         return res.json(result.data);

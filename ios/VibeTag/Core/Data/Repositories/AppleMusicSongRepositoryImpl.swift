@@ -5,7 +5,7 @@ import MusicKit
 class AppleMusicSongRepositoryImpl: SongRepository {
     
     func fetchAnalysis(for song: VTSong) async throws -> [String] {
-        let endpoint = SongEndpoint.analyze(artist: song.artist, title: song.title)
+        let endpoint = SongEndpoint.analyze(id: song.id, artist: song.artist, title: song.title)
         let response: AnalyzeResponseDTO = try await APIClient.shared.request(endpoint)
         return response.toDomain()
     }

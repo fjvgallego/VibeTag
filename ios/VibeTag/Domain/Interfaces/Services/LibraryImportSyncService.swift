@@ -7,6 +7,6 @@
 
 import Foundation
 
-protocol SyncService {
+protocol LibraryImportSyncService {
     func syncLibrary() async throws
 }

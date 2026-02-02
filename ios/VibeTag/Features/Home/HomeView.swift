@@ -8,6 +8,7 @@ struct HomeView: View {
     @Environment(AppRouter.self) private var router
     @Environment(\.modelContext) private var modelContext
     @Environment(SessionManager.self) var sessionManager
+    @Environment(VibeTagSyncEngine.self) var syncEngine
     
     var body: some View {
         ScrollView {
@@ -21,6 +22,7 @@ struct HomeView: View {
                     Button("Sync Library") {
                         Task {
                             await viewModel.syncLibrary(modelContext: modelContext)
+                            await syncEngine.pullRemoteData()
                         }
                     }
                     .disabled(viewModel.isSyncing)

@@ -23,6 +23,8 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
       const existingAnalysis = await this.analysisRepository.findBySong(
         normalizedTitle,
         normalizedArtist,
+        request.userId,
+        request.songId,
       );
 
       if (existingAnalysis) {
@@ -44,7 +46,7 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
       // Map strings to VibeTag entities
       const newTags = aiVibes.map((vibe) => VibeTag.create(vibe, 'ai'));
 
-      const newAnalysis = Analysis.create(songMetadata, newTags, VTDate.now());
+      const newAnalysis = Analysis.create(songMetadata, newTags, VTDate.now(), request.songId);
 
       await this.analysisRepository.save(newAnalysis);
 

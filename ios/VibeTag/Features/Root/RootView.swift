@@ -36,6 +36,7 @@ struct SongDetailDestinationView: View {
     let songID: String
     @Query private var songs: [VTSong]
     @Environment(\.modelContext) private var modelContext
+    @Environment(VibeTagSyncEngine.self) private var syncEngine
     
     init(songID: String) {
         self.songID = songID
@@ -44,12 +45,15 @@ struct SongDetailDestinationView: View {
     
     var body: some View {
         if let song = songs.first {
+            let localRepo = LocalSongStorageRepositoryImpl(modelContext: modelContext)
             SongDetailView(viewModel: SongDetailViewModel(
                 song: song,
                 useCase: AnalyzeSongUseCase(
                     remoteRepository: AppleMusicSongRepositoryImpl(),
-                    localRepository: LocalSongStorageRepositoryImpl(modelContext: modelContext)
-                )
+                    localRepository: localRepo
+                ),
+                repository: localRepo,
+                syncEngine: syncEngine
             ))
         } else {
             ContentUnavailableView("Song Not Found", systemImage: "music.note.list")

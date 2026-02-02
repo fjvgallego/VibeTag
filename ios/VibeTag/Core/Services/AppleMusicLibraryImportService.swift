@@ -20,7 +20,7 @@ enum MusicSyncError: LocalizedError {
 }
 
 @MainActor
-class MusicSyncService: SyncService {
+class AppleMusicLibraryImportService: LibraryImportSyncService {
     private let musicAuthRepository: MusicAuthRepository
     private let songRepository: SongRepository
     private let storage: SongStorageRepository

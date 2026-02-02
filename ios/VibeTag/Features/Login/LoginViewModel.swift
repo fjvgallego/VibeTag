@@ -7,13 +7,16 @@ class LoginViewModel: NSObject {
     var errorMessage: String?
     var isAuthenticated: Bool = false
     var sessionManager: SessionManager?
+    var syncEngine: SyncEngine?
     
     private let authRepository: AuthRepository
     
     init(authRepository: AuthRepository,
-         sessionManager: SessionManager? = nil) {
+         sessionManager: SessionManager? = nil,
+         syncEngine: SyncEngine? = nil) {
         self.authRepository = authRepository
         self.sessionManager = sessionManager
+        self.syncEngine = syncEngine
     }
     
     func handleAuthorization(result: Result<ASAuthorization, Error>) {
@@ -45,6 +48,9 @@ class LoginViewModel: NSObject {
                         try KeychainTokenStorage().save(token: response.token)
                         self.isAuthenticated = true
                     }
+                    
+                    // Trigger remote data pull after login
+                    await syncEngine?.pullRemoteData()
                 } catch {
                     self.errorMessage = error.localizedDescription
                     print("Login Error: \(error)")

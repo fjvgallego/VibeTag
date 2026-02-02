@@ -4,20 +4,17 @@ import { SongMetadata } from '../../../domain/value-objects/song-metadata.vo';
 import { VibeTag, VibeTagSource } from '../../../domain/entities/vibe-tag';
 import { prisma } from '../../database/prisma.client';
 import { VTDate } from '../../../domain/value-objects/vt-date.vo';
+import { UserId } from '../../../domain/value-objects/ids/user-id.vo';
 
 export class PrismaAnalysisRepository implements IAnalysisRepository {
-  public async findBySong(title: string, artist: string): Promise<Analysis | null> {
-    // Note: The current schema.prisma might not match this exactly yet.
-    // This implementation assumes a structure that can store Analysis and Tags.
-    // For now, we use a findFirst on Song if it exists and map it.
-
+  public async findBySong(title: string, artist: string, userId?: string, songId?: string): Promise<Analysis | null> {
     const song = await prisma.song.findFirst({
-      where: {
-        title: title,
-        artist: artist,
-      },
+      where: songId ? { id: songId } : { title: title, artist: artist },
       include: {
         songTags: {
+          where: {
+            OR: [{ tag: { type: 'SYSTEM' } }, ...(userId ? [{ userId: userId }] : [])],
+          },
           include: {
             tag: true,
           },
@@ -107,6 +104,56 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
             songId: analysis.id.value,
             tagId: tag.id.value,
             userId: placeholderUserId,
+          },
+        });
+      }
+    });
+  }
+
+  public async updateSongTags(userId: UserId, songId: string, tags: string[]): Promise<void> {
+    await prisma.$transaction(async (tx) => {
+      // 1. Ensure the song exists
+      await tx.song.upsert({
+        where: { id: songId },
+        update: {},
+        create: {
+          id: songId,
+          title: 'Unknown Title',
+          artist: 'Unknown Artist',
+        },
+      });
+
+      // 2. Remove existing tags for this user and song
+      await tx.songTag.deleteMany({
+        where: {
+          userId: userId.value,
+          songId: songId,
+        },
+      });
+
+      // 3. Link new tags
+      for (const tagName of tags) {
+        // Find if a system tag or user tag already exists with this name
+        let tag = await tx.tag.findFirst({
+          where: { name: tagName },
+        });
+
+        if (!tag) {
+          tag = await tx.tag.create({
+            data: {
+              name: tagName,
+              color: '#808080',
+              type: 'USER',
+              ownerId: userId.value,
+            },
+          });
+        }
+
+        await tx.songTag.create({
+          data: {
+            songId: songId,
+            tagId: tag.id,
+            userId: userId.value,
           },
         });
       }

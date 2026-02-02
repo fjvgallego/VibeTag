@@ -4,6 +4,7 @@ import SwiftData
 struct TagSheetView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(VibeTagSyncEngine.self) private var syncEngine
     
     @Bindable var song: VTSong
     
@@ -82,6 +83,8 @@ struct TagSheetView: View {
         } else {
             song.tags.append(tag)
         }
+        
+        triggerSync()
     }
     
     private func createNewTag() {
@@ -102,6 +105,17 @@ struct TagSheetView: View {
         
         newTagName = ""
         isCreatingTag = false
+        
+        triggerSync()
+    }
+    
+    private func triggerSync() {
+        song.syncStatus = .pendingUpload
+        try? modelContext.save()
+        
+        Task {
+            await syncEngine.syncPendingChanges()
+        }
     }
     
     private func deleteTags(at offsets: IndexSet) {
@@ -109,5 +123,7 @@ struct TagSheetView: View {
             let tagToDelete = tags[index]
             modelContext.delete(tagToDelete)
         }
+        
+        triggerSync()
     }
 }
