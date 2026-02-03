@@ -100,4 +100,21 @@ class APIClient {
             throw APIError.httpError(statusCode: httpResponse.statusCode)
         }
     }
+    
+    /// Sends a simple request to the root to trigger Local Network permissions on iOS 14+
+    func ping() {
+        guard let url = URL(string: baseURL) else { return }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        
+        Task {
+            do {
+                let _ = try await URLSession.shared.data(for: request)
+                // Success - permission granted or network available
+            } catch {
+                // Ignore errors - we just wanted to trigger the permission prompt
+                print("Ping failed (expected during first launch if permission pending): \(error)")
+            }
+        }
+    }
 }

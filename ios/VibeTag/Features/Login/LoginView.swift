@@ -45,6 +45,8 @@ struct LoginView: View {
         .onAppear {
             viewModel.sessionManager = sessionManager
             viewModel.syncEngine = syncEngine
+            // Trigger Local Network permission prompt early
+            APIClient.shared.ping()
         }
         .onChange(of: viewModel.isAuthenticated) { _, newValue in
             if newValue {
