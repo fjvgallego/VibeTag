@@ -80,7 +80,13 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
 
       // 3. Process Tags (FIX: Lookup by Name, not ID)
       for (const tagDomain of analysis.tags) {
-        const targetType = tagDomain.source === 'ai' ? 'SYSTEM' : 'USER';
+        if (tagDomain.source === 'user') {
+          throw new Error(
+            'Cannot save USER tags in Analysis save() without explicit user context.',
+          );
+        }
+
+        const targetType = 'SYSTEM'; // Since we rejected USER, it must be AI -> SYSTEM
 
         let dbTag = await tx.tag.findFirst({
           where: {
@@ -95,7 +101,7 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
               name: tagDomain.name,
               color: '#808080',
               type: targetType,
-              ownerId: targetType === 'USER' ? '...' : systemUserId,
+              ownerId: systemUserId,
             },
           });
         }

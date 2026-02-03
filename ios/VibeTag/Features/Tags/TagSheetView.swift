@@ -111,10 +111,14 @@ struct TagSheetView: View {
     
     private func triggerSync() {
         song.syncStatus = .pendingUpload
-        try? modelContext.save()
         
-        Task {
-            await syncEngine.syncPendingChanges()
+        do {
+            try modelContext.save()
+            Task {
+                await syncEngine.syncPendingChanges()
+            }
+        } catch {
+            print("Failed to save model context: \(error.localizedDescription)")
         }
     }
     

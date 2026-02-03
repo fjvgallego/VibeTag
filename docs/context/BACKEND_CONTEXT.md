@@ -19,7 +19,7 @@
 
 ## Architecture & API
 - **Pattern:** Clean Architecture.
-  - **Domain:** Enterprise business rules (Entities, Value Objects, Domain Errors). Dependency free.
+  - **Domain:** Enterprise business rules (Entities, Value Objects, Domain Errors). Dependency-free.
   - **Application:** Application business rules (Use Cases, DTOs, Ports/Interfaces). Depends only on Domain.
   - **Infrastructure:** Frameworks & Drivers (Database/Prisma, Web/Express Routes & Controllers, Gemini AI Service, Apple Auth). Implements interfaces defined in Application.
   - **Composition:** Dependency Injection (Containers, Config). Wires everything together.
