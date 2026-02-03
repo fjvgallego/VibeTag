@@ -1,13 +1,13 @@
+import './instrument';
+import * as Sentry from '@sentry/node';
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
+import { config } from './composition/config/config';
 import { buildContainer } from './composition/containers/container';
 import { createAppRouter } from './infrastructure/http/routes';
 
-dotenv.config();
-
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = config.PORT || 3000;
 
 app.use(cors());
 
@@ -24,6 +24,8 @@ app.get('/', (req, res) => {
 });
 
 app.use(createAppRouter(container));
+
+Sentry.setupExpressErrorHandler(app);
 
 app.listen(PORT, () => {
   console.info(`Server running on port ${PORT}`);

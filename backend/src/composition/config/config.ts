@@ -10,6 +10,7 @@ export const envSchema = z.object({
   GEMINI_API_KEY: z.string(),
   APPLE_CLIENT_ID: z.string(),
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 chars'),
+  SENTRY_DSN: z.string().url().optional(),
   PORT: z
     .string()
     .default('3000')
@@ -32,4 +33,5 @@ export const config = {
   GEMINI_API_KEY: env.GEMINI_API_KEY,
   APPLE_CLIENT_ID: env.APPLE_CLIENT_ID,
   JWT_SECRET: env.JWT_SECRET,
+  SENTRY_DSN: env.SENTRY_DSN,
 };
