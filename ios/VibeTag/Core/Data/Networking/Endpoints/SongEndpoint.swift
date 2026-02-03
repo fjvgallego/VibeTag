@@ -3,7 +3,7 @@ import Foundation
 enum SongEndpoint: Endpoint {
     case analyze(id: String?, artist: String, title: String)
     case updateSong(id: String, dto: UpdateSongDTO)
-    case getSyncedSongs
+    case getSyncedSongs(page: Int, limit: Int)
     
     var path: String {
         switch self {
@@ -38,6 +38,18 @@ enum SongEndpoint: Endpoint {
         case .updateSong(_, let dto):
             return dto
         case .getSyncedSongs:
+            return nil
+        }
+    }
+    
+    var queryItems: [URLQueryItem]? {
+        switch self {
+        case .getSyncedSongs(let page, let limit):
+            return [
+                URLQueryItem(name: "page", value: String(page)),
+                URLQueryItem(name: "limit", value: String(limit))
+            ]
+        default:
             return nil
         }
     }

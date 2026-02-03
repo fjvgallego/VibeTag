@@ -6,9 +6,13 @@ import { AppError, UseCaseError } from '../../domain/errors/app-error';
 export class GetUserLibraryUseCase {
   constructor(private readonly songRepository: ISongRepository) {}
 
-  public async execute(userId: string): Promise<Result<UserSongLibraryDTO[], AppError>> {
+  public async execute(
+    userId: string,
+    page: number,
+    limit: number,
+  ): Promise<Result<UserSongLibraryDTO[], AppError>> {
     try {
-      const library = await this.songRepository.findUserLibrary(userId);
+      const library = await this.songRepository.findUserLibrary(userId, { page, limit });
       return Result.ok(library);
     } catch (error) {
       console.error('Error fetching user library:', error);

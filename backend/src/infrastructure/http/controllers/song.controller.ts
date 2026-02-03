@@ -17,7 +17,10 @@ export class SongController {
       return;
     }
 
-    const result = await this.getUserLibraryUseCase.execute(userId);
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 50;
+
+    const result = await this.getUserLibraryUseCase.execute(userId, page, limit);
 
     if (result.isFailure) {
       const error = result.getError();

@@ -39,10 +39,24 @@ class VibeTagSyncEngine: SyncEngine {
         defer { isPulling = false }
         
         do {
-            // 2. Fetch remote tags (Downstream Sync)
-            let remoteLibrary: [SyncedSongDTO] = try await APIClient.shared.request(SongEndpoint.getSyncedSongs)
-            try await localRepo.hydrateRemoteTags(remoteLibrary)
-            print("Successfully pulled and hydrated remote tags.")
+            // 2. Fetch remote tags (Downstream Sync) with Pagination
+            let limit = 100
+            var page = 1
+            var hasMoreData = true
+            
+            while hasMoreData {
+                let remoteLibrary: [SyncedSongDTO] = try await APIClient.shared.request(SongEndpoint.getSyncedSongs(page: page, limit: limit))
+                if !remoteLibrary.isEmpty {
+                    try await localRepo.hydrateRemoteTags(remoteLibrary)
+                }
+                
+                if remoteLibrary.count < limit {
+                    hasMoreData = false
+                } else {
+                    page += 1
+                }
+            }
+            print("Successfully pulled and hydrated all remote tags.")
         } catch {
             print("Failed to pull remote data: \(error.localizedDescription)")
         }

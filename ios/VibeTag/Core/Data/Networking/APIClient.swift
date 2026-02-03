@@ -15,7 +15,15 @@ class APIClient {
     }
     
     func request<T: Decodable>(_ endpoint: Endpoint) async throws -> T {
-        guard let url = URL(string: "\(baseURL)\(endpoint.path)") else {
+        guard var components = URLComponents(string: "\(baseURL)\(endpoint.path)") else {
+            throw APIError.invalidURL
+        }
+        
+        if let queryItems = endpoint.queryItems {
+            components.queryItems = queryItems
+        }
+        
+        guard let url = components.url else {
             throw APIError.invalidURL
         }
         
@@ -63,7 +71,15 @@ class APIClient {
     }
     
     func requestVoid(_ endpoint: Endpoint) async throws {
-        guard let url = URL(string: "\(baseURL)\(endpoint.path)") else {
+        guard var components = URLComponents(string: "\(baseURL)\(endpoint.path)") else {
+            throw APIError.invalidURL
+        }
+        
+        if let queryItems = endpoint.queryItems {
+            components.queryItems = queryItems
+        }
+        
+        guard let url = components.url else {
             throw APIError.invalidURL
         }
         

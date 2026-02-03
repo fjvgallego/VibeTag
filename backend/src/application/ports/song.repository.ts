@@ -4,5 +4,8 @@ export interface UserSongData {
 }
 
 export interface ISongRepository {
-  findUserLibrary(userId: string): Promise<UserSongData[]>;
+  findUserLibrary(
+    userId: string,
+    options?: { page: number; limit: number },
+  ): Promise<UserSongData[]>;
 }
