@@ -27,13 +27,24 @@ We organize code by **Layer** and **Feature** to maintain clear boundaries.
 
 ## Data Models (SwiftData)
 ### 1. Song (`Domain/Models/VTSong.swift`)
-- **`id`**: `String` (Unique, Apple Music ID / ISRC).
+- **`id`**: `String` (Unique Identifier).
+  - **Canonical Behavior:** Prefer **ISRC** (International Standard Recording Code) when available for better cross-platform matching. Fall back to **Apple Music ID** (Catalog ID) if ISRC is missing.
+  - **Validation:**
+    - **ISRC:** 12 alphanumeric characters (e.g., `"US-S1Z-99-00001"` or `"USS1Z9900001"`).
+    - **Apple Music ID:** Numeric string (e.g., `"1488408568"`).
+
 - **`title`**, **`artist`**, **`artworkUrl`**.
 - **`tags`**: Relationship to `Tag`.
+- **`dateAdded`**: `Date` (Timestamp when the song was added).
+- **`syncStatus`**: `SyncStatus` (Sync state tracking for cloud synchronization, implemented as a computed property backed by `syncStatusRaw: Int`).
 
 ### 2. Tag (`Domain/Models/Tag.swift`)
 - **`id`**: `UUID`.
-- **`name`** (Unique), **`hexColor`**, **`isSystemTag`**.
+- **`name`** (Unique), **`hexColor`**.
+- **`isSystemTag`**: `Bool`.
+  - **Purpose:** Identifies application-defined tags (e.g., "Favorites", "Recent") versus user-created ones.
+  - **Mutability:** **Immutable**. System tags cannot be renamed or deleted by the user.
+  - **UI Treatment:** Displayed with a distinct visual indicator (e.g., specific icon or badge). Edit/Delete controls are disabled/hidden in the UI.
 - **`songs`**: Relationship to `VTSong`.
 
 ## Engineering Principles

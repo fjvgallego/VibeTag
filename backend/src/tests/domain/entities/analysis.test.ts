@@ -11,16 +11,17 @@ describe('Analysis Entity', () => {
   const now = VTDate.now();
 
   it('should create a valid Analysis', () => {
-    const analysis = Analysis.create(metadata, tags, now);
+    const analysis = Analysis.create(metadata, tags, now, 'song-123');
     expect(analysis).toBeInstanceOf(Analysis);
     expect(analysis.songMetadata).toBe(metadata);
     expect(analysis.tags).toEqual(tags);
     expect(analysis.createdAt.equals(now)).toBe(true);
     expect(analysis.id).toBeInstanceOf(AnalysisId);
+    expect(analysis.songId.value).toBe('song-123');
   });
 
   it('should generate a valid UUID if no ID is provided', () => {
-    const analysis = Analysis.create(metadata, tags, now);
+    const analysis = Analysis.create(metadata, tags, now, 'song-123');
     expect(analysis.id.value).toBeTypeOf('string');
     expect(analysis.id.value.length).toBeGreaterThan(0);
     expect(analysis.id.value).toMatch(
@@ -30,7 +31,7 @@ describe('Analysis Entity', () => {
 
   it('should preserve provided ID if supplied', () => {
     const existingId = 'existing-uuid';
-    const analysis = Analysis.create(metadata, tags, now, existingId);
+    const analysis = Analysis.create(metadata, tags, now, 'song-123', existingId);
     expect(analysis.id.value).toBe(existingId);
   });
 });

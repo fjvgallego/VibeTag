@@ -75,8 +75,15 @@ struct HomeView: View {
 }
 
 #Preview {
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: VTSong.self, Tag.self, configurations: config)
+    let appContainer = AppContainer(modelContext: container.mainContext)
+    let sessionManager = SessionManager(tokenStorage: appContainer.tokenStorage, authRepository: appContainer.authRepo)
+    let syncEngine = VibeTagSyncEngine(localRepo: appContainer.localRepo, sessionManager: sessionManager)
+    
     HomeView()
         .environment(AppRouter())
-        .environment(SessionManager(tokenStorage: KeychainTokenStorage(), authRepository: VibeTagAuthRepositoryImpl()))
-        .modelContainer(for: [VTSong.self, Tag.self], inMemory: true)
+        .environment(sessionManager)
+        .environment(syncEngine)
+        .modelContainer(container)
 }

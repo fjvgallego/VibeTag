@@ -8,6 +8,7 @@ import { SongMetadata } from '../../domain/value-objects/song-metadata.vo';
 import { VibeTag } from '../../domain/entities/vibe-tag';
 import { AppError, UseCaseError } from '../../domain/errors/app-error';
 import { VTDate } from '../../domain/value-objects/vt-date.vo';
+import { randomUUID } from 'crypto';
 
 export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeResponseDTO, AppError> {
   constructor(
@@ -46,7 +47,8 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
       // Map strings to VibeTag entities
       const newTags = aiVibes.map((vibe) => VibeTag.create(vibe, 'ai'));
 
-      const newAnalysis = Analysis.create(songMetadata, newTags, VTDate.now(), request.songId);
+      const songId = request.songId || randomUUID();
+      const newAnalysis = Analysis.create(songMetadata, newTags, VTDate.now(), songId);
 
       await this.analysisRepository.save(newAnalysis);
 

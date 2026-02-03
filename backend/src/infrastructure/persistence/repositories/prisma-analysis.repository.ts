@@ -55,13 +55,13 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
     await prisma.$transaction(async (tx) => {
       // 1. Upsert Song
       await tx.song.upsert({
-        where: { id: analysis.id.value },
+        where: { id: analysis.songId.value },
         update: {
           title: analysis.songMetadata.title,
           artist: analysis.songMetadata.artist,
         },
         create: {
-          id: analysis.id.value,
+          id: analysis.songId.value,
           title: analysis.songMetadata.title,
           artist: analysis.songMetadata.artist,
           artworkUrl: '',
@@ -103,14 +103,14 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
         await tx.songTag.upsert({
           where: {
             songId_tagId_userId: {
-              songId: analysis.id.value,
+              songId: analysis.songId.value,
               tagId: dbTag.id,
               userId: systemUserId,
             },
           },
           update: {},
           create: {
-            songId: analysis.id.value,
+            songId: analysis.songId.value,
             tagId: dbTag.id,
             userId: systemUserId,
           },

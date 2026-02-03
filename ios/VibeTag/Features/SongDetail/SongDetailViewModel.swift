@@ -56,16 +56,24 @@ class SongDetailViewModel {
             return
         }
         
+        let previousTags = song.tags
         var currentTagNames = song.tags.map { $0.name }
         currentTagNames.append(trimmedName)
+        
+        // Optimistic update
+        let newTag = Tag(name: trimmedName, hexColor: "#808080") // Default color for optimistic UI
+        song.tags.append(newTag)
         
         Task {
             do {
                 try await repository.saveTags(for: song.id, tags: currentTagNames)
                 await syncEngine.syncPendingChanges()
             } catch {
-                self.errorMessage = error.localizedDescription
-                self.showError = true
+                await MainActor.run {
+                    self.song.tags = previousTags // Revert on failure
+                    self.errorMessage = error.localizedDescription
+                    self.showError = true
+                }
             }
         }
     }
@@ -79,10 +87,16 @@ class SongDetailViewModel {
         var currentTagNames = song.tags.map { $0.name }
         currentTagNames.remove(at: index)
         
+        let updatedTags = song.tags.filter { $0.name.caseInsensitiveCompare(tagName) != .orderedSame }
+        
         Task {
             do {
                 try await repository.saveTags(for: song.id, tags: currentTagNames)
                 await syncEngine.syncPendingChanges()
+                
+                await MainActor.run {
+                    self.song.tags = updatedTags
+                }
             } catch {
                 self.errorMessage = error.localizedDescription
                 self.showError = true

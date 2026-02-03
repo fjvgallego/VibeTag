@@ -119,11 +119,18 @@ struct TagSheetView: View {
     }
     
     private func deleteTags(at offsets: IndexSet) {
+        var shouldSync = false
+        
         for index in offsets {
             let tagToDelete = tags[index]
+            if song.tags.contains(tagToDelete) {
+                shouldSync = true
+            }
             modelContext.delete(tagToDelete)
         }
         
-        triggerSync()
+        if shouldSync {
+            triggerSync()
+        }
     }
 }

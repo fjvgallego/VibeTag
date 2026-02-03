@@ -6,7 +6,7 @@
 - **Web Framework:** Express.js (Keep it simple).
 - **Database:** PostgreSQL 16 (Dockerized).
 - **ORM:** Prisma.
-- **AI Integration:** Vercel AI SDK with Google Gemini 2.0 Flash.
+- **AI Integration:** Vercel AI SDK with Google Gemini 2.5 Flash.
 - **Testing:** Vitest.
 - **Validation:** Zod.
 

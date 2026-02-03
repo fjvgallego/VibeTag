@@ -42,7 +42,7 @@ describe('AnalyzeUseCase', () => {
   it('should return cached vibes if analysis exists (Cache Hit)', async () => {
     // Arrange
     const existingTags = [VibeTag.create('Chill', 'ai'), VibeTag.create('Happy', 'user')];
-    const existingAnalysis = Analysis.create(songMetadata, existingTags, VTDate.now());
+    const existingAnalysis = Analysis.create(songMetadata, existingTags, VTDate.now(), 'song-123');
 
     vi.mocked(mockAnalysisRepository.findBySong).mockResolvedValue(existingAnalysis);
 
