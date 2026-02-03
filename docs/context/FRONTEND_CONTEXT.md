@@ -6,33 +6,52 @@
 - **Architecture:** MVVM + Router Pattern (Feature-Based Grouping).
 - **Persistence:** SwiftData.
 
-## Project Structure (Feature-Based)
-We organize code by **Feature**, not by file type.
-- **`App/`**: Entry point (`VibeTagApp.swift`).
-- **`Features/`**:
-  - **`Root/`**: Main container (`RootView`, `RootViewModel`).
+## Project Structure (Layered & Feature-Based)
+We organize code by **Layer** and **Feature** to maintain clear boundaries.
+- **`App/`**: Entry point (`VibeTagApp.swift`) and App-level configuration.
+- **`Features/`**: UI logic and views grouped by functional area.
+  - **`Root/`**: Main container (`RootView`, `RootViewModel`, `WelcomeView`).
   - **`Home/`**: Dashboard logic (`HomeView`, `HomeViewModel`).
-  - *Future features (e.g., `Library`, `Settings`) go here.*
-- **`Shared/`**:
-  - **`Models/`**: SwiftData entities (`Song.swift`, `Tag.swift`).
-  - **`Services/`**: Singletons & Logic (`MusicKitService`, `APIService`).
-  - **`Navigation/`**: `AppRouter`.
+  - **`Login/`**: SIWA implementation (`LoginView`, `LoginViewModel`).
+  - **`SongDetail/`**: Detailed view of a song and its tags.
+  - **`Tags/`**: Tag selection and creation sheets.
+- **`Domain/`**: Pure business logic and entities.
+  - **`Models/`**: SwiftData entities (`VTSong.swift`, `Tag.swift`).
+  - **`UseCases/`**: Single-responsibility business actions (`AnalyzeSongUseCase.swift`).
+  - **`Interfaces/`**: Protocol definitions for services and repositories.
+- **`Core/`**: Infrastructure and shared utilities.
+  - **`Data/`**: Concrete implementations of repositories (Networking, Storage, SwiftData).
+  - **`Services/`**: System-level services (`MusicSyncService.swift`).
+  - **`Navigation/`**: Centralized routing logic (`AppRouter.swift`).
+  - **`Managers/`**: Global state managers (`SessionManager.swift`).
 
 ## Data Models (SwiftData)
-### 1. Song (`Shared/Models/Song.swift`)
-- **`id`**: `String` (Unique).
+### 1. Song (`Domain/Models/VTSong.swift`)
+- **`id`**: `String` (Unique Identifier).
+  - **Canonical Behavior:** Prefer **ISRC** (International Standard Recording Code) when available for better cross-platform matching. Fall back to **Apple Music ID** (Catalog ID) if ISRC is missing.
+  - **Validation:**
+    - **ISRC:** 12 alphanumeric characters (e.g., `"US-S1Z-99-00001"` or `"USS1Z9900001"`).
+    - **Apple Music ID:** Numeric string (e.g., `"1488408568"`).
+
 - **`title`**, **`artist`**, **`artworkUrl`**.
 - **`tags`**: Relationship to `Tag`.
+- **`dateAdded`**: `Date` (Timestamp when the song was added).
+- **`syncStatus`**: `SyncStatus` (Sync state tracking for cloud synchronization, implemented as a computed property backed by `syncStatusRaw: Int`).
 
-### 2. Tag (`Shared/Models/Tag.swift`)
+### 2. Tag (`Domain/Models/Tag.swift`)
 - **`id`**: `UUID`.
 - **`name`** (Unique), **`hexColor`**.
-- **`songs`**: Relationship to `Song`.
+- **`isSystemTag`**: `Bool`.
+  - **Purpose:** Identifies application-defined tags (e.g., "Favorites", "Recent") versus user-created ones.
+  - **Mutability:** **Immutable**. System tags cannot be renamed or deleted by the user.
+  - **UI Treatment:** Displayed with a distinct visual indicator (e.g., specific icon or badge). Edit/Delete controls are disabled/hidden in the UI.
+- **`songs`**: Relationship to `VTSong`.
 
 ## Engineering Principles
-1. **Colocation:** Views and their ViewModels live in the same Feature folder.
-2. **Offline-First:** UI reads from SwiftData.
-3. **Router Pattern:** Navigation state is managed by an observable router, not hardcoded links.
+1. **Unidirectional Data Flow:** Views trigger actions in ViewModels, which interact with Use Cases.
+2. **Offline-First:** SwiftData serves as the single source of truth for the UI.
+3. **Clean Architecture:** Use Cases decouple UI from data sources.
+4. **Router Pattern:** Navigation state is managed by an observable router.
 
 ## 🛡️ Coding Guidelines (The "Rules of Engagement")
 

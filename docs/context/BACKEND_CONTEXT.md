@@ -6,26 +6,29 @@
 - **Web Framework:** Express.js (Keep it simple).
 - **Database:** PostgreSQL 16 (Dockerized).
 - **ORM:** Prisma.
+- **AI Integration:** Vercel AI SDK with Google Gemini 2.5 Flash.
 - **Testing:** Vitest.
+- **Validation:** Zod.
 
 ## Data Model (Prisma Schema Concept)
-- `User`: id (UUID), appleUserIdentifier (Unique string).
+- `User`: id (UUID), email (Citext), firstName, lastName, appleUserIdentifier (Unique string).
 - `Song`: id (String, stores Apple Music ID/ISRC), title, artist, artworkUrl.
 - `Tag`: id (UUID), name, color, type (Enum: SYSTEM/USER), ownerId (Nullable UUID).
 - `SongTag`: id (UUID), songId, tagId, userId.
-  - *Note:* This must be an **explicit pivot table** to handle the user-specific relationship.
+  - *Note:* This is an **explicit pivot table** to handle the user-specific relationship.
 
 ## Architecture & API
 - **Pattern:** Clean Architecture.
-  - **Domain:** Enterprise business rules (Entities, Value Objects, Domain Errors). Dependency free.
+  - **Domain:** Enterprise business rules (Entities, Value Objects, Domain Errors). Dependency-free.
   - **Application:** Application business rules (Use Cases, DTOs, Ports/Interfaces). Depends only on Domain.
-  - **Infrastructure:** Frameworks & Drivers (Database/Prisma, Web/Express Routes & Controllers, External Services). Implements interfaces defined in Application.
+  - **Infrastructure:** Frameworks & Drivers (Database/Prisma, Web/Express Routes & Controllers, Gemini AI Service, Apple Auth). Implements interfaces defined in Application.
   - **Composition:** Dependency Injection (Containers, Config). Wires everything together.
-  - **Shared:** Common utilities (Result Type, specialized types).
+  - **Shared:** Common utilities (Result Type, Text Sanitizer).
 - **Auth:** JWT-based authentication for protected routes. Apple Sign-In used for initial authentication.
 - **Key Endpoints (v1):**
-  - `POST /api/v1/login/apple`: Handles Login/Registration via Apple Sign-In.
-  - `POST /api/v1/analyze`: Receives song metadata, calls generic LLM service.
+  - `POST /api/v1/auth/apple`: Handles Login/Registration via Apple Sign-In.
+  - `DELETE /api/v1/auth/me`: Deletes the current user's account and data.
+  - `POST /api/v1/analyze/song`: Receives song metadata, calls Gemini AI service.
 
 ## 🛡️ Coding Guidelines (The "Rules of Engagement")
 

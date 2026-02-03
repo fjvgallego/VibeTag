@@ -25,4 +25,5 @@ An offline-first iOS application designed to organize Apple Music libraries usin
 
 5. **AI Auto-Tagger:**
    - **On-Demand Analysis:** The user triggers analysis for a playlist or batch of songs.
-   - The Backend queries an **external LLM provider** (e.g., OpenAI, Anthropic, or DeepSeek) to suggest tags based on song metadata.
+   - The Backend queries **Google Gemini 2.5 Flash** (via Vercel AI SDK) to suggest tags based on song metadata.
+   - **Privacy:** Only metadata (Title, Artist, Album, Genre) is sent to the LLM.

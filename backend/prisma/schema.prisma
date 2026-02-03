@@ -36,11 +36,11 @@ model Song {
 
 model Tag {
   id       String    @id @default(uuid())
-  name     String
+  name     String    @unique
   color    String
   type     TagType
   ownerId  String?
-  owner    User?     @relation(fields: [ownerId], references: [id])
+  owner    User?     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   songTags SongTag[]
 }
 
@@ -51,8 +51,8 @@ model SongTag {
   userId String
 
   song Song @relation(fields: [songId], references: [id])
-  tag  Tag  @relation(fields: [tagId], references: [id])
-  user User @relation(fields: [userId], references: [id])
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([songId, tagId, userId])
 }

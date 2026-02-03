@@ -18,7 +18,7 @@ class HomeViewModel {
         errorMessage = nil
         
         do {
-            let service = MusicSyncService(modelContext: modelContext)
+            let service = AppleMusicLibraryImportService(modelContext: modelContext)
             try await service.syncLibrary()
         } catch {
             errorMessage = "Failed to sync library: \(error.localizedDescription)"

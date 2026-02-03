@@ -1,18 +1,15 @@
 import Foundation
 import MusicKit
+import Observation
 
-class AppleMusicRepository: MusicRepository {
+@Observable
+@MainActor
+class AppleMusicSongRepositoryImpl: SongRepository {
     
-    func requestAuthorization() async -> MusicAuthorization.Status {
-        return await MusicAuthorization.request()
-    }
-    
-    func getAuthorizationStatus() -> MusicAuthorization.Status {
-        return MusicAuthorization.currentStatus
-    }
-    
-    func canPlayCatalogContent() async throws -> Bool {
-        return try await MusicSubscription.current.canPlayCatalogContent
+    func fetchAnalysis(for song: VTSong) async throws -> [String] {
+        let endpoint = SongEndpoint.analyze(id: song.id, artist: song.artist, title: song.title)
+        let response: AnalyzeResponseDTO = try await APIClient.shared.request(endpoint)
+        return response.toDomain()
     }
     
     func fetchSongs(limit: Int) async throws -> [VTSong] {

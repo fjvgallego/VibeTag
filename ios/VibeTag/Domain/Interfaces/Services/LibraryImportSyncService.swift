@@ -1,5 +1,5 @@
 //
-//  SyncService.swift
+//  LibraryImportSyncService.swift
 //  VibeTag
 //
 //  Created by Francisco Javier Gallego Lahera on 1/2/26.
@@ -7,6 +7,6 @@
 
 import Foundation
 
-protocol SyncService {
+protocol LibraryImportSyncService {
     func syncLibrary() async throws
 }

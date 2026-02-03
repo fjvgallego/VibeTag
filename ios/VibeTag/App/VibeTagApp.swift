@@ -10,21 +10,28 @@ import SwiftData
 
 @main
 struct VibeTagApp: App {
-    @State private var sessionManager: SessionManager
+    private let container: AppContainer
+    private let modelContainer: ModelContainer
     
     init() {
-        // Composition Root: Configure APIClient
-        let tokenStorage = KeychainTokenStorage()
-        APIClient.shared.setup(tokenStorage: tokenStorage)
+        // SwiftData Container
+        do {
+            modelContainer = try ModelContainer(for: VTSong.self, Tag.self)
+        } catch {
+            fatalError("Could not initialize ModelContainer: \(error)")
+        }
         
-        self._sessionManager = State(initialValue: SessionManager(tokenStorage: tokenStorage))
+        // DI Container
+        container = AppContainer(modelContext: modelContainer.mainContext)
+        
+        // Configure APIClient with the container's token storage
+        APIClient.shared.setup(tokenStorage: container.tokenStorage)
     }
     
     var body: some Scene {
         WindowGroup {
-            RootView()
-                .environment(sessionManager)
+            RootView(container: container)
         }
-        .modelContainer(for: [VTSong.self, Tag.self])
+        .modelContainer(modelContainer)
     }
 }

@@ -29,3 +29,25 @@ export function verifyToken(req: Request, res: Response, next: NextFunction) {
     return;
   }
 }
+
+export function softVerifyToken(req: Request, res: Response, next: NextFunction) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return next();
+  }
+
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    return next();
+  }
+
+  try {
+    const decoded = jwt.verify(token, secret) as TokenPayload;
+    req.user = decoded;
+  } catch {
+    // If token is invalid, we just don't set req.user
+  }
+  next();
+}

@@ -4,6 +4,7 @@ import SwiftData
 struct TagSheetView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(VibeTagSyncEngine.self) private var syncEngine
     
     @Bindable var song: VTSong
     
@@ -82,6 +83,8 @@ struct TagSheetView: View {
         } else {
             song.tags.append(tag)
         }
+        
+        triggerSync()
     }
     
     private func createNewTag() {
@@ -102,12 +105,36 @@ struct TagSheetView: View {
         
         newTagName = ""
         isCreatingTag = false
+        
+        triggerSync()
+    }
+    
+    private func triggerSync() {
+        song.syncStatus = .pendingUpload
+        
+        do {
+            try modelContext.save()
+            Task {
+                await syncEngine.syncPendingChanges()
+            }
+        } catch {
+            print("Failed to save model context: \(error.localizedDescription)")
+        }
     }
     
     private func deleteTags(at offsets: IndexSet) {
+        var shouldSync = false
+        
         for index in offsets {
             let tagToDelete = tags[index]
+            if song.tags.contains(tagToDelete) {
+                shouldSync = true
+            }
             modelContext.delete(tagToDelete)
+        }
+        
+        if shouldSync {
+            triggerSync()
         }
     }
 }

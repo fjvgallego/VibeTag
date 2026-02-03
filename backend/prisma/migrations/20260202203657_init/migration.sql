@@ -1,10 +1,17 @@
+-- CreateExtension
+CREATE EXTENSION IF NOT EXISTS "citext";
+
 -- CreateEnum
 CREATE TYPE "TagType" AS ENUM ('SYSTEM', 'USER');
 
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
+    "email" CITEXT,
+    "firstName" TEXT,
+    "lastName" TEXT,
     "appleUserIdentifier" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
@@ -41,7 +48,13 @@ CREATE TABLE "SongTag" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "User_appleUserIdentifier_key" ON "User"("appleUserIdentifier");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Tag_name_key" ON "Tag"("name");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "SongTag_songId_tagId_userId_key" ON "SongTag"("songId", "tagId", "userId");
