@@ -7,7 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		09ED37662F2DED4E00E06F4D /* Nunito-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 09ED37622F2DED4E00E06F4D /* Nunito-Regular.ttf */; };
+		096230B62F323A5200F3BF8F /* (null) in Frameworks */ = {isa = PBXBuildFile; };
+		096230B72F323A5200F3BF8F /* (null) in Frameworks */ = {isa = PBXBuildFile; };
+		651F414984D54551B132AAFB /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = 3E0601A5B07D498EA728BB6F /* Sentry */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -31,10 +33,6 @@
 		095FC57C2F26216C0011E85F /* VibeTag.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VibeTag.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		095FC58B2F26216F0011E85F /* VibeTagTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = VibeTagTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		095FC5952F26216F0011E85F /* VibeTagUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = VibeTagUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		09ED37622F2DED4E00E06F4D /* Nunito-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file.type; name = "Nunito-Regular.ttf"; path = "VibeTag/Resources/Fonts/Nunito-Regular.ttf"; sourceTree = "<group>"; };
-		09ED37632F2DED4E00E06F4D /* Nunito-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file.type; name = "Nunito-Bold.ttf"; path = "VibeTag/Resources/Fonts/Nunito-Bold.ttf"; sourceTree = "<group>"; };
-		09ED37642F2DED4E00E06F4D /* Nunito-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file.type; name = "Nunito-SemiBold.ttf"; path = "VibeTag/Resources/Fonts/Nunito-SemiBold.ttf"; sourceTree = "<group>"; };
-		09ED37652F2DED4E00E06F4D /* Nunito-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file.type; name = "Nunito-Medium.ttf"; path = "VibeTag/Resources/Fonts/Nunito-Medium.ttf"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -42,7 +40,6 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
-				"Resources/Fonts/Nunito-Regular.ttf",
 			);
 			target = 095FC57B2F26216C0011E85F /* VibeTag */;
 		};
@@ -74,6 +71,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				651F414984D54551B132AAFB /* Sentry in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -81,6 +79,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				096230B62F323A5200F3BF8F /* (null) in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -88,6 +87,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				096230B72F323A5200F3BF8F /* (null) in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -101,7 +101,6 @@
 				095FC58E2F26216F0011E85F /* VibeTagTests */,
 				095FC5982F26216F0011E85F /* VibeTagUITests */,
 				095FC57D2F26216C0011E85F /* Products */,
-				09622ED22F2F91A400F3BF8F /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -115,17 +114,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		09622ED22F2F91A400F3BF8F /* Recovered References */ = {
-			isa = PBXGroup;
-			children = (
-				09ED37622F2DED4E00E06F4D /* Nunito-Regular.ttf */,
-				09ED37632F2DED4E00E06F4D /* Nunito-Bold.ttf */,
-				09ED37642F2DED4E00E06F4D /* Nunito-SemiBold.ttf */,
-				09ED37652F2DED4E00E06F4D /* Nunito-Medium.ttf */,
-			);
-			name = "Recovered References";
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -136,6 +124,7 @@
 				095FC5782F26216C0011E85F /* Sources */,
 				095FC5792F26216C0011E85F /* Frameworks */,
 				095FC57A2F26216C0011E85F /* Resources */,
+				4A8F054AED1F4FA2928C80F6 /* Upload Debug Symbols to Sentry */,
 			);
 			buildRules = (
 			);
@@ -146,6 +135,7 @@
 			);
 			name = VibeTag;
 			packageProductDependencies = (
+				3E0601A5B07D498EA728BB6F /* Sentry */,
 			);
 			productName = VibeTag;
 			productReference = 095FC57C2F26216C0011E85F /* VibeTag.app */;
@@ -229,6 +219,9 @@
 			);
 			mainGroup = 095FC5732F26216C0011E85F;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				196C102FEAA44BDE8970FCFB /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 095FC57D2F26216C0011E85F /* Products */;
 			projectDirPath = "";
@@ -246,7 +239,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				09ED37662F2DED4E00E06F4D /* Nunito-Regular.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -265,6 +257,24 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		4A8F054AED1F4FA2928C80F6 /* Upload Debug Symbols to Sentry */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${TARGET_NAME}",
+			);
+			name = "Upload Debug Symbols to Sentry";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# This script is responsible for uploading debug symbols and source context for Sentry.\nif which sentry-cli >/dev/null; then\n  export SENTRY_ORG=vibetag\n  export SENTRY_PROJECT=vibetag\n  ERROR=$(sentry-cli debug-files upload --include-sources \"$DWARF_DSYM_FOLDER_PATH\" 2>&1 >/dev/null)\n  if [ ! $? -eq 0 ]; then\n    echo \"warning: sentry-cli - $ERROR\"\n  fi\nelse\n  echo \"warning: sentry-cli not installed, download from https://github.com/getsentry/sentry-cli/releases\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		095FC5782F26216C0011E85F /* Sources */ = {
@@ -434,8 +444,10 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = MJWN87DYML;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = VibeTag/Info.plist;
 				INFOPLIST_KEY_NSAppleMusicUsageDescription = "VibeTag needs access to your music library to analyze songs and save your tags.";
@@ -475,8 +487,10 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = MJWN87DYML;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = VibeTag/Info.plist;
 				INFOPLIST_KEY_NSAppleMusicUsageDescription = "VibeTag needs access to your music library to analyze songs and save your tags.";
@@ -631,6 +645,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		196C102FEAA44BDE8970FCFB /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/getsentry/sentry-cocoa/";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		3E0601A5B07D498EA728BB6F /* Sentry */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 196C102FEAA44BDE8970FCFB /* XCRemoteSwiftPackageReference "sentry-cocoa" */;
+			productName = Sentry;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 095FC5742F26216C0011E85F /* Project object */;
 }
