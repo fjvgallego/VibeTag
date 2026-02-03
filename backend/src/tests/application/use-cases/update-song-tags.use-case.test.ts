@@ -21,16 +21,19 @@ describe('UpdateSongTagsUseCase', () => {
     const userId = 'user-123';
     const songId = 'song-456';
     const tags = ['vibe1', 'vibe2'];
+    const title = 'Test Title';
+    const artist = 'Test Artist';
 
     (mockAnalysisRepository.updateSongTags as Mock).mockResolvedValue(undefined);
 
-    const result = await useCase.execute({ userId, songId, tags });
+    const result = await useCase.execute({ userId, songId, tags, title, artist });
 
     expect(result.success).toBe(true);
     expect(mockAnalysisRepository.updateSongTags).toHaveBeenCalledWith(
       expect.any(UserId),
       songId,
       tags,
+      { title, artist },
     );
 
     const callUserId = (mockAnalysisRepository.updateSongTags as Mock).mock.calls[0][0];
@@ -39,12 +42,14 @@ describe('UpdateSongTagsUseCase', () => {
 
   it('should return failure if repository throws an AppError', async () => {
     const error = new UseCaseError('Database error');
-    mockAnalysisRepository.updateSongTags = vi.fn().mockRejectedValue(error);
+    (mockAnalysisRepository.updateSongTags as Mock).mockRejectedValue(error);
 
     const result = await useCase.execute({
       userId: 'user-123',
       songId: 'song-456',
       tags: ['tag1'],
+      title: 'title',
+      artist: 'artist',
     });
 
     expect(result.success).toBe(false);
@@ -58,6 +63,8 @@ describe('UpdateSongTagsUseCase', () => {
       userId: 'user-123',
       songId: 'song-456',
       tags: ['tag1'],
+      title: 'title',
+      artist: 'artist',
     });
 
     expect(result.success).toBe(false);

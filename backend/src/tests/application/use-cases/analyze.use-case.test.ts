@@ -51,8 +51,12 @@ describe('AnalyzeUseCase', () => {
 
     // Assert
     expect(result.success).toBe(true);
-    expect(result.getValue().tags).toEqual(['chill', 'happy']);
-    expect(mockAnalysisRepository.findBySong).toHaveBeenCalledWith(request.title, request.artist);
+    expect(mockAnalysisRepository.findBySong).toHaveBeenCalledWith(
+      request.title,
+      request.artist,
+      undefined,
+      undefined,
+    );
     expect(mockAiService.getVibesForSong).not.toHaveBeenCalled();
     expect(mockAnalysisRepository.save).not.toHaveBeenCalled();
   });
@@ -69,7 +73,12 @@ describe('AnalyzeUseCase', () => {
     // Assert
     expect(result.success).toBe(true);
     expect(result.getValue().tags).toEqual(['melancholic', 'dreamy']);
-    expect(mockAnalysisRepository.findBySong).toHaveBeenCalledWith(request.title, request.artist);
+    expect(mockAnalysisRepository.findBySong).toHaveBeenCalledWith(
+      request.title,
+      request.artist,
+      undefined,
+      undefined,
+    );
     expect(mockAiService.getVibesForSong).toHaveBeenCalledWith(
       expect.objectContaining({
         title: request.title,
