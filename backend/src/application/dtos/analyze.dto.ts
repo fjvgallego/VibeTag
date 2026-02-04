@@ -8,7 +8,7 @@ export interface AnalyzeRequestDTO {
 }
 
 export interface AnalyzeResponseDTO {
-  tags: string[];
+  tags: { name: string; description?: string }[];
 }
 
 export interface BatchAnalyzeRequestDTO {
@@ -26,6 +26,6 @@ export interface BatchAnalyzeResponseDTO {
   results: {
     songId?: string;
     title: string;
-    tags: string[];
+    tags: { name: string; description?: string }[];
   }[];
 }

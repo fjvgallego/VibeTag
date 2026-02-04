@@ -4,6 +4,7 @@ struct SongDetailView: View {
     @State private var viewModel: SongDetailViewModel
     @State private var showingAddTagAlert = false
     @State private var newTagName = ""
+    @State private var newTagDescription = ""
     
     init(song: VTSong, container: AppContainer, syncEngine: SyncEngine) {
         let viewModel = SongDetailViewModel(
@@ -73,23 +74,9 @@ struct SongDetailView: View {
                     } else if !viewModel.song.tags.isEmpty {
                         FlowLayout(spacing: 8) {
                             ForEach(viewModel.song.tags) { tag in
-                                Text(tag.name)
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 6)
-                                    .background(Color.accentColor.opacity(0.1))
-                                    .foregroundColor(.accentColor)
-                                    .cornerRadius(20)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 20)
-                                            .stroke(Color.accentColor.opacity(0.2), lineWidth: 1)
-                                    )
-                                    .contextMenu {
-                                        Button(role: .destructive) {
-                                            viewModel.removeTag(tag.name)
-                                        } label: {
-                                            Label("Remove Tag", systemImage: "trash")
-                                        }
-                                    }
+                                TagView(tag: tag, onRemove: {
+                                    viewModel.removeTag(tag.name)
+                                })
                             }
                         }
                     } else {
@@ -115,16 +102,23 @@ struct SongDetailView: View {
         .alert("Add Tag", isPresented: $showingAddTagAlert) {
             TextField("Tag name", text: $newTagName)
                 .textInputAutocapitalization(.never)
+            TextField("Description (optional)", text: $newTagDescription)
+                .textInputAutocapitalization(.sentences)
             Button("Add") {
-                viewModel.addTag(newTagName.trimmingCharacters(in: .whitespacesAndNewlines))
+                viewModel.addTag(
+                    newTagName.trimmingCharacters(in: .whitespacesAndNewlines),
+                    description: newTagDescription.trimmingCharacters(in: .whitespacesAndNewlines)
+                )
                 newTagName = ""
+                newTagDescription = ""
             }
             .disabled(newTagName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             Button("Cancel", role: .cancel) {
                 newTagName = ""
+                newTagDescription = ""
             }
         } message: {
-            Text("Enter a name for this tag.")
+            Text("Enter a name and optional description for this tag.")
         }
         .alert("Error", isPresented: $viewModel.showError) {
             Button("OK", role: .cancel) { }
@@ -133,6 +127,49 @@ struct SongDetailView: View {
                 Text(errorMessage)
             }
         }
+    }
+}
+
+struct TagView: View {
+    let tag: Tag
+    let onRemove: () -> Void
+    @State private var showingDescription = false
+    
+    var body: some View {
+        Text(tag.name)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(Color.accentColor.opacity(0.1))
+            .foregroundColor(.accentColor)
+            .cornerRadius(20)
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(Color.accentColor.opacity(0.2), lineWidth: 1)
+            )
+            .onTapGesture {
+                if tag.tagDescription != nil {
+                    showingDescription = true
+                }
+            }
+            .popover(isPresented: $showingDescription) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(tag.name.capitalized)
+                        .font(.headline)
+                    if let desc = tag.tagDescription {
+                        Text(desc)
+                            .font(.subheadline)
+                    }
+                }
+                .padding()
+                .presentationCompactAdaptation(.popover)
+            }
+            .contextMenu {
+                Button(role: .destructive) {
+                    onRemove()
+                } label: {
+                    Label("Remove Tag", systemImage: "trash")
+                }
+            }
     }
 }
 

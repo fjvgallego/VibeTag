@@ -6,10 +6,10 @@ import Observation
 @MainActor
 class AppleMusicSongRepositoryImpl: SongRepository {
     
-    func fetchAnalysis(for song: VTSong) async throws -> [String] {
+    func fetchAnalysis(for song: VTSong) async throws -> [TagDTO] {
         let endpoint = SongEndpoint.analyze(id: song.id, artist: song.artist, title: song.title)
         let response: AnalyzeResponseDTO = try await APIClient.shared.request(endpoint)
-        return response.toDomain()
+        return response.tags
     }
     
     func fetchBatchAnalysis(dto: BatchAnalyzeRequestDTO) async throws -> BatchAnalyzeResponseDTO {
@@ -36,6 +36,8 @@ class AppleMusicSongRepositoryImpl: SongRepository {
             id: song.id.rawValue,
             title: song.title,
             artist: song.artistName,
+            album: song.albumTitle,
+            genre: song.genreNames.first,
             artworkUrl: song.artwork?.url(width: 300, height: 300)?.absoluteString,
             dateAdded: song.libraryAddedDate ?? Date()
         )

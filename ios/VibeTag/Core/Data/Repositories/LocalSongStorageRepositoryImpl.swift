@@ -31,7 +31,7 @@ class LocalSongStorageRepositoryImpl: SongStorageRepository {
         modelContext.delete(song)
     }
 
-    func saveTags(for songId: String, tags: [String]) async throws {
+    func saveTags(for songId: String, tags: [TagDTO]) async throws {
         let id = songId
         let songDescriptor = FetchDescriptor<VTSong>(predicate: #Predicate { $0.id == id })
         guard let song = try modelContext.fetch(songDescriptor).first else {
@@ -40,13 +40,17 @@ class LocalSongStorageRepositoryImpl: SongStorageRepository {
 
         var updatedTags: [Tag] = []
         
-        for tagName in tags {
-            let name = tagName
+        for tagDTO in tags {
+            let name = tagDTO.name
             let tagDescriptor = FetchDescriptor<Tag>(predicate: #Predicate { $0.name == name })
             if let existingTag = try modelContext.fetch(tagDescriptor).first {
+                // Update description if it changed/arrived
+                if let newDesc = tagDTO.description {
+                    existingTag.tagDescription = newDesc
+                }
                 updatedTags.append(existingTag)
             } else {
-                let newTag = Tag(name: name, hexColor: "#808080", isSystemTag: false)
+                let newTag = Tag(name: name, tagDescription: tagDTO.description, hexColor: "#808080", isSystemTag: false)
                 modelContext.insert(newTag)
                 updatedTags.append(newTag)
             }

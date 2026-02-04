@@ -35,7 +35,10 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
 
       if (existingAnalysis) {
         return Result.ok<AnalyzeResponseDTO, AppError>({
-          tags: existingAnalysis.tags.map((tag) => tag.name),
+          tags: existingAnalysis.tags.map((tag) => ({
+            name: tag.name,
+            description: tag.description || undefined,
+          })),
         });
       }
 
@@ -49,8 +52,10 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
       // Call external AI service
       const aiVibes = await this.aiService.getVibesForSong(songMetadata);
 
-      // Map strings to VibeTag entities
-      const newTags = aiVibes.map((vibe) => VibeTag.create(vibe, 'ai'));
+      // Map to VibeTag entities
+      const newTags = aiVibes.map((vibe) =>
+        VibeTag.create(vibe.name, 'ai', undefined, vibe.description),
+      );
 
       const songId = request.songId || randomUUID();
       const newAnalysis = Analysis.create(songMetadata, newTags, VTDate.now(), songId);
@@ -58,7 +63,10 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
       await this.analysisRepository.save(newAnalysis);
 
       return Result.ok<AnalyzeResponseDTO, AppError>({
-        tags: newAnalysis.tags.map((tag) => tag.name),
+        tags: newAnalysis.tags.map((tag) => ({
+          name: tag.name,
+          description: tag.description || undefined,
+        })),
       });
     } catch (error) {
       console.error(error);
@@ -73,7 +81,11 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
     request: BatchAnalyzeRequestDTO,
   ): Promise<Result<BatchAnalyzeResponseDTO, AppError>> {
     try {
-      const results: { songId?: string; title: string; tags: string[] }[] = [];
+      const results: {
+        songId?: string;
+        title: string;
+        tags: { name: string; description?: string }[];
+      }[] = [];
 
       for (const song of request.songs) {
         const normalizedTitle = song.title?.trim();
@@ -91,7 +103,10 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
           results.push({
             songId: song.songId,
             title: song.title,
-            tags: existingAnalysis.tags.map((t) => t.name),
+            tags: existingAnalysis.tags.map((t) => ({
+              name: t.name,
+              description: t.description || undefined,
+            })),
           });
           continue; // No delay needed if found in cache
         }
@@ -105,7 +120,9 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
         );
 
         const aiVibes = await this.aiService.getVibesForSong(songMetadata);
-        const newTags = aiVibes.map((vibe) => VibeTag.create(vibe, 'ai'));
+        const newTags = aiVibes.map((vibe) =>
+          VibeTag.create(vibe.name, 'ai', undefined, vibe.description),
+        );
 
         const songId = song.songId || randomUUID();
         const newAnalysis = Analysis.create(songMetadata, newTags, VTDate.now(), songId);
@@ -115,7 +132,10 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
         results.push({
           songId: song.songId,
           title: song.title,
-          tags: newAnalysis.tags.map((t) => t.name),
+          tags: newAnalysis.tags.map((t) => ({
+            name: t.name,
+            description: t.description || undefined,
+          })),
         });
 
         // Step C: Delay to respect rate limits (4 seconds)

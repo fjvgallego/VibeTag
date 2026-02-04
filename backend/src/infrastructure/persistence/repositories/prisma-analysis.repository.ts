@@ -43,7 +43,7 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
       if (st.tag.type === 'SYSTEM') {
         source = 'ai';
       }
-      return VibeTag.create(st.tag.name, source, st.tag.id);
+      return VibeTag.create(st.tag.name, source, st.tag.id, st.tag.description || undefined);
     });
 
     const metadata = SongMetadata.create(song.title, song.artist, undefined, undefined);
@@ -99,6 +99,7 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
           dbTag = await tx.tag.create({
             data: {
               name: tagDomain.name,
+              description: tagDomain.description,
               color: '#808080',
               type: targetType,
               ownerId: systemUserId,

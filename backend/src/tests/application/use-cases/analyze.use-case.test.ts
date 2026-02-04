@@ -46,7 +46,10 @@ describe('AnalyzeUseCase', () => {
 
   it('should return cached vibes if analysis exists (Cache Hit)', async () => {
     // Arrange
-    const existingTags = [VibeTag.create('Chill', 'ai'), VibeTag.create('Happy', 'user')];
+    const existingTags = [
+      VibeTag.create('Chill', 'ai', undefined, 'Relaxed'),
+      VibeTag.create('Happy', 'user'),
+    ];
     const existingAnalysis = Analysis.create(songMetadata, existingTags, VTDate.now(), 'song-123');
 
     vi.mocked(mockAnalysisRepository.findBySong).mockResolvedValue(existingAnalysis);
@@ -56,6 +59,10 @@ describe('AnalyzeUseCase', () => {
 
     // Assert
     expect(result.success).toBe(true);
+    expect(result.getValue().tags).toEqual([
+      { name: 'chill', description: 'Relaxed' },
+      { name: 'happy', description: undefined },
+    ]);
     expect(mockAnalysisRepository.findBySong).toHaveBeenCalledWith(
       request.title,
       request.artist,
@@ -69,7 +76,10 @@ describe('AnalyzeUseCase', () => {
   it('should call AI service and save result if analysis does not exist (Cache Miss)', async () => {
     // Arrange
     vi.mocked(mockAnalysisRepository.findBySong).mockResolvedValue(null);
-    const aiVibes = ['Melancholic', 'Dreamy'];
+    const aiVibes = [
+      { name: 'Melancholic', description: 'Sad vibe' },
+      { name: 'Dreamy', description: 'Floating vibe' },
+    ];
     vi.mocked(mockAiService.getVibesForSong).mockResolvedValue(aiVibes);
 
     // Act
@@ -77,7 +87,10 @@ describe('AnalyzeUseCase', () => {
 
     // Assert
     expect(result.success).toBe(true);
-    expect(result.getValue().tags).toEqual(['melancholic', 'dreamy']);
+    expect(result.getValue().tags).toEqual([
+      { name: 'melancholic', description: 'Sad vibe' },
+      { name: 'dreamy', description: 'Floating vibe' },
+    ]);
     expect(mockAnalysisRepository.findBySong).toHaveBeenCalledWith(
       request.title,
       request.artist,
@@ -132,13 +145,15 @@ describe('AnalyzeUseCase', () => {
 
       // Mock Cache Hit for Song 1
       const song1Metadata = SongMetadata.create('Song 1', 'Artist 1');
-      const existingTags = [VibeTag.create('Chill', 'ai')];
+      const existingTags = [VibeTag.create('Chill', 'ai', undefined, 'Cool')];
       const existingAnalysis = Analysis.create(song1Metadata, existingTags, VTDate.now(), 's1');
       vi.mocked(mockAnalysisRepository.findBySong).mockResolvedValueOnce(existingAnalysis);
 
       // Mock Cache Miss for Song 2
       vi.mocked(mockAnalysisRepository.findBySong).mockResolvedValueOnce(null);
-      vi.mocked(mockAiService.getVibesForSong).mockResolvedValue(['Energetic']);
+      vi.mocked(mockAiService.getVibesForSong).mockResolvedValue([
+        { name: 'Energetic', description: 'Fast' },
+      ]);
 
       // Act
       const promise = analyzeUseCase.executeBatch(batchRequest);
@@ -154,8 +169,8 @@ describe('AnalyzeUseCase', () => {
       expect(result.success).toBe(true);
       const data = result.getValue();
       expect(data.results).toHaveLength(2);
-      expect(data.results[0].tags).toEqual(['chill']);
-      expect(data.results[1].tags).toEqual(['energetic']);
+      expect(data.results[0].tags).toEqual([{ name: 'chill', description: 'Cool' }]);
+      expect(data.results[1].tags).toEqual([{ name: 'energetic', description: 'Fast' }]);
 
       expect(mockAnalysisRepository.findBySong).toHaveBeenCalledTimes(2);
       expect(mockAiService.getVibesForSong).toHaveBeenCalledTimes(1);

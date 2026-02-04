@@ -17,7 +17,9 @@ export class GeminiAIService implements IAIService {
     this.sanitizer = sanitizer;
   }
 
-  public async getVibesForSong(song: SongMetadata): Promise<string[]> {
+  public async getVibesForSong(
+    song: SongMetadata,
+  ): Promise<{ name: string; description: string }[]> {
     const prompt = this.constructPrompt(song);
 
     try {
@@ -29,7 +31,7 @@ export class GeminiAIService implements IAIService {
       return this.parseResponse(text);
     } catch (error) {
       console.error('Error calling Gemini API via AI SDK:', error);
-      throw new Error('Failed to get vibes from Gemini AI');
+      return [];
     }
   }
 
@@ -41,14 +43,14 @@ export class GeminiAIService implements IAIService {
         Album: "${this.sanitizer.sanitize(song.album || 'Unknown')}"
         Genre: "${this.sanitizer.sanitize(song.genre || 'Unknown')}"
 
-        Task: Return strictly a valid JSON array containing exactly 3 short, descriptive mood/context tags (e.g., "Night Drive", "Gym Focus", "Melancholy").
-        Example Output: ["Chill", "Summer", "Road Trip"]
+        Task: Return strictly a valid JSON array of objects with 'name' (tag) and 'description' (max 10 words explaining the vibe).
+        Example Output: [{"name": "Chill", "description": "Low tempo, relaxed atmosphere"}, {"name": "Summer", "description": "Upbeat and sunny vibes"}, {"name": "Road Trip", "description": "Perfect for long drives and open roads"}]
         
         IMPORTANT: Return ONLY the JSON array. Do not include markdown formatting like  \`\`\`json or \`\`\`. 
       `;
   }
 
-  private parseResponse(text: string): string[] {
+  private parseResponse(text: string): { name: string; description: string }[] {
     try {
       const cleanedText = text
         .replace(/```json/g, '')
@@ -58,13 +60,23 @@ export class GeminiAIService implements IAIService {
 
       if (!Array.isArray(vibes)) {
         console.warn('Gemini response was not an array:', cleanedText);
-        return ['Unknown Vibe'];
+        return [];
       }
 
-      return vibes.map((v) => String(v).toLowerCase()).filter((tag: string) => tag.length > 0);
+      interface RawVibe {
+        name: string;
+        description?: string;
+      }
+
+      return (vibes as RawVibe[])
+        .filter((v) => v.name && typeof v.name === 'string')
+        .map((v) => ({
+          name: v.name.toLowerCase(),
+          description: v.description || '',
+        }));
     } catch (error) {
       console.warn('Failed to parse Gemini response:', text, error);
-      return ['Unknown Vibe'];
+      return [];
     }
   }
 }

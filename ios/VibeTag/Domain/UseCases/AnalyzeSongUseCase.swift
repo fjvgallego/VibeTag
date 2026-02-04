@@ -1,7 +1,7 @@
 import Foundation
 
 protocol AnalyzeSongUseCaseProtocol {
-    func execute(song: VTSong) async throws -> [String]
+    func execute(song: VTSong) async throws -> [TagDTO]
     func executeBatch(songs: [VTSong], onProgress: @escaping (Int, Int) -> Void) async throws
 }
 
@@ -14,11 +14,10 @@ class AnalyzeSongUseCase: AnalyzeSongUseCaseProtocol {
         self.localRepository = localRepository
     }
     
-    func execute(song: VTSong) async throws -> [String] {
-        // 1. Check Local: If the song already has tags, return them immediately.
-        // We assume the VTSong object passed in is from the local database.
+    func execute(song: VTSong) async throws -> [TagDTO] {
+        // 1. Check Local: If the song already has tags, return them (mapped to DTO).
         if !song.tags.isEmpty {
-            return song.tags.map { $0.name }
+            return song.tags.map { TagDTO(name: $0.name, description: $0.tagDescription) }
         }
         
         // 2. If No Local Data: Call remoteRepository.fetchAnalysis(for: song).
@@ -56,8 +55,8 @@ class AnalyzeSongUseCase: AnalyzeSongUseCaseProtocol {
                         songId: song.id,
                         title: song.title,
                         artist: song.artist,
-                        album: nil,
-                        genre: nil
+                        album: song.album,
+                        genre: song.genre
                     )
                 }
                 

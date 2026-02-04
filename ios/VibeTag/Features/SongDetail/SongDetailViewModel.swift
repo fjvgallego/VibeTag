@@ -47,8 +47,11 @@ class SongDetailViewModel {
     }
 
     @MainActor
-    func addTag(_ tagName: String) {
+    func addTag(_ tagName: String, description: String? = nil) {
         let trimmedName = tagName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedDesc = description?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let finalDesc = (trimmedDesc?.isEmpty ?? true) ? nil : trimmedDesc
+        
         guard !trimmedName.isEmpty else { return }
         
         // Check for duplicates
@@ -57,16 +60,16 @@ class SongDetailViewModel {
         }
         
         let previousTags = song.tags
-        var currentTagNames = song.tags.map { $0.name }
-        currentTagNames.append(trimmedName)
+        var currentTagsDTO = song.tags.map { TagDTO(name: $0.name, description: $0.tagDescription) }
+        currentTagsDTO.append(TagDTO(name: trimmedName, description: finalDesc))
         
         // Optimistic update
-        let newTag = Tag(name: trimmedName, hexColor: "#808080") // Default color for optimistic UI
+        let newTag = Tag(name: trimmedName, tagDescription: finalDesc, hexColor: "#808080")
         song.tags.append(newTag)
         
         Task {
             do {
-                try await repository.saveTags(for: song.id, tags: currentTagNames)
+                try await repository.saveTags(for: song.id, tags: currentTagsDTO)
                 await syncEngine.syncPendingChanges()
             } catch {
                 await MainActor.run {
@@ -84,14 +87,14 @@ class SongDetailViewModel {
             $0.name.caseInsensitiveCompare(tagName) == .orderedSame 
         }) else { return }
         
-        var currentTagNames = song.tags.map { $0.name }
-        currentTagNames.remove(at: index)
+        var currentTagsDTO = song.tags.map { TagDTO(name: $0.name, description: $0.tagDescription) }
+        currentTagsDTO.remove(at: index)
         
         let updatedTags = song.tags.filter { $0.name.caseInsensitiveCompare(tagName) != .orderedSame }
         
         Task {
             do {
-                try await repository.saveTags(for: song.id, tags: currentTagNames)
+                try await repository.saveTags(for: song.id, tags: currentTagsDTO)
                 await syncEngine.syncPendingChanges()
                 
                 await MainActor.run {
