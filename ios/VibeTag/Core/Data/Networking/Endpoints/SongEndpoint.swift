@@ -2,6 +2,7 @@ import Foundation
 
 enum SongEndpoint: Endpoint {
     case analyze(id: String?, artist: String, title: String)
+    case analyzeBatch(dto: BatchAnalyzeRequestDTO)
     case updateSong(id: String, dto: UpdateSongDTO)
     case getSyncedSongs(page: Int, limit: Int)
     
@@ -9,6 +10,8 @@ enum SongEndpoint: Endpoint {
         switch self {
         case .analyze:
             return "/analyze/song"
+        case .analyzeBatch:
+            return "/analyze/batch"
         case .updateSong(let id, _):
             return "/songs/\(id)"
         case .getSyncedSongs:
@@ -18,7 +21,7 @@ enum SongEndpoint: Endpoint {
     
     var method: HTTPMethod {
         switch self {
-        case .analyze:
+        case .analyze, .analyzeBatch:
             return .POST
         case .updateSong:
             return .PATCH
@@ -35,6 +38,8 @@ enum SongEndpoint: Endpoint {
         switch self {
         case .analyze(let id, let artist, let title):
             return AnalyzeRequestDTO(songId: id, artist: artist, title: title)
+        case .analyzeBatch(let dto):
+            return dto
         case .updateSong(_, let dto):
             return dto
         case .getSyncedSongs:

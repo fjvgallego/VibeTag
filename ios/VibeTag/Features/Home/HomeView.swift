@@ -2,7 +2,8 @@ import SwiftUI
 import SwiftData
 
 struct HomeView: View {
-    @State private var viewModel = HomeViewModel()
+    let container: AppContainer
+    @State private var viewModel: HomeViewModel
     @State private var showingLogin = false
     @State private var showingDeleteConfirmation = false
     @Environment(AppRouter.self) private var router
@@ -10,8 +11,30 @@ struct HomeView: View {
     @Environment(SessionManager.self) var sessionManager
     @Environment(VibeTagSyncEngine.self) var syncEngine
     
+    init(container: AppContainer) {
+        self.container = container
+        self._viewModel = State(initialValue: HomeViewModel(
+            analyzeUseCase: container.analyzeSongUseCase,
+            localRepository: container.localRepo
+        ))
+    }
+    
     var body: some View {
         ScrollView {
+            if viewModel.isAnalyzing {
+                VStack(spacing: 12) {
+                    ProgressView(value: viewModel.analysisProgress) {
+                        Text(viewModel.analysisStatus)
+                            .font(.caption)
+                    }
+                    .progressViewStyle(.linear)
+                    .padding()
+                    .background(Color(.secondarySystemBackground))
+                    .cornerRadius(12)
+                    .padding(.horizontal)
+                }
+            }
+            
             SongListView(searchTokens: viewModel.searchTokens)
         }
         .searchable(text: $viewModel.searchText)
@@ -19,6 +42,14 @@ struct HomeView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 HStack {
+                    if !viewModel.isAnalyzing {
+                        Button("✨ Analyze Library") {
+                            Task {
+                                await viewModel.analyzeLibrary()
+                            }
+                        }
+                    }
+                    
                     Button("Sync Library") {
                         Task {
                             await viewModel.syncLibrary(modelContext: modelContext)
@@ -81,7 +112,7 @@ struct HomeView: View {
     let sessionManager = SessionManager(tokenStorage: appContainer.tokenStorage, authRepository: appContainer.authRepo)
     let syncEngine = VibeTagSyncEngine(localRepo: appContainer.localRepo, sessionManager: sessionManager)
     
-    HomeView()
+    HomeView(container: appContainer)
         .environment(AppRouter())
         .environment(sessionManager)
         .environment(syncEngine)

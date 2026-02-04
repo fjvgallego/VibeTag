@@ -27,10 +27,6 @@ struct SongRowView: View {
             }
             .frame(width: 60, height: 60)
             .clipShape(RoundedRectangle(cornerRadius: 8))
-            .onAppear {
-                // 👇 Añade esto para depurar
-                print("🎨 Artwork URL para \(song.title): '\(song.artworkUrl ?? "NIL")'")
-            }
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(song.title)

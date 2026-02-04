@@ -21,7 +21,7 @@ struct RootView: View {
         Group {
             if viewModel.isAuthorized {
                 NavigationStack(path: $router.path) {
-                    HomeView()
+                    HomeView(container: container)
                         .navigationDestination(for: AppRoute.self) { route in
                             switch route {
                             case .songDetail(let songID):

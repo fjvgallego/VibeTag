@@ -31,4 +31,30 @@ export class AnalyzeController {
       return res.status(500).json({ message: 'Unexpected error' });
     }
   }
+
+  public async analyzeBatch(req: Request, res: Response): Promise<Response> {
+    try {
+      const userId = req.user?.userId;
+      const result = await this.analyzeUseCase.executeBatch({
+        songs: req.body.songs,
+        userId,
+      });
+
+      if (result.success) {
+        return res.json(result.data);
+      }
+
+      const err = result.error;
+      if (err instanceof ValidationError) {
+        return res.status(400).json({ message: err.message });
+      }
+
+      return res.status(500).json({
+        message: 'Internal server error',
+      });
+    } catch (e) {
+      console.error(e);
+      return res.status(500).json({ message: 'Unexpected error' });
+    }
+  }
 }

@@ -10,3 +10,22 @@ export interface AnalyzeRequestDTO {
 export interface AnalyzeResponseDTO {
   tags: string[];
 }
+
+export interface BatchAnalyzeRequestDTO {
+  userId?: string;
+  songs: {
+    songId?: string;
+    title: string;
+    artist: string;
+    album?: string;
+    genre?: string;
+  }[];
+}
+
+export interface BatchAnalyzeResponseDTO {
+  results: {
+    songId?: string;
+    title: string;
+    tags: string[];
+  }[];
+}

@@ -12,6 +12,11 @@ class AppleMusicSongRepositoryImpl: SongRepository {
         return response.toDomain()
     }
     
+    func fetchBatchAnalysis(dto: BatchAnalyzeRequestDTO) async throws -> BatchAnalyzeResponseDTO {
+        let endpoint = SongEndpoint.analyzeBatch(dto: dto)
+        return try await APIClient.shared.request(endpoint)
+    }
+    
     func fetchSongs(limit: Int) async throws -> [VTSong] {
         var request = MusicLibraryRequest<Song>()
         request.limit = limit
