@@ -19,15 +19,15 @@ case "$PLATFORM" in
 esac
 
 case "$ARCH" in
-  armv6*) ARCH="armv7"
-  ;;
-  armv7*) ARCH="armv7"
-  ;;
-  armv8*) ARCH="aarch64"
-  ;;
   armv64*) ARCH="aarch64"
   ;;
   aarch64*) ARCH="aarch64"
+  ;;
+  armv8*) ARCH="aarch64"
+  ;;
+  armv6*) ARCH="armv7"
+  ;;
+  armv7*) ARCH="armv7"
   ;;
 esac
 
@@ -122,7 +122,7 @@ if ! (mkdir -p "$(dirname "$INSTALL_PATH")" && mv "$TEMP_FILE" "$INSTALL_PATH") 
   sudo -k sh -c "mkdir -p \"$(dirname "$INSTALL_PATH")\" && mv \"$TEMP_FILE\" \"$INSTALL_PATH\""
 fi
 
-echo "Sucessfully installed $("$INSTALL_PATH" --version)"
+echo "Successfully installed $("$INSTALL_PATH" --version)"
 
 VERSION=$("$INSTALL_PATH" --version | awk '{print $2}')
 MAJOR=$(echo "$VERSION" | cut -d. -f1)

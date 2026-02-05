@@ -26,7 +26,7 @@ export class DeleteAccountUseCase implements UseCase<DeleteAccountRequest, void>
       if (error instanceof AppError) {
         return Result.fail(error);
       }
-      return Result.fail(new UseCaseError('Failed to delete account'));
+      return Result.fail(new UseCaseError('Failed to delete account', { cause: error as Error }));
     }
   }
 }

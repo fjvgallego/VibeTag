@@ -4,10 +4,12 @@ export interface AnalyzeRequestDTO {
   artist: string;
   album?: string;
   genre?: string;
+  artworkUrl?: string;
   userId?: string;
 }
 
 export interface AnalyzeResponseDTO {
+  songId: string;
   tags: { name: string; description?: string }[];
 }
 
@@ -19,6 +21,7 @@ export interface BatchAnalyzeRequestDTO {
     artist: string;
     album?: string;
     genre?: string;
+    artworkUrl?: string;
   }[];
 }
 

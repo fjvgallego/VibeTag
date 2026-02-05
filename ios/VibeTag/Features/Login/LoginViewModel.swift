@@ -6,6 +6,7 @@ import AuthenticationServices
 class LoginViewModel: NSObject {
     var errorMessage: String?
     var isAuthenticated: Bool = false
+    var isSyncing: Bool = false
     var sessionManager: SessionManager?
     var syncEngine: SyncEngine?
     
@@ -50,9 +51,18 @@ class LoginViewModel: NSObject {
                     }
                     
                     // Trigger remote data pull after login
-                    await syncEngine?.pullRemoteData()
+                    self.isSyncing = true
+                    do {
+                        try await syncEngine?.pullRemoteData()
+                    } catch {
+                        print("Initial sync failed: \(error.localizedDescription)")
+                        // We don't block the user but we could show a non-fatal warning if we had a way
+                    }
+                    self.isSyncing = false
+                    
                 } catch {
                     self.errorMessage = error.localizedDescription
+                    self.isSyncing = false
                     print("Login Error: \(error)")
                 }
             }

@@ -10,23 +10,23 @@ import Foundation
 enum APIError: Error {
     case invalidURL
     case httpError(statusCode: Int)
-    case decodingError
+    case decodingError(original: Error)
     case unknown
     
     var toAppError: AppError {
         switch self {
         case .httpError(let statusCode):
             if statusCode == 401 {
-                AppError.unauthorized
+                return AppError.unauthorized
             } else {
-                AppError.serverError(statusCode: statusCode)
+                return AppError.serverError(statusCode: statusCode)
             }
-        case .decodingError:
-            AppError.decodingError
+        case .decodingError(let original):
+            return AppError.decodingError(original: original)
         case .invalidURL:
-            AppError.unknown
+            return AppError.unknown
         case .unknown:
-            AppError.unknown
+            return AppError.unknown
         }
     }
 }

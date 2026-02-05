@@ -1,7 +1,7 @@
 import Foundation
 
 protocol AnalyzeSongUseCaseProtocol {
-    func execute(song: VTSong) async throws -> [TagDTO]
+    func execute(song: VTSong) async throws -> [AnalyzedTag]
     func executeBatch(songs: [VTSong], onProgress: @escaping (Int, Int) -> Void) async throws
 }
 
@@ -14,10 +14,10 @@ class AnalyzeSongUseCase: AnalyzeSongUseCaseProtocol {
         self.localRepository = localRepository
     }
     
-    func execute(song: VTSong) async throws -> [TagDTO] {
-        // 1. Check Local: If the song already has tags, return them (mapped to DTO).
+    func execute(song: VTSong) async throws -> [AnalyzedTag] {
+        // 1. Check Local: If the song already has tags, return them (mapped to domain model).
         if !song.tags.isEmpty {
-            return song.tags.map { TagDTO(name: $0.name, description: $0.tagDescription) }
+            return song.tags.map { AnalyzedTag(name: $0.name, description: $0.tagDescription) }
         }
         
         // 2. If No Local Data: Call remoteRepository.fetchAnalysis(for: song).
@@ -47,45 +47,35 @@ class AnalyzeSongUseCase: AnalyzeSongUseCaseProtocol {
         }
         
         var firstError: Error?
+        var successCount = 0
         
         for chunk in chunks {
             do {
-                let songInputs = chunk.map { song in
-                    BatchAnalyzeRequestDTO.SongInput(
-                        songId: song.id,
-                        title: song.title,
-                        artist: song.artist,
-                        album: song.album,
-                        genre: song.genre
-                    )
-                }
-                
-                let dto = BatchAnalyzeRequestDTO(songs: songInputs)
-                let response = try await remoteRepository.fetchBatchAnalysis(dto: dto)
+                let results = try await remoteRepository.fetchBatchAnalysis(for: chunk)
                 
                 // Save results to Local DB
-                for result in response.results {
-                    if let songId = result.songId {
-                        try await localRepository.saveTags(for: songId, tags: result.tags)
-                    }
+                for result in results {
+                    try await localRepository.saveTags(for: result.songId, tags: result.tags)
                 }
+                successCount += 1
             } catch {
                 print("Error analyzing chunk: \(error.localizedDescription)")
                 if firstError == nil { firstError = error }
-                // Continue to next chunk even if one fails
+                
+                // If it's a critical error (like unauthorized), throw immediately
+                if case AppError.unauthorized = error {
+                    throw error
+                }
+                // Continue to next chunk for other errors
             }
             
             currentCount += chunk.count
             onProgress(currentCount, totalCount)
         }
         
-        // If everything failed or some critical error happened, we might want to throw, 
-        // but for now, we'll let the ViewModel handle the "some failed" state if needed.
-        // Actually, let's throw only if all failed or if it's a critical error (like unauthorized).
-        if let error = firstError {
-            // Optional: check if error is critical
-            // For now, let's NOT throw so the UI shows "Analysis complete" 
-            // even if some songs were skipped.
+        // If everything failed, throw the first error we encountered
+        if successCount == 0, let error = firstError {
+            throw error
         }
     }
 }

@@ -16,6 +16,12 @@ class LocalSongStorageRepositoryImpl: SongStorageRepository {
         return try modelContext.fetch(descriptor)
     }
     
+    func fetchSong(id: String) throws -> VTSong? {
+        let songId = id
+        let descriptor = FetchDescriptor<VTSong>(predicate: #Predicate { $0.id == songId })
+        return try modelContext.fetch(descriptor).first
+    }
+    
     func songExists(id: String) throws -> Bool {
         let songId = id
         let descriptor = FetchDescriptor<VTSong>(predicate: #Predicate { $0.id == songId })
@@ -31,26 +37,26 @@ class LocalSongStorageRepositoryImpl: SongStorageRepository {
         modelContext.delete(song)
     }
 
-    func saveTags(for songId: String, tags: [TagDTO]) async throws {
+    func saveTags(for songId: String, tags: [AnalyzedTag]) async throws {
         let id = songId
         let songDescriptor = FetchDescriptor<VTSong>(predicate: #Predicate { $0.id == id })
         guard let song = try modelContext.fetch(songDescriptor).first else {
-            return
+            throw AppError.songNotFound
         }
 
         var updatedTags: [Tag] = []
         
-        for tagDTO in tags {
-            let name = tagDTO.name
+        for analyzedTag in tags {
+            let name = analyzedTag.name
             let tagDescriptor = FetchDescriptor<Tag>(predicate: #Predicate { $0.name == name })
             if let existingTag = try modelContext.fetch(tagDescriptor).first {
                 // Update description if it changed/arrived
-                if let newDesc = tagDTO.description {
+                if let newDesc = analyzedTag.description {
                     existingTag.tagDescription = newDesc
                 }
                 updatedTags.append(existingTag)
             } else {
-                let newTag = Tag(name: name, tagDescription: tagDTO.description, hexColor: "#808080", isSystemTag: false)
+                let newTag = Tag(name: name, tagDescription: analyzedTag.description, hexColor: "#808080", isSystemTag: false)
                 modelContext.insert(newTag)
                 updatedTags.append(newTag)
             }
@@ -64,10 +70,12 @@ class LocalSongStorageRepositoryImpl: SongStorageRepository {
     func markAsSynced(songId: String) async throws {
         let id = songId
         let descriptor = FetchDescriptor<VTSong>(predicate: #Predicate { $0.id == id })
-        if let song = try modelContext.fetch(descriptor).first {
-            song.syncStatus = .synced
-            try modelContext.save()
+        guard let song = try modelContext.fetch(descriptor).first else {
+            throw AppError.songNotFound
         }
+        
+        song.syncStatus = .synced
+        try modelContext.save()
     }
 
     func fetchPendingUploads() async throws -> [VTSong] {
@@ -78,19 +86,24 @@ class LocalSongStorageRepositoryImpl: SongStorageRepository {
         return try modelContext.fetch(descriptor)
     }
 
-    func hydrateRemoteTags(_ remoteItems: [SyncedSongDTO]) async throws {
+    func hydrateRemoteTags(_ remoteItems: [RemoteSongSyncInfo]) async throws {
         for item in remoteItems {
-            let itemId = item.id
-            let descriptor = FetchDescriptor<VTSong>(predicate: #Predicate { $0.id == itemId })
-            let existingSong = try modelContext.fetch(descriptor).first
-            
-            if let song = existingSong {
-                // Conflict Handling: If locally pending, skip it
-                guard song.syncStatus != .pendingUpload else { continue }
+            do {
+                let itemId = item.id
+                let descriptor = FetchDescriptor<VTSong>(predicate: #Predicate { $0.id == itemId })
+                let existingSong = try modelContext.fetch(descriptor).first
                 
-                // Update tags and set to synced
-                try await updateSongTags(song, with: item.tags)
-                song.syncStatus = .synced
+                if let song = existingSong {
+                    // Conflict Handling: If locally pending, skip it
+                    guard song.syncStatus != .pendingUpload else { continue }
+                    
+                    // Update tags and set to synced
+                    try await updateSongTags(song, with: item.tags)
+                    song.syncStatus = .synced
+                }
+            } catch {
+                print("Failed to hydrate tags for song \(item.id): \(error.localizedDescription)")
+                // Continue to next item
             }
         }
         try modelContext.save()
@@ -104,7 +117,7 @@ class LocalSongStorageRepositoryImpl: SongStorageRepository {
             if let existingTag = try modelContext.fetch(tagDescriptor).first {
                 updatedTags.append(existingTag)
             } else {
-                let newTag = Tag(name: name, hexColor: "#808080", isSystemTag: false)
+                let newTag = Tag(name: name, tagDescription: nil, hexColor: "#808080", isSystemTag: false)
                 modelContext.insert(newTag)
                 updatedTags.append(newTag)
             }

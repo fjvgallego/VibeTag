@@ -72,7 +72,9 @@ export class GeneratePlaylistUseCase implements UseCase<
       if (error instanceof AppError) {
         return Result.fail(error);
       }
-      return Result.fail(new UseCaseError('Failed to generate playlist'));
+      return Result.fail(
+        new UseCaseError('Failed to generate playlist', { cause: error as Error }),
+      );
     }
   }
 }

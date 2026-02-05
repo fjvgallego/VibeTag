@@ -6,6 +6,7 @@ struct TagDTO: Decodable {
 }
 
 struct AnalyzeResponseDTO: Decodable {
+    let songId: String
     let tags: [TagDTO]
 }
 

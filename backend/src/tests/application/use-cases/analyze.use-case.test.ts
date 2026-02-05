@@ -61,6 +61,7 @@ describe('AnalyzeUseCase', () => {
 
     // Assert
     expect(result.success).toBe(true);
+    expect(result.getValue().songId).toBe('song-123');
     expect(result.getValue().tags).toEqual([
       { name: 'chill', description: 'Relaxed' },
       { name: 'happy', description: undefined },
@@ -89,6 +90,8 @@ describe('AnalyzeUseCase', () => {
 
     // Assert
     expect(result.success).toBe(true);
+    expect(result.getValue().songId).toBeDefined();
+    expect(result.getValue().songId).toHaveLength(36); // UUID length
     expect(result.getValue().tags).toEqual([
       { name: 'melancholic', description: 'Sad vibe' },
       { name: 'dreamy', description: 'Floating vibe' },
@@ -171,7 +174,10 @@ describe('AnalyzeUseCase', () => {
       expect(result.success).toBe(true);
       const data = result.getValue();
       expect(data.results).toHaveLength(2);
+      expect(data.results[0].songId).toBe('s1');
       expect(data.results[0].tags).toEqual([{ name: 'chill', description: 'Cool' }]);
+      expect(data.results[1].songId).toBeDefined();
+      expect(data.results[1].songId).toHaveLength(36);
       expect(data.results[1].tags).toEqual([{ name: 'energetic', description: 'Fast' }]);
 
       expect(mockAnalysisRepository.findBySong).toHaveBeenCalledTimes(2);

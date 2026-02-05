@@ -24,42 +24,44 @@ class VibeTagSyncEngine: SyncEngine {
         networkMonitor.onConnectionChange = { [weak self] isConnected in
             guard let self = self else { return }
             if isConnected {
-                Task {
-                    await self.pullRemoteData()
-                    await self.syncPendingChanges()
+                Task { [weak self] in
+                    guard let self = self else { return }
+                    do {
+                        try await self.pullRemoteData()
+                        await self.syncPendingChanges()
+                    } catch {
+                        print("Sync error on reconnection: \(error)")
+                    }
                 }
             }
         }
     }
     
-    func pullRemoteData() async {
+    func pullRemoteData() async throws {
         guard !isPulling, networkMonitor.isConnected, sessionManager.isAuthenticated else { return }
         
         isPulling = true
         defer { isPulling = false }
         
-        do {
-            // 2. Fetch remote tags (Downstream Sync) with Pagination
-            let limit = 100
-            var page = 1
-            var hasMoreData = true
-            
-            while hasMoreData {
-                let remoteLibrary: [SyncedSongDTO] = try await APIClient.shared.request(SongEndpoint.getSyncedSongs(page: page, limit: limit))
-                if !remoteLibrary.isEmpty {
-                    try await localRepo.hydrateRemoteTags(remoteLibrary)
-                }
-                
-                if remoteLibrary.count < limit {
-                    hasMoreData = false
-                } else {
-                    page += 1
-                }
+        // 2. Fetch remote tags (Downstream Sync) with Pagination
+        let limit = 100
+        var page = 1
+        var hasMoreData = true
+        
+        while hasMoreData {
+            let remoteLibrary: [SyncedSongDTO] = try await APIClient.shared.request(SongEndpoint.getSyncedSongs(page: page, limit: limit))
+            if !remoteLibrary.isEmpty {
+                let syncInfo = remoteLibrary.map { RemoteSongSyncInfo(id: $0.id, tags: $0.tags) }
+                try await localRepo.hydrateRemoteTags(syncInfo)
             }
-            print("Successfully pulled and hydrated all remote tags.")
-        } catch {
-            print("Failed to pull remote data: \(error.localizedDescription)")
+            
+            if remoteLibrary.count < limit {
+                hasMoreData = false
+            } else {
+                page += 1
+            }
         }
+        print("Successfully pulled and hydrated all remote tags.")
     }
     
     func syncPendingChanges() async {
@@ -78,8 +80,9 @@ class VibeTagSyncEngine: SyncEngine {
                     let dto = UpdateSongDTO(tags: tagsToSync, title: song.title, artist: song.artist)
                     try await APIClient.shared.requestVoid(SongEndpoint.updateSong(id: song.id, dto: dto))
                     
-                    // Check if tags changed during upload (Race Condition Fix)
-                    let currentTags = song.tags.map { $0.name }.sorted()
+                    // Re-fetch to check if tags changed during upload (Race Condition Fix)
+                    let currentTags = try localRepo.fetchSong(id: song.id)?.tags.map { $0.name }.sorted() ?? []
+                    
                     if currentTags == tagsToSync {
                         try await localRepo.markAsSynced(songId: song.id)
                         print("Successfully synced song: \(song.title)")

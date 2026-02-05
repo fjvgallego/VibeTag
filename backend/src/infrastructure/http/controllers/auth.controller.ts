@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { LoginWithAppleUseCase } from '../../../application/use-cases/auth/login-with-apple.use-case';
 import { DeleteAccountUseCase } from '../../../application/use-cases/auth/delete-account.use-case';
-import { AuthError, UserNotFoundError, ValidationError } from '../../../domain/errors/app-error';
+import { ErrorHandler } from '../utils/error-handler';
 
 export class AuthController {
   constructor(
@@ -33,18 +33,11 @@ export class AuthController {
         });
       }
 
-      const error = result.error;
-      if (error instanceof ValidationError) {
-        return res.status(400).json({ message: error.message });
-      }
-      if (error instanceof AuthError) {
-        return res.status(401).json({ message: error.message });
-      }
-
-      return res.status(500).json({ message: 'Internal server error' });
+      ErrorHandler.handle(res, result.error);
+      return res;
     } catch (error) {
-      console.error(error);
-      return res.status(500).json({ message: 'Unexpected error' });
+      ErrorHandler.handle(res, error);
+      return res;
     }
   }
 
@@ -62,18 +55,11 @@ export class AuthController {
         return res.status(200).send();
       }
 
-      const error = result.error;
-      if (error instanceof ValidationError) {
-        return res.status(400).json({ message: error.message });
-      }
-      if (error instanceof UserNotFoundError) {
-        return res.status(404).json({ message: error.message });
-      }
-
-      return res.status(500).json({ message: 'Internal server error' });
+      ErrorHandler.handle(res, result.error);
+      return res;
     } catch (error) {
-      console.error(error);
-      return res.status(500).json({ message: 'Unexpected error' });
+      ErrorHandler.handle(res, error);
+      return res;
     }
   }
 }

@@ -60,8 +60,8 @@ class SongDetailViewModel {
         }
         
         let previousTags = song.tags
-        var currentTagsDTO = song.tags.map { TagDTO(name: $0.name, description: $0.tagDescription) }
-        currentTagsDTO.append(TagDTO(name: trimmedName, description: finalDesc))
+        var currentTags = song.tags.map { AnalyzedTag(name: $0.name, description: $0.tagDescription) }
+        currentTags.append(AnalyzedTag(name: trimmedName, description: finalDesc))
         
         // Optimistic update
         let newTag = Tag(name: trimmedName, tagDescription: finalDesc, hexColor: "#808080")
@@ -69,7 +69,7 @@ class SongDetailViewModel {
         
         Task {
             do {
-                try await repository.saveTags(for: song.id, tags: currentTagsDTO)
+                try await repository.saveTags(for: song.id, tags: currentTags)
                 await syncEngine.syncPendingChanges()
             } catch {
                 await MainActor.run {
@@ -87,14 +87,14 @@ class SongDetailViewModel {
             $0.name.caseInsensitiveCompare(tagName) == .orderedSame 
         }) else { return }
         
-        var currentTagsDTO = song.tags.map { TagDTO(name: $0.name, description: $0.tagDescription) }
-        currentTagsDTO.remove(at: index)
+        var currentTags = song.tags.map { AnalyzedTag(name: $0.name, description: $0.tagDescription) }
+        currentTags.remove(at: index)
         
         let updatedTags = song.tags.filter { $0.name.caseInsensitiveCompare(tagName) != .orderedSame }
         
         Task {
             do {
-                try await repository.saveTags(for: song.id, tags: currentTagsDTO)
+                try await repository.saveTags(for: song.id, tags: currentTags)
                 await syncEngine.syncPendingChanges()
                 
                 await MainActor.run {

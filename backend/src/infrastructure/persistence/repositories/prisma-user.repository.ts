@@ -50,11 +50,12 @@ export class PrismaUserRepository implements UserRepository {
   async upsertByAppleId(user: User): Promise<User> {
     const data = UserMapper.toPersistence(user);
 
-    // Build update object with non-null fields
+    // Build update object with non-null and non-empty fields
     const updateData: Prisma.UserUpdateInput = {};
-    if (data.email !== null) updateData.email = data.email;
-    if (data.firstName !== null) updateData.firstName = data.firstName;
-    if (data.lastName !== null) updateData.lastName = data.lastName;
+    if (data.email != null && data.email.trim() !== '') updateData.email = data.email;
+    if (data.firstName != null && data.firstName.trim() !== '')
+      updateData.firstName = data.firstName;
+    if (data.lastName != null && data.lastName.trim() !== '') updateData.lastName = data.lastName;
 
     const savedUser = await this.prisma.user.upsert({
       where: {

@@ -29,8 +29,8 @@ export interface Dependencies extends ServerDependencies {
 }
 
 export function buildContainer(): Dependencies {
-  const analysisRepo = new PrismaAnalysisRepository();
-  const songRepo = new PrismaSongRepository();
+  const analysisRepo = new PrismaAnalysisRepository(prisma);
+  const songRepo = new PrismaSongRepository(prisma);
   const sanitizer = new TextSanitizer();
   const aiService = new GeminiAIService(config.GEMINI_API_KEY, sanitizer);
 

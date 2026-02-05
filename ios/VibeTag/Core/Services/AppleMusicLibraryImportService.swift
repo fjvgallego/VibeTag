@@ -52,25 +52,18 @@ class AppleMusicLibraryImportService: LibraryImportSyncService {
                  print("MusicSyncService: User cannot play catalog content (No Subscription).")
             }
             
-            let remoteSongs = try await songRepository.fetchSongs(limit: 50)
-            let remoteSongIDs = Set(remoteSongs.map { $0.id })
+            // Fetch remote songs. We use a reasonable limit to avoid excessive sync times
+            // while capturing a good portion of the user's library.
+            // Additive-only sync prevents data loss if the fetch is partial.
+            let remoteSongs = try await songRepository.fetchSongs(limit: 300)
             
             let localSongs = try storage.fetchAllSongs()
-            
-            let songsToDelete = localSongs.filter { !remoteSongIDs.contains($0.id) }
-            
-            for song in songsToDelete {
-                storage.deleteSong(song)
-            }
-            
             let localSongIDs = Set(localSongs.map { $0.id })
             
             for song in remoteSongs {
-                if localSongIDs.contains(song.id) {
-                    continue 
+                if !localSongIDs.contains(song.id) {
+                    storage.saveSong(song)
                 }
-                
-                storage.saveSong(song)
             }
             
             try storage.saveChanges()

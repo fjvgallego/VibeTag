@@ -76,4 +76,5 @@ struct SongRowView: View {
         artworkUrl: "https://example.com/art.jpg"
     )
     return SongRowView(song: previewSong)
+        .environment(AppRouter())
 }

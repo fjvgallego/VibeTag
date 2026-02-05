@@ -13,7 +13,7 @@ enum SongEndpoint: Endpoint {
         case .analyzeBatch:
             return "/analyze/batch"
         case .updateSong(let id, _):
-            return "/songs/\(id)"
+            return "/songs/\(id.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? id)"
         case .getSyncedSongs:
             return "/songs/synced"
         }

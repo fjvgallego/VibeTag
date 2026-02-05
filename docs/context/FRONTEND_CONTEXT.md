@@ -71,7 +71,7 @@ We organize code by **Layer** and **Feature** to maintain clear boundaries.
 - **Naming:** - generally avoid prefixes (e.g., `HomeView`, not `VTHomeView`).
   - **EXCEPTION:** Use `VT` prefix for Data Models that collide with SDK types (specifically `VTSong` to avoid conflict with `MusicKit.Song`).
 
-  ## 🛡️ Security Standards (OWASP MASVS)
+## 🛡️ Security Standards (OWASP MASVS)
 **Principle:** Data Privacy & Secure Storage.
 
 1.  **Insecure Data Storage (MASVS-STORAGE):**

@@ -18,19 +18,19 @@ class SessionManager {
     func logout() {
         do {
             try tokenStorage.deleteToken()
-            isAuthenticated = false
         } catch {
             print("Logout failed: \(error)")
         }
+        isAuthenticated = false
     }
     
-    func deleteAccount() async {
+    func deleteAccount() async throws {
         do {
             try await authRepository.deleteAccount()
             self.logout()
         } catch {
             print("Delete account failed: \(error)")
-            // Optionally handle error (e.g. show alert)
+            throw error
         }
     }
     

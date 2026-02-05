@@ -37,6 +37,24 @@ class HomeViewModel {
         
         isSyncing = false
     }
+
+    func performFullSync(modelContext: ModelContext, syncEngine: VibeTagSyncEngine) async {
+        isSyncing = true
+        errorMessage = nil
+
+        do {
+            // 1. Sync local library with Apple Music
+            let service = AppleMusicLibraryImportService(modelContext: modelContext)
+            try await service.syncLibrary()
+
+            // 2. Pull remote data
+            try await syncEngine.pullRemoteData()
+        } catch {
+            errorMessage = "Sync failed: \(error.localizedDescription)"
+        }
+
+        isSyncing = false
+    }
     
     func analyzeLibrary() async {
         isAnalyzing = true

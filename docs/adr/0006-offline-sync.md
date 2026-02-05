@@ -57,7 +57,7 @@ We will introduce a synchronization state field to the local persistent model (S
         * Upon `200 OK` response, updates the local item to `syncStatus = .synced`.
 
 3.  **Conflict Resolution:**
-    For this phase, we adopt a **"Client Wins" / "Last Write Wins"** strategy for upstream changes. The local modification is assumed to be the most relevant user intent.
+    For this phase, we adopt a **"Client Wins" / "Last Write Wins"** strategy for upstream changes. The local modification is assumed to be the most relevant user intent. **Note:** This strategy accepts the risk that concurrent edits across multiple offline devices will result in the last sync overwriting previous changes (see Consequences).
 
 ## Consequences
 

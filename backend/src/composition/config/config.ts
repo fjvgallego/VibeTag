@@ -10,7 +10,7 @@ export const envSchema = z.object({
   GEMINI_API_KEY: z.string(),
   APPLE_CLIENT_ID: z.string(),
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 chars'),
-  SENTRY_DSN: z.string().url().optional(),
+  SENTRY_DSN: z.url().optional(),
   PORT: z
     .string()
     .default('3000')
@@ -20,7 +20,11 @@ export const envSchema = z.object({
 const _env = envSchema.safeParse(process.env);
 
 if (!_env.success) {
-  console.error('❌ Invalid environment variables:', _env.error.format());
+  console.error('❌ Invalid environment variables. Check configuration.');
+  // Log details only in development
+  if (process.env.NODE_ENV !== 'production') {
+    console.error(_env.error.flatten());
+  }
   throw new Error('Invalid environment variables');
 }
 

@@ -1,6 +1,6 @@
 import Foundation
 
-class APIClient {
+final class APIClient {
     static let shared = APIClient()
     
     // NOTE: This needs to be the local IP for physical devices.
@@ -8,13 +8,28 @@ class APIClient {
     private let baseURL = VTEnvironment.baseURL
     private var tokenStorage: TokenStorage?
     
+    private var setupContinuation: CheckedContinuation<Void, Never>?
+    private var isSetupComplete = false
+    
     private init() {}
     
     func setup(tokenStorage: TokenStorage) {
         self.tokenStorage = tokenStorage
+        isSetupComplete = true
+        setupContinuation?.resume()
+        setupContinuation = nil
+    }
+    
+    private func waitForSetup() async {
+        if isSetupComplete { return }
+        await withCheckedContinuation { continuation in
+            setupContinuation = continuation
+        }
     }
     
     func request<T: Decodable>(_ endpoint: Endpoint) async throws -> T {
+        await waitForSetup()
+        
         guard var components = URLComponents(string: "\(baseURL)\(endpoint.path)") else {
             throw APIError.invalidURL
         }
@@ -66,11 +81,13 @@ class APIClient {
         do {
             return try decoder.decode(T.self, from: data)
         } catch {
-            throw APIError.decodingError
+            throw APIError.decodingError(original: error)
         }
     }
     
     func requestVoid(_ endpoint: Endpoint) async throws {
+        await waitForSetup()
+        
         guard var components = URLComponents(string: "\(baseURL)\(endpoint.path)") else {
             throw APIError.invalidURL
         }

@@ -1,5 +1,6 @@
-import SwiftUI
 import AuthenticationServices
+import SwiftData
+import SwiftUI
 
 struct LoginView: View {
     @State private var viewModel = LoginViewModel(authRepository: VibeTagAuthRepositoryImpl())
@@ -34,6 +35,18 @@ struct LoginView: View {
             .signInWithAppleButtonStyle(.black)
             .frame(height: 50)
             .frame(maxWidth: 300)
+            .disabled(viewModel.isSyncing)
+            .opacity(viewModel.isSyncing ? 0.5 : 1.0)
+            
+            if viewModel.isSyncing {
+                HStack {
+                    ProgressView()
+                        .padding(.trailing, 8)
+                    Text("Syncing your library...")
+                        .font(.nunito(.subheadline))
+                        .foregroundStyle(.secondary)
+                }
+            }
             
             if let error = viewModel.errorMessage {
                 Text(error)
@@ -55,6 +68,17 @@ struct LoginView: View {
 }
 
 #Preview {
-    LoginView()
-        .environment(SessionManager(tokenStorage: KeychainTokenStorage(), authRepository: VibeTagAuthRepositoryImpl()))
+    let modelContainer = try! ModelContainer(
+        for: VTSong.self, Tag.self,
+        configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+    )
+    let modelContext = modelContainer.mainContext
+    let sessionManager = SessionManager(tokenStorage: KeychainTokenStorage(), authRepository: VibeTagAuthRepositoryImpl())
+    let localRepo = LocalSongStorageRepositoryImpl(modelContext: modelContext)
+    let syncEngine = VibeTagSyncEngine(localRepo: localRepo, sessionManager: sessionManager)
+    
+    return LoginView()
+        .environment(sessionManager)
+        .environment(syncEngine)
+        .modelContainer(modelContainer)
 }

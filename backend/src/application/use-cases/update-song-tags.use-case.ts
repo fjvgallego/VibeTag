@@ -20,6 +20,9 @@ export class UpdateSongTagsUseCase implements UseCase<UpdateSongTagsInput, void,
       await this.analysisRepository.updateSongTags(userId, request.songId, request.tags, {
         title: request.title,
         artist: request.artist,
+        album: request.album,
+        genre: request.genre,
+        artworkUrl: request.artworkUrl,
       });
 
       return Result.ok<void, AppError>(undefined);
@@ -28,7 +31,9 @@ export class UpdateSongTagsUseCase implements UseCase<UpdateSongTagsInput, void,
       if (error instanceof AppError) {
         return Result.fail<void, AppError>(error);
       }
-      return Result.fail<void, AppError>(new UseCaseError('Failed to update song tags'));
+      return Result.fail<void, AppError>(
+        new UseCaseError('Failed to update song tags', { cause: error as Error }),
+      );
     }
   }
 }

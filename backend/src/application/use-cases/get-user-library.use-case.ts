@@ -16,7 +16,9 @@ export class GetUserLibraryUseCase {
       return Result.ok(library);
     } catch (error) {
       console.error('Error fetching user library:', error);
-      return Result.fail(new UseCaseError('Failed to fetch user library'));
+      return Result.fail(
+        new UseCaseError('Failed to fetch user library', { cause: error as Error }),
+      );
     }
   }
 }

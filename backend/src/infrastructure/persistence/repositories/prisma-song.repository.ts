@@ -1,10 +1,11 @@
 import { ISongRepository, UserSongData } from '../../../application/ports/song.repository';
-import { prisma } from '../../database/prisma.client';
 import { Song } from '../../../domain/entities/song';
 import { SongMapper } from '../../mappers/song.mapper';
-import { Prisma } from '../../../../prisma/generated';
+import { Prisma, PrismaClient } from '../../../../prisma/generated';
 
 export class PrismaSongRepository implements ISongRepository {
+  constructor(private readonly prisma: PrismaClient) {}
+
   public async findUserLibrary(
     userId: string,
     options?: { page: number; limit: number },
@@ -12,7 +13,7 @@ export class PrismaSongRepository implements ISongRepository {
     const { page = 1, limit = 50 } = options || {};
     const skip = (page - 1) * limit;
 
-    const songs = await prisma.song.findMany({
+    const songs = await this.prisma.song.findMany({
       where: {
         songTags: { some: { userId: userId } },
       },
@@ -43,7 +44,7 @@ export class PrismaSongRepository implements ISongRepository {
     userId: string,
     limit: number = 50,
   ): Promise<Song[]> {
-    const songs = await prisma.song.findMany({
+    const songs = await this.prisma.song.findMany({
       where: {
         songTags: {
           some: {
@@ -70,6 +71,24 @@ export class PrismaSongRepository implements ISongRepository {
       },
     });
 
-    return songs.map((s) => SongMapper.toDomain(s));
+    const domainSongs = songs.map((s) => SongMapper.toDomain(s));
+
+    // Simple in-memory ranking: count how many input tags match the song's tags
+    const rankedSongs = domainSongs
+      .map((song) => {
+        const matchingTagsCount = song.tags.filter((songTag) =>
+          tags.some(
+            (t) =>
+              t.toLowerCase() === songTag.name.toLowerCase() ||
+              (songTag.description?.toLowerCase().includes(t.toLowerCase()) ?? false),
+          ),
+        ).length;
+        return { song, score: matchingTagsCount };
+      })
+      .sort((a, b) => b.score - a.score)
+      .map((item) => item.song)
+      .slice(0, limit);
+
+    return rankedSongs;
   }
 }

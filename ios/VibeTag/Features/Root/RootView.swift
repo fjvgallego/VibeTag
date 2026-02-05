@@ -48,8 +48,13 @@ struct RootView: View {
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
                 Task {
-                    await syncEngine.pullRemoteData()
-                    await syncEngine.syncPendingChanges()
+                    do {
+                        try await syncEngine.pullRemoteData()
+                        try await syncEngine.syncPendingChanges()
+                    } catch {
+                        // Log or handle sync failure appropriately
+                        print("Background sync failed: \(error)")
+                    }
                 }
             }
         }
@@ -66,6 +71,7 @@ struct SongDetailDestinationView: View {
     init(songID: String, container: AppContainer) {
         self.songID = songID
         self.container = container
+        let songID = songID
         self._songs = Query(filter: #Predicate<VTSong> { $0.id == songID })
     }
     
@@ -79,8 +85,8 @@ struct SongDetailDestinationView: View {
 }
 
 #Preview {
-    // Mock container for preview
-    let container = AppContainer(modelContext: try! ModelContainer(for: VTSong.self, Tag.self).mainContext)
-    RootView(container: container)
-        .modelContainer(for: [VTSong.self, Tag.self], inMemory: true)
+    let modelContainer = try! ModelContainer(for: VTSong.self, Tag.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+    let container = AppContainer(modelContext: modelContainer.mainContext)
+    return RootView(container: container)
+        .modelContainer(modelContainer)
 }

@@ -7,6 +7,9 @@ export class JwtTokenService implements ITokenService {
   private readonly expiresIn: jwt.SignOptions['expiresIn'];
 
   constructor() {
+    if (!config.JWT_SECRET) {
+      throw new Error('JWT_SECRET must be configured');
+    }
     this.secret = config.JWT_SECRET;
     // Session duration. For mobile it is usually long (e.g. 30 days)
     this.expiresIn = '30d';

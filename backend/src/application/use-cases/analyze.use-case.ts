@@ -23,8 +23,8 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
 
   public async execute(request: AnalyzeRequestDTO): Promise<Result<AnalyzeResponseDTO, AppError>> {
     try {
-      const normalizedTitle = request.title?.trim();
-      const normalizedArtist = request.artist?.trim();
+      const normalizedTitle = request.title?.trim() ?? '';
+      const normalizedArtist = request.artist?.trim() ?? '';
 
       const existingAnalysis = await this.analysisRepository.findBySong(
         normalizedTitle,
@@ -35,6 +35,7 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
 
       if (existingAnalysis) {
         return Result.ok<AnalyzeResponseDTO, AppError>({
+          songId: existingAnalysis.songId.value,
           tags: existingAnalysis.tags.map((tag) => ({
             name: tag.name,
             description: tag.description || undefined,
@@ -47,6 +48,7 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
         normalizedArtist,
         request.album,
         request.genre,
+        request.artworkUrl,
       );
 
       // Call external AI service
@@ -63,6 +65,7 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
       await this.analysisRepository.save(newAnalysis);
 
       return Result.ok<AnalyzeResponseDTO, AppError>({
+        songId: newAnalysis.songId.value,
         tags: newAnalysis.tags.map((tag) => ({
           name: tag.name,
           description: tag.description || undefined,
@@ -73,7 +76,9 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
       if (error instanceof AppError) {
         return Result.fail<AnalyzeResponseDTO, AppError>(error);
       }
-      return Result.fail<AnalyzeResponseDTO, AppError>(new UseCaseError('Failed to analyze song'));
+      return Result.fail<AnalyzeResponseDTO, AppError>(
+        new UseCaseError('Failed to analyze song', { cause: error as Error }),
+      );
     }
   }
 
@@ -87,9 +92,10 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
         tags: { name: string; description?: string }[];
       }[] = [];
 
-      for (const song of request.songs) {
-        const normalizedTitle = song.title?.trim();
-        const normalizedArtist = song.artist?.trim();
+      for (let i = 0; i < request.songs.length; i++) {
+        const song = request.songs[i];
+        const normalizedTitle = song.title?.trim() ?? '';
+        const normalizedArtist = song.artist?.trim() ?? '';
 
         // Step A: Cache Check
         const existingAnalysis = await this.analysisRepository.findBySong(
@@ -101,7 +107,7 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
 
         if (existingAnalysis) {
           results.push({
-            songId: song.songId,
+            songId: existingAnalysis.songId.value,
             title: song.title,
             tags: existingAnalysis.tags.map((t) => ({
               name: t.name,
@@ -117,6 +123,7 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
           normalizedArtist,
           song.album,
           song.genre,
+          song.artworkUrl,
         );
 
         const aiVibes = await this.aiService.getVibesForSong(songMetadata);
@@ -130,7 +137,7 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
         await this.analysisRepository.save(newAnalysis);
 
         results.push({
-          songId: song.songId,
+          songId: newAnalysis.songId.value,
           title: song.title,
           tags: newAnalysis.tags.map((t) => ({
             name: t.name,
@@ -140,7 +147,7 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
 
         // Step C: Delay to respect rate limits (4 seconds)
         // Only delay if it's NOT the last song being analyzed via AI in this batch
-        const isLastSong = request.songs.indexOf(song) === request.songs.length - 1;
+        const isLastSong = i === request.songs.length - 1;
         if (!isLastSong) {
           await new Promise((resolve) => setTimeout(resolve, 4000));
         }
@@ -153,7 +160,7 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
         return Result.fail<BatchAnalyzeResponseDTO, AppError>(error);
       }
       return Result.fail<BatchAnalyzeResponseDTO, AppError>(
-        new UseCaseError('Failed to process batch analysis'),
+        new UseCaseError('Failed to process batch analysis', { cause: error as Error }),
       );
     }
   }

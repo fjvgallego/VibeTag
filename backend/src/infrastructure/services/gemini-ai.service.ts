@@ -76,7 +76,10 @@ export class GeminiAIService implements IAIService {
     } catch (error) {
       console.error('Error in analyzeUserSentiment:', error);
       // Fallback: basic tokenization
-      return prompt.split(/\s+/).filter((word) => word.length > 2);
+      return this.sanitizer
+        .sanitize(prompt)
+        .split(/\s+/)
+        .filter((word) => word.length > 2);
     }
   }
 
@@ -88,7 +91,7 @@ export class GeminiAIService implements IAIService {
         .trim();
       const tags = JSON.parse(cleanedText);
       if (Array.isArray(tags)) {
-        return tags.map((t) => String(t).trim()).filter((t) => t.length > 0);
+        return tags.map((t) => this.sanitizer.sanitize(String(t))).filter((t) => t.length > 0);
       }
       return [];
     } catch {
@@ -117,8 +120,8 @@ export class GeminiAIService implements IAIService {
       return (vibes as RawVibe[])
         .filter((v) => v.name && typeof v.name === 'string')
         .map((v) => ({
-          name: v.name.toLowerCase(),
-          description: v.description || '',
+          name: this.sanitizer.sanitize(v.name).toLowerCase(),
+          description: v.description ? this.sanitizer.sanitize(v.description) : '',
         }));
     } catch (error) {
       console.warn('Failed to parse Gemini response:', text, error);

@@ -10,6 +10,7 @@ struct TagSheetView: View {
     
     @Query(sort: \Tag.name) private var tags: [Tag]
     
+    @State private var errorMessage: String?
     @State private var newTagName: String = ""
     @State private var isCreatingTag: Bool = false
     
@@ -74,6 +75,14 @@ struct TagSheetView: View {
                     }
                 }
             }
+            .alert("Error", isPresented: Binding(
+                get: { errorMessage != nil },
+                set: { if !$0 { errorMessage = nil } }
+            )) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(errorMessage ?? "Unknown error")
+            }
         }
     }
     
@@ -108,7 +117,7 @@ struct TagSheetView: View {
         
         triggerSync()
     }
-    
+
     private func triggerSync() {
         song.syncStatus = .pendingUpload
         
@@ -118,23 +127,46 @@ struct TagSheetView: View {
                 await syncEngine.syncPendingChanges()
             }
         } catch {
-            print("Failed to save model context: \(error.localizedDescription)")
+            errorMessage = "Failed to save: \(error.localizedDescription)"
         }
     }
     
     private func deleteTags(at offsets: IndexSet) {
-        var shouldSync = false
+        var deletedTags: [Tag] = []
         
         for index in offsets {
             let tagToDelete = tags[index]
-            if song.tags.contains(tagToDelete) {
-                shouldSync = true
+            deletedTags.append(tagToDelete)
+            
+            // Remove from current song if present
+            if let songTagIndex = song.tags.firstIndex(of: tagToDelete) {
+                song.tags.remove(at: songTagIndex)
             }
+            
             modelContext.delete(tagToDelete)
         }
         
-        if shouldSync {
-            triggerSync()
+        // Find ALL songs that contained any of the deleted tags
+        // This is necessary because deleting a tag leaves those songs with stale remote states
+        do {
+            let allSongs = try modelContext.fetch(FetchDescriptor<VTSong>())
+            for affectedSong in allSongs {
+                if deletedTags.contains(where: { affectedSong.tags.contains($0) }) {
+                    affectedSong.syncStatus = .pendingUpload
+                }
+            }
+            
+            // Current song is already marked for sync via its own relationship removal if it had the tag,
+            // but we ensure it's pending if it was affected by this operation.
+            song.syncStatus = .pendingUpload
+            
+            try modelContext.save()
+            
+            Task {
+                await syncEngine.syncPendingChanges()
+            }
+        } catch {
+            errorMessage = "Failed to process tag deletion: \(error.localizedDescription)"
         }
     }
 }

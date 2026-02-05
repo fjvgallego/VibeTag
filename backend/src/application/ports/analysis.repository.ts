@@ -13,6 +13,12 @@ export interface IAnalysisRepository {
     userId: UserId,
     songId: string,
     tags: string[],
-    metadata: { title: string; artist: string },
+    metadata: {
+      title: string;
+      artist: string;
+      album?: string;
+      genre?: string;
+      artworkUrl?: string;
+    },
   ): Promise<void>;
 }

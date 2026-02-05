@@ -5,12 +5,20 @@ export class SongMetadata {
   public readonly artist: string;
   public readonly album?: string;
   public readonly genre?: string;
+  public readonly artworkUrl?: string;
 
-  private constructor(title: string, artist: string, album?: string, genre?: string) {
+  private constructor(
+    title: string,
+    artist: string,
+    album?: string,
+    genre?: string,
+    artworkUrl?: string,
+  ) {
     this.title = title;
     this.artist = artist;
     this.album = album;
     this.genre = genre;
+    this.artworkUrl = artworkUrl;
   }
 
   public static create(
@@ -18,6 +26,7 @@ export class SongMetadata {
     artist: string,
     album?: string,
     genre?: string,
+    artworkUrl?: string,
   ): SongMetadata {
     const t = title?.trim();
     const a = artist?.trim();
@@ -30,7 +39,7 @@ export class SongMetadata {
       throw new ValidationError('Title or artist too long');
     }
 
-    return new SongMetadata(t, a, album?.trim(), genre?.trim());
+    return new SongMetadata(t, a, album?.trim(), genre?.trim(), artworkUrl?.trim());
   }
 
   public equals(other: SongMetadata): boolean {
@@ -39,7 +48,8 @@ export class SongMetadata {
       this.title === other.title &&
       this.artist === other.artist &&
       this.album === other.album &&
-      this.genre === other.genre
+      this.genre === other.genre &&
+      this.artworkUrl === other.artworkUrl
     );
   }
 }

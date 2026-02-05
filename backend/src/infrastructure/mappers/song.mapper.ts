@@ -29,6 +29,9 @@ export class SongMapper {
       prismaSong.artist,
       domainTags,
       prismaSong.createdAt,
+      prismaSong.album || undefined,
+      prismaSong.genre || undefined,
+      prismaSong.artworkUrl || undefined,
     );
   }
 }

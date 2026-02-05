@@ -30,6 +30,8 @@ model Song {
   id         String    @id // Apple Music ID / ISRC
   title      String
   artist     String
+  album      String?
+  genre      String?
   artworkUrl String?
   createdAt  DateTime  @default(now())
   songTags   SongTag[]
@@ -37,13 +39,15 @@ model Song {
 
 model Tag {
   id          String    @id @default(uuid())
-  name        String    @unique
+  name        String
   description String?
   color       String
   type        TagType
   ownerId  String?
   owner    User?     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   songTags SongTag[]
+
+  @@unique([name, ownerId])
 }
 
 model SongTag {
@@ -52,7 +56,7 @@ model SongTag {
   tagId  String
   userId String
 
-  song Song @relation(fields: [songId], references: [id])
+  song Song @relation(fields: [songId], references: [id], onDelete: Cascade)
   tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

@@ -2,12 +2,13 @@ import { IAnalysisRepository } from '../../../application/ports/analysis.reposit
 import { Analysis } from '../../../domain/entities/analysis';
 import { SongMetadata } from '../../../domain/value-objects/song-metadata.vo';
 import { VibeTag, VibeTagSource } from '../../../domain/entities/vibe-tag';
-import { prisma } from '../../database/prisma.client';
 import { VTDate } from '../../../domain/value-objects/vt-date.vo';
 import { UserId } from '../../../domain/value-objects/ids/user-id.vo';
-import { Prisma } from '../../../../prisma/generated';
+import { Prisma, PrismaClient } from '../../../../prisma/generated';
 
 export class PrismaAnalysisRepository implements IAnalysisRepository {
+  constructor(private readonly prisma: PrismaClient) {}
+
   public async findBySong(
     title: string,
     artist: string,
@@ -16,7 +17,7 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
   ): Promise<Analysis | null> {
     const userFilter = userId ? { userId: userId } : undefined;
 
-    const song = await prisma.song.findFirst({
+    const song = await this.prisma.song.findFirst({
       where: songId
         ? { id: songId }
         : {
@@ -47,25 +48,35 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
       return VibeTag.create(st.tag.name, source, st.tag.id, st.tag.description || undefined);
     });
 
-    const metadata = SongMetadata.create(song.title, song.artist, undefined, undefined);
+    const metadata = SongMetadata.create(
+      song.title,
+      song.artist,
+      song.album || undefined,
+      song.genre || undefined,
+    );
 
     return Analysis.create(metadata, tags, VTDate.now(), song.id);
   }
 
   public async save(analysis: Analysis): Promise<void> {
-    await prisma.$transaction(async (tx) => {
+    await this.prisma.$transaction(async (tx) => {
       // 1. Upsert Song
       await tx.song.upsert({
         where: { id: analysis.songId.value },
         update: {
           title: analysis.songMetadata.title,
           artist: analysis.songMetadata.artist,
+          album: analysis.songMetadata.album,
+          genre: analysis.songMetadata.genre,
+          artworkUrl: analysis.songMetadata.artworkUrl,
         },
         create: {
           id: analysis.songId.value,
           title: analysis.songMetadata.title,
           artist: analysis.songMetadata.artist,
-          artworkUrl: '',
+          album: analysis.songMetadata.album,
+          genre: analysis.songMetadata.genre,
+          artworkUrl: analysis.songMetadata.artworkUrl ?? null,
         },
       });
 
@@ -79,8 +90,11 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
       });
       const systemUserId = systemUser.id;
 
+      // Deduplicate tags by name to avoid unique constraint violations
+      const uniqueTags = Array.from(new Map(analysis.tags.map((tag) => [tag.name, tag])).values());
+
       // 3. Process Tags (FIX: Lookup by Name, not ID)
-      for (const tagDomain of analysis.tags) {
+      for (const tagDomain of uniqueTags) {
         if (tagDomain.source === 'user') {
           throw new Error(
             'Cannot save USER tags in Analysis save() without explicit user context.',
@@ -92,6 +106,7 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
         let dbTag = await tx.tag.findFirst({
           where: {
             name: tagDomain.name,
+            ownerId: systemUserId,
             type: targetType,
           },
         });
@@ -131,15 +146,34 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
     userId: UserId,
     songId: string,
     tags: string[],
-    metadata: { title: string; artist: string },
+    metadata: {
+      title: string;
+      artist: string;
+      album?: string;
+      genre?: string;
+      artworkUrl?: string;
+    },
   ): Promise<void> {
     const uniqueTags = Array.from(new Set(tags));
-    await prisma.$transaction(async (tx) => {
+    await this.prisma.$transaction(async (tx) => {
       // Upsert Song
       await tx.song.upsert({
         where: { id: songId },
-        update: { title: metadata.title, artist: metadata.artist },
-        create: { id: songId, title: metadata.title, artist: metadata.artist, artworkUrl: '' },
+        update: {
+          title: metadata.title,
+          artist: metadata.artist,
+          album: metadata.album,
+          genre: metadata.genre,
+          artworkUrl: metadata.artworkUrl,
+        },
+        create: {
+          id: songId,
+          title: metadata.title,
+          artist: metadata.artist,
+          album: metadata.album,
+          genre: metadata.genre,
+          artworkUrl: metadata.artworkUrl || '',
+        },
       });
 
       // Delete old relations
@@ -150,10 +184,14 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
       // Create new ones
       for (const tagName of uniqueTags) {
         // Find reusable tag (SYSTEM or MINE)
+        // Priority Search: User custom tag OR System tag
         let tag = await tx.tag.findFirst({
           where: {
             name: tagName,
-            OR: [{ type: 'SYSTEM' }, { ownerId: userId.value }],
+            OR: [{ ownerId: userId.value }, { type: 'SYSTEM' }],
+          },
+          orderBy: {
+            type: 'desc', // USER comes before SYSTEM alphabetically in TagType enum
           },
         });
 
