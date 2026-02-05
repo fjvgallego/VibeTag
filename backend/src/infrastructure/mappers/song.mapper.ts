@@ -29,6 +29,7 @@ export class SongMapper {
       prismaSong.artist,
       domainTags,
       prismaSong.createdAt,
+      prismaSong.appleMusicId || undefined,
       prismaSong.album || undefined,
       prismaSong.genre || undefined,
       prismaSong.artworkUrl || undefined,

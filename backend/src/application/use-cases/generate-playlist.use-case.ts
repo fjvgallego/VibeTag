@@ -62,6 +62,7 @@ export class GeneratePlaylistUseCase implements UseCase<
           id: song.id.value,
           title: song.metadata.title,
           artist: song.metadata.artist,
+          appleMusicId: song.metadata.appleMusicId,
           tags: song.tags.map((t) => t.name),
         })),
       };

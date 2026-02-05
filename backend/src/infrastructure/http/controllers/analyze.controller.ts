@@ -13,10 +13,11 @@ export class AnalyzeController {
         return res.status(401).json({ message: 'Unauthorized' });
       }
 
-      const { songId, title, artist, album, genre, artworkUrl } = req.body;
+      const { songId, appleMusicId, title, artist, album, genre, artworkUrl } = req.body;
 
       const result = await this.analyzeUseCase.execute({
         songId,
+        appleMusicId,
         title,
         artist,
         album,

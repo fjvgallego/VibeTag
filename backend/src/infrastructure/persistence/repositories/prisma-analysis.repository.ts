@@ -48,12 +48,13 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
       return VibeTag.create(st.tag.name, source, st.tag.id, st.tag.description || undefined);
     });
 
-    const metadata = SongMetadata.create(
-      song.title,
-      song.artist,
-      song.album || undefined,
-      song.genre || undefined,
-    );
+    const metadata = SongMetadata.create({
+      title: song.title,
+      artist: song.artist,
+      appleMusicId: song.appleMusicId || undefined,
+      album: song.album || undefined,
+      genre: song.genre || undefined,
+    });
 
     return Analysis.create(metadata, tags, VTDate.now(), song.id);
   }
@@ -66,6 +67,7 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
         update: {
           title: analysis.songMetadata.title,
           artist: analysis.songMetadata.artist,
+          appleMusicId: analysis.songMetadata.appleMusicId,
           album: analysis.songMetadata.album,
           genre: analysis.songMetadata.genre,
           artworkUrl: analysis.songMetadata.artworkUrl,
@@ -74,6 +76,7 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
           id: analysis.songId.value,
           title: analysis.songMetadata.title,
           artist: analysis.songMetadata.artist,
+          appleMusicId: analysis.songMetadata.appleMusicId,
           album: analysis.songMetadata.album,
           genre: analysis.songMetadata.genre,
           artworkUrl: analysis.songMetadata.artworkUrl ?? null,
@@ -149,6 +152,7 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
     metadata: {
       title: string;
       artist: string;
+      appleMusicId?: string;
       album?: string;
       genre?: string;
       artworkUrl?: string;
@@ -162,6 +166,7 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
         update: {
           title: metadata.title,
           artist: metadata.artist,
+          appleMusicId: metadata.appleMusicId,
           album: metadata.album,
           genre: metadata.genre,
           artworkUrl: metadata.artworkUrl,
@@ -170,6 +175,7 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
           id: songId,
           title: metadata.title,
           artist: metadata.artist,
+          appleMusicId: metadata.appleMusicId,
           album: metadata.album,
           genre: metadata.genre,
           artworkUrl: metadata.artworkUrl || '',

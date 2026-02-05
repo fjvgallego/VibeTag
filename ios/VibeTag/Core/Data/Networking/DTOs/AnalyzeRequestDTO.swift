@@ -2,6 +2,7 @@ import Foundation
 
 struct AnalyzeRequestDTO: Encodable {
     let songId: String?
+    let appleMusicId: String?
     let artist: String
     let title: String
 }
@@ -9,6 +10,7 @@ struct AnalyzeRequestDTO: Encodable {
 struct BatchAnalyzeRequestDTO: Encodable {
     struct SongInput: Encodable {
         let songId: String
+        let appleMusicId: String?
         let title: String
         let artist: String
         let album: String?

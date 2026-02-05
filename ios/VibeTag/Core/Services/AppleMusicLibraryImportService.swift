@@ -1,6 +1,7 @@
 import Foundation
 import MusicKit
 import SwiftData
+import MediaPlayer
 
 enum MusicSyncError: LocalizedError {
     case authorizationDenied

@@ -77,7 +77,7 @@ class VibeTagSyncEngine: SyncEngine {
                 let tagsToSync = song.tags.map { $0.name }.sorted()
                 
                 do {
-                    let dto = UpdateSongDTO(tags: tagsToSync, title: song.title, artist: song.artist)
+                    let dto = UpdateSongDTO(tags: tagsToSync, title: song.title, artist: song.artist, appleMusicId: song.appleMusicId)
                     try await APIClient.shared.requestVoid(SongEndpoint.updateSong(id: song.id, dto: dto))
                     
                     // Re-fetch to check if tags changed during upload (Race Condition Fix)

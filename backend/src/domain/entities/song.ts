@@ -16,12 +16,20 @@ export class Song {
     artist: string,
     tags: VibeTag[] = [],
     createdAt?: Date,
+    appleMusicId?: string,
     album?: string,
     genre?: string,
     artworkUrl?: string,
   ): Song {
     const songId = SongId.create(id);
-    const metadata = SongMetadata.create(title, artist, album, genre, artworkUrl);
+    const metadata = SongMetadata.create({
+      title,
+      artist,
+      appleMusicId,
+      album,
+      genre,
+      artworkUrl,
+    });
     return new Song(songId, metadata, tags, createdAt ?? new Date());
   }
 }

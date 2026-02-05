@@ -27,14 +27,15 @@ model User {
 }
 
 model Song {
-  id         String    @id // Apple Music ID / ISRC
-  title      String
-  artist     String
-  album      String?
-  genre      String?
-  artworkUrl String?
-  createdAt  DateTime  @default(now())
-  songTags   SongTag[]
+  id           String    @id // Apple Music ID (for now) / ISRC
+  appleMusicId String?
+  title        String
+  artist       String
+  album        String?
+  genre        String?
+  artworkUrl   String?
+  createdAt    DateTime  @default(now())
+  songTags     SongTag[]
 }
 
 model Tag {

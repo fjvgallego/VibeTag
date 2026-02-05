@@ -6,7 +6,7 @@ import { VTDate } from '../../../domain/value-objects/vt-date.vo';
 import { AnalysisId } from '../../../domain/value-objects/ids/analysis-id.vo';
 
 describe('Analysis Entity', () => {
-  const metadata = SongMetadata.create('Title', 'Artist');
+  const metadata = SongMetadata.create({ title: 'Title', artist: 'Artist' });
   const tags = [VibeTag.create('chill', 'ai')];
   const now = VTDate.now();
 

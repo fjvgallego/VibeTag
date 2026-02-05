@@ -22,6 +22,7 @@ export class PrismaSongRepository implements ISongRepository {
       orderBy: { id: 'asc' },
       select: {
         id: true,
+        appleMusicId: true,
         songTags: {
           where: { userId: userId },
           select: {
@@ -35,6 +36,7 @@ export class PrismaSongRepository implements ISongRepository {
 
     return songs.map((song) => ({
       id: song.id,
+      appleMusicId: song.appleMusicId || undefined,
       tags: song.songTags.map((st) => st.tag.name),
     }));
   }

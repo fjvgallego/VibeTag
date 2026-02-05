@@ -1,5 +1,6 @@
 export interface AnalyzeRequestDTO {
   songId?: string;
+  appleMusicId?: string;
   title: string;
   artist: string;
   album?: string;
@@ -17,6 +18,7 @@ export interface BatchAnalyzeRequestDTO {
   userId?: string;
   songs: {
     songId?: string;
+    appleMusicId?: string;
     title: string;
     artist: string;
     album?: string;

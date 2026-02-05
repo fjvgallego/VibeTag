@@ -43,13 +43,14 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
         });
       }
 
-      const songMetadata = SongMetadata.create(
-        normalizedTitle,
-        normalizedArtist,
-        request.album,
-        request.genre,
-        request.artworkUrl,
-      );
+      const songMetadata = SongMetadata.create({
+        title: normalizedTitle,
+        artist: normalizedArtist,
+        appleMusicId: request.appleMusicId,
+        album: request.album,
+        genre: request.genre,
+        artworkUrl: request.artworkUrl,
+      });
 
       // Call external AI service
       const aiVibes = await this.aiService.getVibesForSong(songMetadata);
@@ -118,13 +119,14 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
         }
 
         // Step B: AI Analysis
-        const songMetadata = SongMetadata.create(
-          normalizedTitle,
-          normalizedArtist,
-          song.album,
-          song.genre,
-          song.artworkUrl,
-        );
+        const songMetadata = SongMetadata.create({
+          title: normalizedTitle,
+          artist: normalizedArtist,
+          appleMusicId: song.appleMusicId,
+          album: song.album,
+          genre: song.genre,
+          artworkUrl: song.artworkUrl,
+        });
 
         const aiVibes = await this.aiService.getVibesForSong(songMetadata);
         const newTags = aiVibes.map((vibe) =>

@@ -1,13 +1,14 @@
 import Foundation
 import MusicKit
 import Observation
+import MediaPlayer
 
 @Observable
 @MainActor
 class AppleMusicSongRepositoryImpl: SongRepository {
     
     func fetchAnalysis(for song: VTSong) async throws -> [AnalyzedTag] {
-        let endpoint = SongEndpoint.analyze(id: song.id, artist: song.artist, title: song.title)
+        let endpoint = SongEndpoint.analyze(id: song.id, appleMusicId: song.appleMusicId, artist: song.artist, title: song.title)
         do {
             let response: AnalyzeResponseDTO = try await APIClient.shared.request(endpoint)
             return response.tags.map { AnalyzedTag(name: $0.name, description: $0.description) }
@@ -22,6 +23,7 @@ class AppleMusicSongRepositoryImpl: SongRepository {
         let songInputs = songs.map { song in
             BatchAnalyzeRequestDTO.SongInput(
                 songId: song.id,
+                appleMusicId: song.appleMusicId,
                 title: song.title,
                 artist: song.artist,
                 album: song.album,
@@ -53,28 +55,71 @@ class AppleMusicSongRepositoryImpl: SongRepository {
         let maxSafetyLimit = 1000
         let effectiveLimit = limit <= 0 ? maxSafetyLimit : limit
         
-        var request = MusicLibraryRequest<Song>()
-        request.limit = min(effectiveLimit, 100)
+        // Step A: The Bridge (MPMediaQuery)
+        let query = MPMediaQuery.songs()
+        guard let items = query.items else { return [] }
         
-        let response = try await request.response()
-        var currentBatch = response.items
-        var allSongs = currentBatch.map { mapToVTSong($0) }
+        let itemsToProcess = Array(items.prefix(effectiveLimit))
+        var vtSongs: [VTSong] = []
+        var catalogIDsToFetch: [MusicItemID] = []
+        var idMapping: [MusicItemID: String] = [:] // catalogID -> persistentID
         
-        while let nextBatch = try await currentBatch.nextBatch() {
-            let nextSongs = nextBatch.map { mapToVTSong($0) }
-            allSongs.append(contentsOf: nextSongs)
-            currentBatch = nextBatch
+        for item in itemsToProcess {
+            let persistentID = String(item.persistentID)
             
-            if allSongs.count >= effectiveLimit {
-                break
+            // Fallback / Initial Data
+            let song = VTSong(
+                id: persistentID,
+                appleMusicId: nil,
+                title: item.title ?? "Unknown Title",
+                artist: item.artist ?? "Unknown Artist",
+                album: item.albumTitle,
+                genre: item.genre,
+                artworkUrl: nil,
+                dateAdded: item.dateAdded
+            )
+            
+            vtSongs.append(song)
+            
+            let storeID = item.playbackStoreID
+            if storeID != "0" && !storeID.isEmpty {
+                let musicItemID = MusicItemID(storeID)
+                catalogIDsToFetch.append(musicItemID)
+                idMapping[musicItemID] = persistentID
             }
         }
         
-        if allSongs.count > effectiveLimit {
-            return Array(allSongs.prefix(effectiveLimit))
+        // Step B: Async Resolution (MusicKit)
+        if !catalogIDsToFetch.isEmpty {
+            // Process in chunks to avoid URL length limits or timeouts
+            let chunkSize = 50
+            for i in stride(from: 0, to: catalogIDsToFetch.count, by: chunkSize) {
+                let end = min(i + chunkSize, catalogIDsToFetch.count)
+                let chunk = Array(catalogIDsToFetch[i..<end])
+                
+                do {
+                    let request = MusicCatalogResourceRequest<Song>(matching: \.id, memberOf: chunk)
+                    let response = try await request.response()
+                    
+                    for catalogSong in response.items {
+                        if let persistentID = idMapping[catalogSong.id],
+                           let vtSong = vtSongs.first(where: { $0.id == persistentID }) {
+                            
+                            vtSong.appleMusicId = catalogSong.id.rawValue
+                            // Resolve fresh high-res artwork
+                            if let artwork = catalogSong.artwork {
+                                vtSong.artworkUrl = artwork.url(width: 500, height: 500)?.absoluteString
+                            }
+                        }
+                    }
+                } catch {
+                    print("MusicKit enrichment chunk failed: \(error.localizedDescription)")
+                    // Fallback is already handled: vtSongs has local metadata
+                }
+            }
         }
         
-        return allSongs
+        return vtSongs
     }
 
     func searchSongs(query: String) async throws -> [VTSong] {
@@ -87,11 +132,12 @@ class AppleMusicSongRepositoryImpl: SongRepository {
     private func mapToVTSong(_ song: Song) -> VTSong {
         return VTSong(
             id: song.id.rawValue,
+            appleMusicId: song.id.rawValue,
             title: song.title,
             artist: song.artistName,
             album: song.albumTitle,
             genre: song.genreNames.first,
-            artworkUrl: song.artwork?.url(width: 300, height: 300)?.absoluteString,
+            artworkUrl: song.artwork?.url(width: 500, height: 500)?.absoluteString,
             dateAdded: song.libraryAddedDate ?? Date()
         )
     }

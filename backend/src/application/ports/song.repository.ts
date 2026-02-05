@@ -2,6 +2,7 @@ import { Song } from '../../domain/entities/song';
 
 export interface UserSongData {
   id: string; // Apple Music ID
+  appleMusicId?: string;
   tags: string[];
 }
 

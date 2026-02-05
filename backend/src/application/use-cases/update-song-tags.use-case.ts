@@ -20,6 +20,7 @@ export class UpdateSongTagsUseCase implements UseCase<UpdateSongTagsInput, void,
       await this.analysisRepository.updateSongTags(userId, request.songId, request.tags, {
         title: request.title,
         artist: request.artist,
+        appleMusicId: request.appleMusicId,
         album: request.album,
         genre: request.genre,
         artworkUrl: request.artworkUrl,

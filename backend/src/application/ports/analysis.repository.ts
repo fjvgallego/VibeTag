@@ -16,6 +16,7 @@ export interface IAnalysisRepository {
     metadata: {
       title: string;
       artist: string;
+      appleMusicId?: string;
       album?: string;
       genre?: string;
       artworkUrl?: string;

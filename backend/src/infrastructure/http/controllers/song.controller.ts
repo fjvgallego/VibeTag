@@ -47,7 +47,7 @@ export class SongController {
   public async updateTags(req: Request, res: Response): Promise<void> {
     try {
       const songId = req.params.id;
-      const { tags, title, artist, album, genre, artworkUrl } = req.body;
+      const { tags, title, artist, appleMusicId, album, genre, artworkUrl } = req.body;
       const userId = req.user?.userId;
 
       if (!userId) {
@@ -81,6 +81,7 @@ export class SongController {
         tags,
         title,
         artist,
+        appleMusicId,
         album,
         genre,
         artworkUrl,

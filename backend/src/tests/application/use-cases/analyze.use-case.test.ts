@@ -39,12 +39,12 @@ describe('AnalyzeUseCase', () => {
     genre: 'Pop',
   };
 
-  const songMetadata = SongMetadata.create(
-    request.title,
-    request.artist,
-    request.album,
-    request.genre,
-  );
+  const songMetadata = SongMetadata.create({
+    title: request.title,
+    artist: request.artist,
+    album: request.album,
+    genre: request.genre,
+  });
 
   it('should return cached vibes if analysis exists (Cache Hit)', async () => {
     // Arrange
@@ -149,7 +149,7 @@ describe('AnalyzeUseCase', () => {
       };
 
       // Mock Cache Hit for Song 1
-      const song1Metadata = SongMetadata.create('Song 1', 'Artist 1');
+      const song1Metadata = SongMetadata.create({ title: 'Song 1', artist: 'Artist 1' });
       const existingTags = [VibeTag.create('Chill', 'ai', undefined, 'Cool')];
       const existingAnalysis = Analysis.create(song1Metadata, existingTags, VTDate.now(), 's1');
       vi.mocked(mockAnalysisRepository.findBySong).mockResolvedValueOnce(existingAnalysis);

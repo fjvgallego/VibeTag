@@ -1,7 +1,7 @@
 import Foundation
 
 enum SongEndpoint: Endpoint {
-    case analyze(id: String?, artist: String, title: String)
+    case analyze(id: String?, appleMusicId: String?, artist: String, title: String)
     case analyzeBatch(dto: BatchAnalyzeRequestDTO)
     case updateSong(id: String, dto: UpdateSongDTO)
     case getSyncedSongs(page: Int, limit: Int)
@@ -36,8 +36,8 @@ enum SongEndpoint: Endpoint {
     
     var body: Encodable? {
         switch self {
-        case .analyze(let id, let artist, let title):
-            return AnalyzeRequestDTO(songId: id, artist: artist, title: title)
+        case .analyze(let id, let appleMusicId, let artist, let title):
+            return AnalyzeRequestDTO(songId: id, appleMusicId: appleMusicId, artist: artist, title: title)
         case .analyzeBatch(let dto):
             return dto
         case .updateSong(_, let dto):
