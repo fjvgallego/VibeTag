@@ -55,10 +55,7 @@ struct VibeTagApp: App {
         container = AppContainer(modelContext: modelContainer.mainContext)
         
         // Configure APIClient with the container's token storage
-        Task {
-            await APIClient.shared.setup(tokenStorage: container.tokenStorage)
-            await APIClient.shared.ping()
-        }
+        APIClient.shared.setup(tokenStorage: container.tokenStorage)
     }
     
     var body: some Scene {

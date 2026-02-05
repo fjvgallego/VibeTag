@@ -50,7 +50,7 @@ struct RootView: View {
                 Task {
                     do {
                         try await syncEngine.pullRemoteData()
-                        try await syncEngine.syncPendingChanges()
+                        await syncEngine.syncPendingChanges()
                     } catch {
                         // Log or handle sync failure appropriately
                         print("Background sync failed: \(error)")

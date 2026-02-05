@@ -17,11 +17,9 @@ enum VTEnvironment {
     static var baseURL: String {
         switch current {
         case .debug:
-            if let infoURL = Bundle.main.object(forInfoDictionaryKey: "BASE_URL") as? String, !infoURL.isEmpty {
-                return infoURL
-            }
+            return "http://192.168.1.245:3000/api/v1"
             // Localhost for Simulator
-           return "http://localhost:3000/api/v1"
+//           return "http://localhost:3000/api/v1"
         case .release:
             // Replace with your actual production URL
             return "https://vibetag-backend.onrender.com/api/v1"

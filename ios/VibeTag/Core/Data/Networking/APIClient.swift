@@ -8,48 +8,38 @@ final class APIClient {
     private let baseURL = VTEnvironment.baseURL
     private var tokenStorage: TokenStorage?
     
-    private var setupContinuation: CheckedContinuation<Void, Never>?
-    private var isSetupComplete = false
-    
     private init() {}
     
     func setup(tokenStorage: TokenStorage) {
         self.tokenStorage = tokenStorage
-        isSetupComplete = true
-        setupContinuation?.resume()
-        setupContinuation = nil
-    }
-    
-    private func waitForSetup() async {
-        if isSetupComplete { return }
-        await withCheckedContinuation { continuation in
-            setupContinuation = continuation
-        }
     }
     
     func request<T: Decodable>(_ endpoint: Endpoint) async throws -> T {
-        await waitForSetup()
-        
-        guard var components = URLComponents(string: "\(baseURL)\(endpoint.path)") else {
+        guard let url = URL(string: baseURL) else {
             throw APIError.invalidURL
         }
+        
+        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        components?.path += endpoint.path
         
         if let queryItems = endpoint.queryItems {
-            components.queryItems = queryItems
+            components?.queryItems = queryItems
         }
         
-        guard let url = components.url else {
+        guard let finalURL = components?.url else {
             throw APIError.invalidURL
         }
         
-        var request = URLRequest(url: url)
+        var request = URLRequest(url: finalURL)
         request.httpMethod = endpoint.method.rawValue
         
         // Default Content-Type
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         // Add Authorization header if token is available
-        if let token = tokenStorage?.getToken() {
+        let token = tokenStorage?.getToken()
+        
+        if let token = token {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
         
@@ -86,28 +76,31 @@ final class APIClient {
     }
     
     func requestVoid(_ endpoint: Endpoint) async throws {
-        await waitForSetup()
-        
-        guard var components = URLComponents(string: "\(baseURL)\(endpoint.path)") else {
+        guard let url = URL(string: baseURL) else {
             throw APIError.invalidURL
         }
+        
+        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        components?.path += endpoint.path
         
         if let queryItems = endpoint.queryItems {
-            components.queryItems = queryItems
+            components?.queryItems = queryItems
         }
         
-        guard let url = components.url else {
+        guard let finalURL = components?.url else {
             throw APIError.invalidURL
         }
         
-        var request = URLRequest(url: url)
+        var request = URLRequest(url: finalURL)
         request.httpMethod = endpoint.method.rawValue
         
         // Default Content-Type
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         // Add Authorization header if token is available
-        if let token = tokenStorage?.getToken() {
+        let token = tokenStorage?.getToken()
+        
+        if let token = token {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
         
@@ -131,23 +124,6 @@ final class APIClient {
         
         guard (200...299).contains(httpResponse.statusCode) else {
             throw APIError.httpError(statusCode: httpResponse.statusCode)
-        }
-    }
-    
-    /// Sends a simple request to the root to trigger Local Network permissions on iOS 14+
-    func ping() {
-        guard let url = URL(string: baseURL) else { return }
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        
-        Task {
-            do {
-                let _ = try await URLSession.shared.data(for: request)
-                // Success - permission granted or network available
-            } catch {
-                // Ignore errors - we just wanted to trigger the permission prompt
-                print("Ping failed (expected during first launch if permission pending): \(error)")
-            }
         }
     }
 }

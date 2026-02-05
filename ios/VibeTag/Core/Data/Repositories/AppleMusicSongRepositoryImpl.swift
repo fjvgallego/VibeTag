@@ -14,7 +14,7 @@ class AppleMusicSongRepositoryImpl: SongRepository {
         } catch let apiError as APIError {
             throw apiError.toAppError
         } catch {
-            throw AppError.unknown
+            throw AppError.networkError(original: error)
         }
     }
     
@@ -45,7 +45,7 @@ class AppleMusicSongRepositoryImpl: SongRepository {
         } catch let apiError as APIError {
             throw apiError.toAppError
         } catch {
-            throw AppError.unknown
+            throw AppError.networkError(original: error)
         }
     }
     
