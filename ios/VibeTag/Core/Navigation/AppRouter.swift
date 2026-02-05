@@ -3,7 +3,7 @@ import SwiftUI
 enum AppRoute: Hashable {
     case songDetail(songID: String)
     case tagDetail(tagID: UUID)
-    // Add other routes here
+    case generatePlaylist
 }
 
 @Observable

@@ -5,6 +5,7 @@ import { VibeTag, VibeTagSource } from '../../../domain/entities/vibe-tag';
 import { prisma } from '../../database/prisma.client';
 import { VTDate } from '../../../domain/value-objects/vt-date.vo';
 import { UserId } from '../../../domain/value-objects/ids/user-id.vo';
+import { Prisma } from '../../../../prisma/generated';
 
 export class PrismaAnalysisRepository implements IAnalysisRepository {
   public async findBySong(
@@ -19,8 +20,8 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
       where: songId
         ? { id: songId }
         : {
-            title: { equals: title, mode: 'insensitive' },
-            artist: { equals: artist, mode: 'insensitive' },
+            title: { equals: title, mode: Prisma.QueryMode.insensitive },
+            artist: { equals: artist, mode: Prisma.QueryMode.insensitive },
           },
       include: {
         songTags: {

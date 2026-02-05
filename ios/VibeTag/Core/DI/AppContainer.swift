@@ -6,6 +6,7 @@ class AppContainer {
     let appleMusicRepo: AppleMusicSongRepositoryImpl
     let authRepo: VibeTagAuthRepositoryImpl
     let analyzeSongUseCase: AnalyzeSongUseCase
+    let generatePlaylistUseCase: GeneratePlaylistUseCase
     let tokenStorage: TokenStorage
     
     init(modelContext: ModelContext) {
@@ -18,5 +19,6 @@ class AppContainer {
             remoteRepository: self.appleMusicRepo,
             localRepository: self.localRepo
         )
+        self.generatePlaylistUseCase = GeneratePlaylistUseCase()
     }
 }

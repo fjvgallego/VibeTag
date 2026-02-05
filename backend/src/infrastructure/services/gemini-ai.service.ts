@@ -50,6 +50,52 @@ export class GeminiAIService implements IAIService {
       `;
   }
 
+  public async analyzeUserSentiment(prompt: string): Promise<string[]> {
+    const systemPrompt = `
+        You are a Music Curator and Translator.
+        Task: Analyze the user's music request (which can be in any language) and translate it into a list of 5 to 8 standard English music keywords and mood tags.
+        Include synonyms and related concepts to broaden the search (e.g., if the user wants "Sad music", include ["Sad", "Melancholy", "Acoustic", "Somber"]).
+        
+        Input Prompt: "${this.sanitizer.sanitize(prompt)}"
+
+        Rules:
+        1. Always output strictly in English.
+        2. Return strictly a valid JSON array of strings.
+        3. Do not include markdown formatting or explanations.
+        
+        Example Output: ["Coding", "Focus", "Electronic", "Ambient", "Lofi"]
+    `;
+
+    try {
+      const { text } = await generateText({
+        model: this.google(this.modelName),
+        prompt: systemPrompt,
+      });
+
+      return this.parseSentimentResponse(text);
+    } catch (error) {
+      console.error('Error in analyzeUserSentiment:', error);
+      // Fallback: basic tokenization
+      return prompt.split(/\s+/).filter((word) => word.length > 2);
+    }
+  }
+
+  private parseSentimentResponse(text: string): string[] {
+    try {
+      const cleanedText = text
+        .replace(/```json/g, '')
+        .replace(/```/g, '')
+        .trim();
+      const tags = JSON.parse(cleanedText);
+      if (Array.isArray(tags)) {
+        return tags.map((t) => String(t).trim()).filter((t) => t.length > 0);
+      }
+      return [];
+    } catch {
+      return [];
+    }
+  }
+
   private parseResponse(text: string): { name: string; description: string }[] {
     try {
       const cleanedText = text

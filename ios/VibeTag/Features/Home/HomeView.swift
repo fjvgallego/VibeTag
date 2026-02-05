@@ -42,6 +42,15 @@ struct HomeView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 HStack {
+                    if sessionManager.isAuthenticated {
+                        Button {
+                            router.navigate(to: .generatePlaylist)
+                        } label: {
+                            Image(systemName: "sparkles")
+                                .foregroundColor(.purple)
+                        }
+                    }
+                    
                     if !viewModel.isAnalyzing {
                         Button("✨ Analyze Library") {
                             Task {

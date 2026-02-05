@@ -19,9 +19,11 @@ describe('AnalyzeUseCase', () => {
     mockAnalysisRepository = {
       findBySong: vi.fn(),
       save: vi.fn(),
+      updateSongTags: vi.fn(),
     };
     mockAiService = {
       getVibesForSong: vi.fn(),
+      analyzeUserSentiment: vi.fn(),
     };
     analyzeUseCase = new AnalyzeUseCase(mockAnalysisRepository, mockAiService);
   });

@@ -54,6 +54,9 @@ struct VibeTagApp: App {
         
         // Configure APIClient with the container's token storage
         APIClient.shared.setup(tokenStorage: container.tokenStorage)
+        
+        // Trigger Local Network permissions prompt
+        APIClient.shared.ping()
     }
     
     var body: some Scene {

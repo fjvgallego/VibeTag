@@ -3,6 +3,7 @@ import { PrismaAnalysisRepository } from '../../infrastructure/persistence/repos
 import { AnalyzeUseCase } from '../../application/use-cases/analyze.use-case';
 import { UpdateSongTagsUseCase } from '../../application/use-cases/update-song-tags.use-case';
 import { GetUserLibraryUseCase } from '../../application/use-cases/get-user-library.use-case';
+import { GeneratePlaylistUseCase } from '../../application/use-cases/generate-playlist.use-case';
 import { IAIService } from '../../domain/services/ai-service.interface';
 import { GeminiAIService } from '../../infrastructure/services/gemini-ai.service';
 import { TextSanitizer } from '../../shared/text-sanitizer';
@@ -40,6 +41,7 @@ export function buildContainer(): Dependencies {
   const analyzeUseCase = new AnalyzeUseCase(analysisRepo, aiService);
   const updateSongTagsUseCase = new UpdateSongTagsUseCase(analysisRepo);
   const getUserLibraryUseCase = new GetUserLibraryUseCase(songRepo);
+  const generatePlaylistUseCase = new GeneratePlaylistUseCase(aiService, songRepo);
   const loginWithAppleUseCase = new LoginWithAppleUseCase(userRepo, authProvider, tokenService);
   const deleteAccountUseCase = new DeleteAccountUseCase(userRepo);
 
@@ -47,6 +49,7 @@ export function buildContainer(): Dependencies {
     analyzeUseCase,
     updateSongTagsUseCase,
     getUserLibraryUseCase,
+    generatePlaylistUseCase,
     aiService,
     analysisRepo,
     songRepo,

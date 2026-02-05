@@ -28,6 +28,8 @@ struct RootView: View {
                                 SongDetailDestinationView(songID: songID, container: container)
                             case .tagDetail(let tagID):
                                 Text("Tag Detail: \(tagID)") // Placeholder
+                            case .generatePlaylist:
+                                CreatePlaylistView(generatePlaylistUseCase: container.generatePlaylistUseCase)
                             }
                         }
                 }

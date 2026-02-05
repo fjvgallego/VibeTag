@@ -31,6 +31,7 @@ model Song {
   title      String
   artist     String
   artworkUrl String?
+  createdAt  DateTime  @default(now())
   songTags   SongTag[]
 }
 
