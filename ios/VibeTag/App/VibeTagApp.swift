@@ -28,20 +28,20 @@ struct VibeTagApp: App {
 
             // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring.
             // We recommend adjusting this value in production.
-            options.tracesSampleRate = NSNumber(value: VTEnvironment.sentryTracesSampleRate)
+            options.tracesSampleRate = 1.0
 
             // Configure profiling. Visit https://docs.sentry.io/platforms/apple/profiling/ to learn more.
             options.configureProfiling = {
-                $0.sessionSampleRate = VTEnvironment.sentryProfilingSampleRate // We recommend adjusting this value in production.
+                $0.sessionSampleRate = VTEnvironment.sentryProfilingSampleRate
                 $0.lifecycle = .trace
             }
 
             // Uncomment the following lines to add more data to your events
-             options.attachScreenshot = true // This adds a screenshot to the error events
-             options.attachViewHierarchy = true // This adds the view hierarchy to the error events
+            options.attachScreenshot = true // This adds a screenshot to the error events
+            options.attachViewHierarchy = true // This adds the view hierarchy to the error events
             
-            // Enable experimental logging features
-            options.experimental.enableLogs = true
+            // Enable logging features
+            options.enableLogs = true
         }
         
         // SwiftData Container
