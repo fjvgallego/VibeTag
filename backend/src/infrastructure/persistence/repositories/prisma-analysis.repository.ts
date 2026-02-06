@@ -178,7 +178,7 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
           appleMusicId: metadata.appleMusicId,
           album: metadata.album,
           genre: metadata.genre,
-          artworkUrl: metadata.artworkUrl || '',
+          artworkUrl: metadata.artworkUrl ?? null,
         },
       });
 

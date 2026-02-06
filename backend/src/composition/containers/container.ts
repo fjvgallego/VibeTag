@@ -17,12 +17,17 @@ import { DeleteAccountUseCase } from '../../application/use-cases/auth/delete-ac
 import { prisma } from '../../infrastructure/database/prisma.client';
 import { ITokenService } from '../../application/ports/token-service';
 
+import { IAnalysisRepository } from '../../application/ports/analysis.repository';
+import { ISongRepository } from '../../application/ports/song.repository';
+import { UserRepository } from '../../application/ports/user.repository';
+import { IAuthProvider } from '../../application/ports/auth-provider';
+
 export interface Dependencies extends ServerDependencies {
   aiService: IAIService;
-  analysisRepo: PrismaAnalysisRepository;
-  songRepo: PrismaSongRepository;
-  userRepo: PrismaUserRepository;
-  authProvider: AppleAuthProvider;
+  analysisRepo: IAnalysisRepository;
+  songRepo: ISongRepository;
+  userRepo: UserRepository;
+  authProvider: IAuthProvider;
   tokenService: ITokenService;
   loginWithAppleUseCase: LoginWithAppleUseCase;
   deleteAccountUseCase: DeleteAccountUseCase;

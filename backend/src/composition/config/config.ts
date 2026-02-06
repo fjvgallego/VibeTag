@@ -22,7 +22,7 @@ const _env = envSchema.safeParse(process.env);
 if (!_env.success) {
   console.error('❌ Invalid environment variables. Check configuration.');
   // Log details only in development
-  if (process.env.NODE_ENV !== 'production') {
+  if (process.env.NODE_ENV !== 'pro') {
     console.error(_env.error.flatten());
   }
   throw new Error('Invalid environment variables');

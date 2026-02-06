@@ -18,12 +18,13 @@ export class JwtTokenService implements ITokenService {
   generate(payload: TokenPayload): string {
     return jwt.sign(payload, this.secret, {
       expiresIn: this.expiresIn,
+      algorithm: 'HS256',
     });
   }
 
   verify(token: string): TokenPayload | null {
     try {
-      return jwt.verify(token, this.secret) as TokenPayload;
+      return jwt.verify(token, this.secret, { algorithms: ['HS256'] }) as TokenPayload;
     } catch {
       // If the token has expired or the signature is wrong, we return null
       return null;
