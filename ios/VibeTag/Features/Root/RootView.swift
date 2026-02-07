@@ -35,9 +35,14 @@ struct RootView: View {
                 }
                 .environment(router)
             } else {
-                WelcomeView {
-                    viewModel.requestMusicPermissions()
-                }
+                WelcomeView(
+                    onRequestPermissions: {
+                        viewModel.requestMusicPermissions()
+                    },
+                    onContinueAsGuest: {
+                        viewModel.continueAsGuest()
+                    }
+                )
             }
         }
         .environment(sessionManager)
