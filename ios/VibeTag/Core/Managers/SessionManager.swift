@@ -5,6 +5,7 @@ import SwiftUI
 @Observable
 class SessionManager {
     var isAuthenticated: Bool = false
+    var userEmail: String? = nil
     
     private let tokenStorage: TokenStorage
     private let authRepository: AuthRepository
@@ -13,6 +14,10 @@ class SessionManager {
         self.tokenStorage = tokenStorage
         self.authRepository = authRepository
         self.isAuthenticated = tokenStorage.getToken() != nil
+        // For now, let's just use a dummy email if authenticated
+        if isAuthenticated {
+            self.userEmail = "usuario@vibetag.app"
+        }
     }
     
     func logout() {

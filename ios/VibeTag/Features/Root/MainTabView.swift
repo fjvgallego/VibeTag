@@ -15,7 +15,7 @@ struct MainTabView: View {
                     Label("Etiquetas", systemImage: "tag.fill")
                 }
             
-            SettingsPlaceholderView()
+            SettingsView(container: container)
                 .tabItem {
                     Label("Ajustes", systemImage: "gearshape.fill")
                 }
