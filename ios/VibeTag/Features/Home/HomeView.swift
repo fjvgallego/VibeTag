@@ -20,72 +20,68 @@ struct HomeView: View {
     }
     
     var body: some View {
-        ScrollView {
-            if viewModel.isAnalyzing {
-                VStack(spacing: 12) {
-                    ProgressView(value: viewModel.analysisProgress) {
-                        Text(viewModel.analysisStatus)
-                            .font(.caption)
+        ZStack(alignment: .bottom) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    Text("Mi Biblioteca")
+                        .font(.nunito(.largeTitle, weight: .bold))
+                        .padding(.horizontal)
+                        .padding(.top, 10)
+                    
+                    if viewModel.isAnalyzing {
+                        VStack(spacing: 12) {
+                            ProgressView(value: viewModel.analysisProgress) {
+                                Text(viewModel.analysisStatus)
+                                    .font(.nunito(.caption))
+                            }
+                            .progressViewStyle(.linear)
+                            .padding()
+                            .background(Color(.secondarySystemBackground))
+                            .cornerRadius(12)
+                            .padding(.horizontal)
+                        }
                     }
-                    .progressViewStyle(.linear)
-                    .padding()
-                    .background(Color(.secondarySystemBackground))
-                    .cornerRadius(12)
-                    .padding(.horizontal)
+                    
+                    SongListView(searchTokens: viewModel.searchTokens)
+                        .padding(.bottom, 100) // Space for the floating bar
                 }
             }
+            .searchable(text: $viewModel.searchText, prompt: "Buscar canciones o vibes...")
             
-            SongListView(searchTokens: viewModel.searchTokens)
+            // Layer 2: Floating Bar
+            FloatingVibeBar {
+                router.navigate(to: .generatePlaylist)
+            }
+            .padding(.horizontal, 24)
+            .padding(.bottom, 20)
         }
-        .searchable(text: $viewModel.searchText)
-        .navigationTitle("Home")
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                HStack {
-                    if sessionManager.isAuthenticated {
-                        Button {
-                            router.navigate(to: .generatePlaylist)
-                        } label: {
-                            Image(systemName: "sparkles")
-                                .foregroundColor(.purple)
-                        }
+                Menu {
+                    Button {
+                        Task { await viewModel.analyzeLibrary() }
+                    } label: {
+                        Label("Analizar Biblioteca", systemImage: "sparkles")
                     }
+                    .disabled(viewModel.isAnalyzing)
                     
-                    if !viewModel.isAnalyzing {
-                        Button("✨ Analyze Library") {
-                            Task {
-                                await viewModel.analyzeLibrary()
-                            }
-                        }
-                    }
-                    
-                    Button("Sync Library") {
-                        Task {
-                            await viewModel.performFullSync(modelContext: modelContext, syncEngine: syncEngine)
-                        }
+                    Button {
+                        Task { await viewModel.performFullSync(modelContext: modelContext, syncEngine: syncEngine) }
+                    } label: {
+                        Label("Sincronizar", systemImage: "arrow.triangle.2.circlepath")
                     }
                     .disabled(viewModel.isSyncing)
                     
                     if sessionManager.isAuthenticated {
-                        Menu {
-                            Button("Logged in", action: {}).disabled(true)
-                            Button("Logout") {
-                                sessionManager.logout()
-                            }
-                            Button("Delete Account", role: .destructive) {
-                                showingDeleteConfirmation = true
-                            }
-                        } label: {
-                            Image(systemName: "person.circle.fill")
-                                .foregroundColor(.blue)
-                        }
-                    } else {
-                        Button {
-                            showingLogin = true
-                        } label: {
-                            Image(systemName: "person.circle")
+                        Divider()
+                        Button("Cerrar Sesión", role: .destructive) {
+                            sessionManager.logout()
                         }
                     }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                        .foregroundColor(Color("appleMusicRed"))
                 }
             }
         }
@@ -99,20 +95,6 @@ struct HomeView: View {
             Button("OK", role: .cancel) { }
         } message: {
             Text(viewModel.errorMessage ?? "Unknown error")
-        }
-        .confirmationDialog("Are you sure?", isPresented: $showingDeleteConfirmation, titleVisibility: .visible) {
-            Button("Delete Account", role: .destructive) {
-                Task { @MainActor in
-                    do {
-                        try await sessionManager.deleteAccount()
-                    } catch {
-                        viewModel.errorMessage = "Failed to delete account: \(error.localizedDescription)"
-                    }
-                }
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("This action cannot be undone.")
         }
     }
 }

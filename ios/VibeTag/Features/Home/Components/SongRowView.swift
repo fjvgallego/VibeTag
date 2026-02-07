@@ -6,43 +6,53 @@ struct SongRowView: View {
     @Environment(AppRouter.self) private var router
     
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 16) {
+            // Artwork
             AsyncImage(url: URL(string: song.artworkUrl ?? "")) { phase in
                 switch phase {
                 case .empty:
-                    Color.gray.opacity(0.3)
+                    placeholderView
                 case .success(let image):
                     image
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                 case .failure:
-                    Color.gray.opacity(0.3)
-                        .overlay {
-                            Image(systemName: "music.note")
-                                .foregroundStyle(.gray)
-                        }
+                    placeholderView
                 @unknown default:
-                    Color.gray.opacity(0.3)
+                    placeholderView
                 }
             }
-            .frame(width: 60, height: 60)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .frame(width: 64, height: 64)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             
-            VStack(alignment: .leading, spacing: 4) {
+            // Text Content
+            VStack(alignment: .leading, spacing: 2) {
                 Text(song.title)
-                    .font(.nunito(.headline, weight: .semibold))
+                    .font(.nunito(.headline, weight: .bold))
+                    .foregroundColor(Color(white: 0.1))
                     .lineLimit(1)
                 
                 Text(song.artist)
-                    .font(.nunito(.subheadline))
-                    .foregroundStyle(.gray)
+                    .font(.nunito(.subheadline, weight: .medium))
+                    .foregroundColor(.gray)
                     .lineLimit(1)
+                
+                // Tags
+                if !song.tags.isEmpty {
+                    HStack(spacing: 8) {
+                        ForEach(song.tags.prefix(3).sorted(by: { $0.name < $1.name })) { tag in
+                            TagCapsule(tag: tag)
+                        }
+                    }
+                    .padding(.top, 4)
+                }
             }
             
             Spacer()
         }
-        .padding(.vertical, 4)
-        .padding(.horizontal)
+        .padding(.vertical, 10)
+        .padding(.horizontal, 20)
+        .background(Color.clear)
         .contentShape(Rectangle())
         .onTapGesture {
             router.navigate(to: .songDetail(songID: song.id))
@@ -60,21 +70,49 @@ struct SongRowView: View {
             } label: {
                 Label("Tags", systemImage: "tag")
             }
-            .tint(.blue)
+            .tint(Color("appleMusicRed"))
         }
         .sheet(isPresented: $showTagsSheet) {
             TagSheetView(song: song)
         }
+    }
+    
+    private var placeholderView: some View {
+        Color.gray.opacity(0.1)
+            .overlay {
+                Image(systemName: "music.note")
+                    .foregroundStyle(.gray.opacity(0.5))
+            }
+    }
+}
+
+private struct TagCapsule: View {
+    let tag: Tag
+    
+    var body: some View {
+        Text(tag.name.uppercased())
+            .font(.nunito(size: 10, weight: .black))
+            .padding(.horizontal, 10)
+            .padding(.vertical, 4)
+            .background(
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(Color(hex: tag.hexColor)?.opacity(0.1) ?? Color.gray.opacity(0.1))
+            )
+            .foregroundColor(Color(hex: tag.hexColor) ?? .primary)
     }
 }
 
 #Preview {
     let previewSong = VTSong(
         id: "1",
-        title: "Preview Song",
-        artist: "Preview Artist",
+        title: "Midnight City",
+        artist: "M83",
         artworkUrl: "https://example.com/art.jpg"
     )
+    let tag1 = Tag(name: "Dreamy", hexColor: "#FF2D55")
+    let tag2 = Tag(name: "Synth", hexColor: "#5856D6")
+    previewSong.tags = [tag1, tag2]
+    
     return SongRowView(song: previewSong)
         .environment(AppRouter())
 }
