@@ -2,53 +2,25 @@ import SwiftUI
 
 struct MainTabView: View {
     let container: AppContainer
-    @Environment(AppRouter.self) private var router
     
     var body: some View {
         TabView {
-            NavigationStack(path: Bindable(router).path) {
-                HomeView(container: container)
-                    .navigationDestination(for: AppRoute.self) { route in
-                        destinationView(for: route)
-                    }
-            }
-            .tabItem {
-                Label("Biblioteca", systemImage: "music.note.house.fill")
-            }
+            HomeView(container: container)
+                .tabItem {
+                    Label("Biblioteca", systemImage: "music.note.house.fill")
+                }
             
-            NavigationStack(path: Bindable(router).path) {
-                TagsView()
-                    .navigationDestination(for: AppRoute.self) { route in
-                        destinationView(for: route)
-                    }
-            }
-            .tabItem {
-                Label("Etiquetas", systemImage: "tag.fill")
-            }
+            TagsView()
+                .tabItem {
+                    Label("Etiquetas", systemImage: "tag.fill")
+                }
             
-            NavigationStack(path: Bindable(router).path) {
-                SettingsView(container: container)
-                    .navigationDestination(for: AppRoute.self) { route in
-                        destinationView(for: route)
-                    }
-            }
-            .tabItem {
-                Label("Ajustes", systemImage: "gearshape.fill")
-            }
+            SettingsView(container: container)
+                .tabItem {
+                    Label("Ajustes", systemImage: "gearshape.fill")
+                }
         }
         .accentColor(Color("appleMusicRed"))
-    }
-    
-    @ViewBuilder
-    private func destinationView(for route: AppRoute) -> some View {
-        switch route {
-        case .songDetail(let songID):
-            SongDetailDestinationView(songID: songID, container: container)
-        case .tagDetail(let tagID):
-            Text("Tag Detail: \(tagID)") // Placeholder
-        case .generatePlaylist(let prompt):
-            CreatePlaylistView(generatePlaylistUseCase: container.generatePlaylistUseCase, prompt: prompt)
-        }
     }
 }
 

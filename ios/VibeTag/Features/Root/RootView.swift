@@ -20,8 +20,20 @@ struct RootView: View {
     var body: some View {
         Group {
             if viewModel.isAuthorized {
-                MainTabView(container: container)
-                    .environment(router)
+                NavigationStack(path: $router.path) {
+                    MainTabView(container: container)
+                        .navigationDestination(for: AppRoute.self) { route in
+                            switch route {
+                            case .songDetail(let songID):
+                                SongDetailDestinationView(songID: songID, container: container)
+                            case .tagDetail(let tagID):
+                                Text("Tag Detail: \(tagID)") // Placeholder
+                            case .generatePlaylist(let prompt):
+                                CreatePlaylistView(generatePlaylistUseCase: container.generatePlaylistUseCase, prompt: prompt)
+                            }
+                        }
+                }
+                .environment(router)
             } else {
                 WelcomeView(
                     onRequestPermissions: {

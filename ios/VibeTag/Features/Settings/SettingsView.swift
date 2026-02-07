@@ -18,94 +18,106 @@ struct SettingsView: View {
     }
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 24) {
-                // Section 1: Account
-                accountSection
-                
-                // Section 2: Library & Sync
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("BIBLIOTECA Y SINCRONIZACIÓN")
-                        .font(.nunito(size: 12, weight: .bold))
-                        .foregroundColor(.secondary)
-                        .padding(.horizontal, 20)
-                    
-                    VStack(spacing: 0) {
-                        SettingsRow(
-                            title: "Apple Music Enlazado",
-                            icon: "music.note",
-                            iconColor: .green,
-                            trailing: Image(systemName: "checkmark.circle.fill").foregroundColor(.green)
-                        )
-                        
-                        Divider().padding(.leading, 56)
-                        
-                        SettingsRow(
-                            title: "Sincronizar ahora",
-                            icon: "arrow.triangle.2.circlepath",
-                            iconColor: .blue,
-                            isLoading: viewModel.isSyncing
-                        ) {
-                            Task {
-                                await viewModel.performFullSync(modelContext: modelContext, syncEngine: syncEngine)
-                            }
-                        }
-                        
-                        Divider().padding(.leading, 56)
-                        
-                        SettingsRow(
-                            title: "Analizar Biblioteca (IA)",
-                            icon: "sparkles",
-                            iconColor: .purple,
-                            isLoading: viewModel.isAnalyzing
-                        ) {
-                            Task {
-                                await viewModel.analyzeLibrary()
-                            }
-                        }
-                    }
-                    .background(Color(.secondarySystemGroupedBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                    .padding(.horizontal, 16)
-                }
-                
-                // Section 3: Danger Zone
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("ZONA DE PELIGRO")
-                        .font(.nunito(size: 12, weight: .bold))
-                        .foregroundColor(.secondary)
-                        .padding(.horizontal, 20)
-                    
-                    VStack(spacing: 0) {
-                        SettingsRow(
-                            title: "Eliminar Cuenta",
-                            icon: "trash.fill",
-                            iconColor: .red,
-                            titleColor: .red
-                        ) {
-                            showingDeleteConfirmation = true
-                        }
-                    }
-                    .background(Color(.secondarySystemGroupedBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                    .padding(.horizontal, 16)
-                }
-                
-                // Footer
-                VStack(spacing: 4) {
-                    Text("VibeTag v1.0.0")
-                        .font(.nunito(.caption, weight: .medium))
-                    Text("Hecho con ❤️ para amantes de la música")
-                        .font(.nunito(.caption2, weight: .regular))
-                }
-                .foregroundColor(.secondary)
-                .padding(.top, 20)
-                .padding(.bottom, 40)
+        VStack(spacing: 0) {
+            // Custom Header
+            HStack {
+                Text("Ajustes")
+                    .font(.nunito(.largeTitle, weight: .bold))
+                Spacer()
             }
-            .padding(.top, 20)
+            .padding(.horizontal)
+            .padding(.top, 10)
+            .padding(.bottom, 8)
+
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Section 1: Account
+                    accountSection
+                    
+                    // Section 2: Library & Sync
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("BIBLIOTECA Y SINCRONIZACIÓN")
+                            .font(.nunito(size: 12, weight: .bold))
+                            .foregroundColor(.secondary)
+                            .padding(.horizontal, 20)
+                        
+                        VStack(spacing: 0) {
+                            SettingsRow(
+                                title: "Apple Music Enlazado",
+                                icon: "music.note",
+                                iconColor: .green,
+                                trailing: Image(systemName: "checkmark.circle.fill").foregroundColor(.green)
+                            )
+                            
+                            Divider().padding(.leading, 56)
+                            
+                            SettingsRow(
+                                title: "Sincronizar ahora",
+                                icon: "arrow.triangle.2.circlepath",
+                                iconColor: .blue,
+                                isLoading: viewModel.isSyncing
+                            ) {
+                                Task {
+                                    await viewModel.performFullSync(modelContext: modelContext, syncEngine: syncEngine)
+                                }
+                            }
+                            
+                            Divider().padding(.leading, 56)
+                            
+                            SettingsRow(
+                                title: "Analizar Biblioteca (IA)",
+                                icon: "sparkles",
+                                iconColor: .purple,
+                                isLoading: viewModel.isAnalyzing
+                            ) {
+                                Task {
+                                    await viewModel.analyzeLibrary()
+                                }
+                            }
+                        }
+                        .background(Color(.secondarySystemGroupedBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .padding(.horizontal, 16)
+                    }
+                    
+                    // Section 3: Danger Zone
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("ZONA DE PELIGRO")
+                            .font(.nunito(size: 12, weight: .bold))
+                            .foregroundColor(.secondary)
+                            .padding(.horizontal, 20)
+                        
+                        VStack(spacing: 0) {
+                            SettingsRow(
+                                title: "Eliminar Cuenta",
+                                icon: "trash.fill",
+                                iconColor: .red,
+                                titleColor: .red
+                            ) {
+                                showingDeleteConfirmation = true
+                            }
+                        }
+                        .background(Color(.secondarySystemGroupedBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .padding(.horizontal, 16)
+                    }
+                    
+                    // Footer
+                    VStack(spacing: 4) {
+                        Text("VibeTag v1.0.0")
+                            .font(.nunito(.caption, weight: .medium))
+                        Text("Hecho con ❤️ para amantes de la música")
+                            .font(.nunito(.caption2, weight: .regular))
+                    }
+                    .foregroundColor(.secondary)
+                    .padding(.top, 20)
+                    .padding(.bottom, 40)
+                }
+                .padding(.top, 20)
+            }
         }
         .background(Color(.systemGroupedBackground))
-        .navigationTitle("Ajustes")
+        .toolbar(.hidden, for: .navigationBar)
         .alert("Error", isPresented: Binding(
             get: { viewModel.errorMessage != nil },
             set: { if !$0 { viewModel.errorMessage = nil } }
