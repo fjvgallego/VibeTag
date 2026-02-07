@@ -55,7 +55,6 @@ struct VibeInputSheet: View {
             // Action Button
             PrimaryActionButton("Generar Playlist", icon: "sparkles") {
                 onGenerate(vibeText)
-                dismiss()
             }
             .disabled(vibeText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             .opacity(vibeText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.6 : 1.0)

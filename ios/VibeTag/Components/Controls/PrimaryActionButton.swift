@@ -13,7 +13,7 @@ struct PrimaryActionButton: View {
     
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 8) {
+            HStack(spacing: 12) {
                 if let icon = icon {
                     Image(systemName: icon)
                         .font(.nunito(.headline, weight: .bold))
@@ -22,6 +22,7 @@ struct PrimaryActionButton: View {
                 Text(title)
                     .font(.nunito(.headline, weight: .bold))
             }
+            .padding(.horizontal, 16)
         }
         .buttonStyle(PrimaryButtonStyle())
     }

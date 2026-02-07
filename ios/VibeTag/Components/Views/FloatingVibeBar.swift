@@ -32,7 +32,7 @@ struct FloatingVibeBar: View {
             .clipShape(Capsule())
             .overlay(
                 Capsule()
-                    .stroke(Color.white.opacity(0.2), lineWidth: 0.5)
+                    .stroke(Color.primary.opacity(0.1), lineWidth: 0.5)
             )
             .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
         }

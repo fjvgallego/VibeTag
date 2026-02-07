@@ -59,9 +59,8 @@ struct HomeView: View {
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showingVibeSheet) {
             VibeInputSheet { vibe in
-                print("Generating playlist for vibe: \(vibe)")
-                // Here we would call the generation logic
-                router.navigate(to: .generatePlaylist)
+                showingVibeSheet = false
+                router.navigate(to: .generatePlaylist(prompt: vibe))
             }
             .presentationDetents([.medium])
             .presentationDragIndicator(.visible)

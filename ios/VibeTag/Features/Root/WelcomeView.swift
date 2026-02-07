@@ -21,11 +21,11 @@ struct WelcomeView: View {
                     VStack(spacing: 8) {
                         Text("VibeTag")
                             .font(.nunito(.largeTitle, weight: .heavy))
-                            .foregroundColor(.black.opacity(0.8))
+                            .foregroundColor(.primary)
                         
                         Text("Tus vibes, tus playlists")
                             .font(.nunito(.title3, weight: .medium))
-                            .foregroundColor(.gray)
+                            .foregroundColor(.secondary)
                     }
                 }
                 
@@ -40,7 +40,7 @@ struct WelcomeView: View {
                     Button(action: onContinueAsGuest) {
                         Text("Enlazar más tarde")
                             .font(.nunito(.callout, weight: .medium))
-                            .foregroundColor(.gray)
+                            .foregroundColor(.secondary)
                     }
                     .padding(.vertical, 8)
                 }
@@ -72,7 +72,7 @@ struct WelcomeView: View {
     
     private var backgroundView: some View {
         ZStack {
-            Color.white.ignoresSafeArea()
+            Color(.systemBackground).ignoresSafeArea()
             
             RadialGradient(
                 stops: [

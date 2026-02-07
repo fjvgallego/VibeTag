@@ -29,12 +29,12 @@ struct SongRowView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(song.title)
                     .font(.nunito(.headline, weight: .bold))
-                    .foregroundColor(Color(white: 0.1))
+                    .foregroundColor(.primary)
                     .lineLimit(1)
                 
                 Text(song.artist)
                     .font(.nunito(.subheadline, weight: .medium))
-                    .foregroundColor(.gray)
+                    .foregroundColor(.secondary)
                     .lineLimit(1)
                 
                 // Tags
