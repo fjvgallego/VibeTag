@@ -6,6 +6,7 @@ struct HomeView: View {
     @State private var viewModel: HomeViewModel
     @State private var showingLogin = false
     @State private var showingDeleteConfirmation = false
+    @State private var showingVibeSheet = false
     @Environment(AppRouter.self) private var router
     @Environment(\.modelContext) private var modelContext
     @Environment(SessionManager.self) var sessionManager
@@ -50,12 +51,21 @@ struct HomeView: View {
             
             // Layer 2: Floating Bar
             FloatingVibeBar {
-                router.navigate(to: .generatePlaylist)
+                showingVibeSheet = true
             }
             .padding(.horizontal, 24)
             .padding(.bottom, 20)
         }
         .navigationBarTitleDisplayMode(.inline)
+        .sheet(isPresented: $showingVibeSheet) {
+            VibeInputSheet { vibe in
+                print("Generating playlist for vibe: \(vibe)")
+                // Here we would call the generation logic
+                router.navigate(to: .generatePlaylist)
+            }
+            .presentationDetents([.medium])
+            .presentationDragIndicator(.visible)
+        }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
