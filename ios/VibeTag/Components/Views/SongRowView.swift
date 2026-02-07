@@ -73,7 +73,9 @@ struct SongRowView: View {
             .tint(Color("appleMusicRed"))
         }
         .sheet(isPresented: $showTagsSheet) {
-            TagSheetView(song: song)
+            TagAssignmentSheet(song: song)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
         }
     }
     

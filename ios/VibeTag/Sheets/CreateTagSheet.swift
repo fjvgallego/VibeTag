@@ -13,16 +13,6 @@ struct CreateTagSheet: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
-            // Grabber handle
-            HStack {
-                Spacer()
-                RoundedRectangle(cornerRadius: 2.5)
-                    .fill(Color.secondary.opacity(0.3))
-                    .frame(width: 36, height: 5)
-                Spacer()
-            }
-            .padding(.top, 12)
-
             // Header
             VStack(alignment: .leading, spacing: 8) {
                 Text("Nueva Etiqueta")
