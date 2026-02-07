@@ -18,7 +18,7 @@ struct VibeInputSheet: View {
                     .font(.nunito(.subheadline, weight: .medium))
                     .foregroundColor(.secondary)
             }
-            .padding(.top, 32)
+            .padding(.top, 40)
             
             // Input Area
             ZStack(alignment: .bottomTrailing) {

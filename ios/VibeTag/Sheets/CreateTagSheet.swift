@@ -23,7 +23,7 @@ struct CreateTagSheet: View {
                     .font(.nunito(.subheadline, weight: .medium))
                     .foregroundColor(.secondary)
             }
-            .padding(.top, 8)
+            .padding(.top, 40)
             
             // Name Input
             VStack(alignment: .leading, spacing: 10) {

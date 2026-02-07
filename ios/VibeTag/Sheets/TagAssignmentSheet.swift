@@ -18,6 +18,7 @@ struct TagAssignmentSheet: View {
                 Text("Etiquetar Canción")
                     .font(.nunito(.title2, weight: .bold))
                     .foregroundColor(.primary)
+                    .padding(.top, 40)
                 
                 HStack(spacing: 8) {
                     AsyncImage(url: URL(string: song.artworkUrl ?? "")) { phase in
