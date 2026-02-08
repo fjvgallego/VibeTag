@@ -22,6 +22,9 @@ struct HomeView: View {
     
     var body: some View {
         ZStack(alignment: .bottom) {
+            // Layer 0: Background
+            backgroundView
+            
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     Text("Mi Biblioteca")
@@ -104,6 +107,42 @@ struct HomeView: View {
             Button("OK", role: .cancel) { }
         } message: {
             Text(viewModel.errorMessage ?? "Unknown error")
+        }
+    }
+    
+    private var backgroundView: some View {
+        ZStack {
+            Color(.systemGroupedBackground)
+                .ignoresSafeArea()
+            
+            RadialGradient(
+                stops: [
+                    .init(color: Color("appleMusicRed").opacity(0.12), location: 0),
+                    .init(color: .clear, location: 0.8)
+                ],
+                center: .topTrailing,
+                startRadius: 0,
+                endRadius: 600
+            )
+            .ignoresSafeArea()
+            
+            RadialGradient(
+                stops: [
+                    .init(color: Color("appleMusicRed").opacity(0.08), location: 0),
+                    .init(color: .clear, location: 0.7)
+                ],
+                center: .bottomLeading,
+                startRadius: 0,
+                endRadius: 500
+            )
+            .ignoresSafeArea()
+            
+            Circle()
+                .fill(Color.purple.opacity(0.05))
+                .frame(width: 400, height: 400)
+                .blur(radius: 100)
+                .offset(x: -150, y: 300)
+                .ignoresSafeArea()
         }
     }
 }

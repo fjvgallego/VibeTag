@@ -3,6 +3,7 @@ import SwiftUI
 struct TagCell: View {
     let tag: Tag
     var onEdit: () -> Void = {}
+    var onDelete: () -> Void = {}
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -14,10 +15,20 @@ struct TagCell: View {
                 
                 Spacer()
                 
-                Button(action: onEdit) {
+                Menu {
+                    Button(action: onEdit) {
+                        Label("Editar", systemImage: "pencil")
+                    }
+                    
+                    Button(role: .destructive, action: onDelete) {
+                        Label("Eliminar", systemImage: "trash")
+                    }
+                } label: {
                     Image(systemName: "ellipsis")
                         .foregroundColor(.gray)
                         .font(.system(size: 14, weight: .bold))
+                        .padding(8)
+                        .contentShape(Rectangle())
                 }
             }
             
@@ -27,7 +38,8 @@ struct TagCell: View {
             Text(tag.name)
                 .font(.nunito(.title3, weight: .bold))
                 .foregroundColor(.primary)
-                .lineLimit(1)
+                .lineLimit(2)
+                .minimumScaleFactor(0.7)
             
             // Song Count
             HStack(spacing: 4) {

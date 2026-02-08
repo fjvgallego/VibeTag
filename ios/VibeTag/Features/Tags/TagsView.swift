@@ -5,6 +5,9 @@ struct TagsView: View {
     @Query private var allTags: [Tag]
     @State private var viewModel = TagsViewModel()
     @State private var showingCreateTag = false
+    @State private var tagToEdit: Tag? = nil
+    @State private var tagToDelete: Tag? = nil
+    @State private var showingDeleteConfirmation = false
     @Environment(\.modelContext) private var modelContext
     
     let columns = [
@@ -35,21 +38,23 @@ struct TagsView: View {
 
             ScrollView {
                 VStack(spacing: 20) {
-                    // Filter Picker
-                    Picker("Filtro", selection: $viewModel.selectedFilter) {
-                        ForEach(TagFilter.allCases) { filter in
-                            Text(filter.rawValue).tag(filter)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                    .padding(.horizontal)
+                    // Custom Segmented Control
+                    CustomSegmentedControl(selection: $viewModel.selectedFilter, items: TagFilter.allCases)
+                        .padding(.horizontal)
                     
                     // Grid
                     LazyVGrid(columns: columns, spacing: 16) {
                         ForEach(viewModel.filteredTags(allTags)) { tag in
-                            TagCell(tag: tag) {
-                                // Action for ellipsis menu
-                            }
+                            TagCell(
+                                tag: tag,
+                                onEdit: {
+                                    tagToEdit = tag
+                                },
+                                onDelete: {
+                                    tagToDelete = tag
+                                    showingDeleteConfirmation = true
+                                }
+                            )
                         }
                     }
                     .padding(.horizontal)
@@ -68,6 +73,28 @@ struct TagsView: View {
             }
             .presentationDetents([.medium])
             .presentationDragIndicator(.visible)
+        }
+        .sheet(item: $tagToEdit) { tag in
+            CreateTagSheet(tagName: tag.name, selectedColor: Color(hex: tag.hexColor) ?? .appleMusicRed) { name, hexColor in
+                tag.name = name
+                tag.hexColor = hexColor
+                try? modelContext.save()
+            }
+            .presentationDetents([.medium])
+            .presentationDragIndicator(.visible)
+        }
+        .confirmationDialog("¿Eliminar etiqueta?", isPresented: $showingDeleteConfirmation, titleVisibility: .visible) {
+            Button("Eliminar \"\(tagToDelete?.name ?? "")\"", role: .destructive) {
+                if let tag = tagToDelete {
+                    modelContext.delete(tag)
+                    tagToDelete = nil
+                }
+            }
+            Button("Cancelar", role: .cancel) {
+                tagToDelete = nil
+            }
+        } message: {
+            Text("Esta acción no se puede deshacer y se quitará de todas las canciones.")
         }
     }
 }
