@@ -42,12 +42,22 @@ struct SettingsView: View {
                             .padding(.horizontal, 20)
                         
                         VStack(spacing: 0) {
-                            SettingsRow(
-                                title: "Apple Music Enlazado",
-                                icon: "music.note",
-                                iconColor: .green,
-                                trailing: Image(systemName: "checkmark.circle.fill").foregroundColor(.green)
-                            )
+                            if viewModel.isAppleMusicLinked {
+                                SettingsRow(
+                                    title: "Apple Music Enlazado",
+                                    icon: "music.note",
+                                    iconColor: .green,
+                                    trailing: Image(systemName: "checkmark.circle.fill").foregroundColor(.green)
+                                )
+                            } else {
+                                SettingsRow(
+                                    title: "Enlazar Apple Music",
+                                    icon: "music.note",
+                                    iconColor: .gray
+                                ) {
+                                    viewModel.requestMusicPermissions()
+                                }
+                            }
                             
                             Divider().padding(.leading, 56)
                             
@@ -125,6 +135,9 @@ struct SettingsView: View {
             Button("OK", role: .cancel) { }
         } message: {
             Text(viewModel.errorMessage ?? "Unknown error")
+        }
+        .onAppear {
+            viewModel.updateAuthorizationStatus()
         }
         .confirmationDialog("¿Estás seguro?", isPresented: $showingDeleteConfirmation, titleVisibility: .visible) {
             Button("Eliminar Cuenta", role: .destructive) {

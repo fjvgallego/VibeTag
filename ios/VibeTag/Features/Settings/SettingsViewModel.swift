@@ -1,6 +1,7 @@
 import Foundation
 import Observation
 import SwiftData
+import MusicKit
 
 @Observable
 class SettingsViewModel {
@@ -10,12 +11,32 @@ class SettingsViewModel {
     var analysisStatus: String = ""
     var errorMessage: String? = nil
     
+    var musicAuthorizationStatus: MusicAuthorization.Status = .notDetermined
+    
+    var isAppleMusicLinked: Bool {
+        musicAuthorizationStatus == .authorized
+    }
+    
     private let analyzeUseCase: AnalyzeSongUseCase
     private let localRepository: SongStorageRepository
     
     init(analyzeUseCase: AnalyzeSongUseCase, localRepository: SongStorageRepository) {
         self.analyzeUseCase = analyzeUseCase
         self.localRepository = localRepository
+        self.musicAuthorizationStatus = MusicAuthorization.currentStatus
+    }
+    
+    func updateAuthorizationStatus() {
+        self.musicAuthorizationStatus = MusicAuthorization.currentStatus
+    }
+    
+    func requestMusicPermissions() {
+        Task {
+            let status = await MusicAuthorization.request()
+            await MainActor.run {
+                self.musicAuthorizationStatus = status
+            }
+        }
     }
     
     @MainActor

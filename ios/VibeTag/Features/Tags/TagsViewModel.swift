@@ -10,10 +10,19 @@ enum TagFilter: String, CaseIterable, Identifiable {
     var id: String { self.rawValue }
 }
 
+enum TagSortOption: String, CaseIterable, Identifiable {
+    case name = "Nombre"
+    case songCount = "Número de canciones"
+    
+    var id: String { self.rawValue }
+}
+
 @Observable
 class TagsViewModel {
     var searchText: String = ""
     var selectedFilter: TagFilter = .all
+    var selectedSort: TagSortOption = .name
+    var selectedOrder: SortOrder = .ascending
     
     func filteredTags(_ allTags: [Tag]) -> [Tag] {
         var tags = allTags
@@ -33,6 +42,21 @@ class TagsViewModel {
             tags = tags.filter { $0.name.localizedStandardContains(searchText) }
         }
         
-        return tags.sorted { $0.name < $1.name }
+        // Sort
+        let isAscending = selectedOrder == .ascending
+        
+        switch selectedSort {
+        case .name:
+            tags.sort { 
+                let comparison = $0.name.localizedCaseInsensitiveCompare($1.name)
+                return isAscending ? comparison == .orderedAscending : comparison == .orderedDescending
+            }
+        case .songCount:
+            tags.sort { 
+                isAscending ? $0.songs.count < $1.songs.count : $0.songs.count > $1.songs.count
+            }
+        }
+        
+        return tags
     }
 }

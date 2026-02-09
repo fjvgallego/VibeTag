@@ -20,7 +20,8 @@ struct CreateTagSheet: View {
     ]
     
     private var isCustomColor: Bool {
-        !colorPalette.contains { $0.toHex() == selectedColor.toHex() }
+        guard let selectedHex = selectedColor.toHex()?.uppercased() else { return false }
+        return !colorPalette.contains { $0.toHex()?.uppercased() == selectedHex }
     }
     
     var body: some View {
@@ -65,42 +66,48 @@ struct CreateTagSheet: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
                         ForEach(colorPalette, id: \.self) { color in
-                            ColorCircle(color: color, isSelected: selectedColor.toHex() == color.toHex()) {
+                            ColorCircle(color: color, isSelected: selectedColor.toHex()?.uppercased() == color.toHex()?.uppercased()) {
                                 selectedColor = color
                             }
                         }
                         
                         // Custom Color Picker
                         ZStack {
-                            if isCustomColor {
+                            // Custom UI Layer
+                            ZStack {
+                                if isCustomColor {
+                                    Circle()
+                                        .fill(selectedColor)
+                                } else {
+                                    Circle()
+                                        .fill(AngularGradient(gradient: Gradient(colors: [.red, .yellow, .green, .blue, .purple, .red]), center: .center))
+                                }
+                                
                                 Circle()
-                                    .fill(selectedColor)
-                                    .frame(width: 40, height: 40)
-                            } else {
-                                Circle()
-                                    .fill(AngularGradient(gradient: Gradient(colors: [.red, .yellow, .green, .blue, .purple, .red]), center: .center))
-                                    .frame(width: 40, height: 40)
+                                    .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+                                
+                                if isCustomColor {
+                                    Circle()
+                                        .strokeBorder(Color.white, lineWidth: 3)
+                                        .frame(width: 44, height: 44)
+                                    
+                                    Image(systemName: "checkmark")
+                                        .font(.system(size: 14, weight: .bold))
+                                        .foregroundColor(.white)
+                                }
                             }
+                            .frame(width: 40, height: 40)
+                            .allowsHitTesting(false)
                             
-                            Circle()
-                                .stroke(Color.primary.opacity(0.1), lineWidth: 1)
-                                .frame(width: 40, height: 40)
-                            
+                            // Interaction Layer
                             ColorPicker("", selection: $selectedColor, supportsOpacity: false)
                                 .labelsHidden()
-                                .frame(width: 40, height: 40)
-                                .opacity(0.015)
-                            
-                            if isCustomColor {
-                                Circle()
-                                    .strokeBorder(Color.white, lineWidth: 3)
-                                    .frame(width: 44, height: 44)
-                                
-                                Image(systemName: "checkmark")
-                                    .font(.system(size: 14, weight: .bold))
-                                    .foregroundColor(.white)
-                            }
+                                .frame(width: 44, height: 44)
+                                .contentShape(Rectangle())
+                                .opacity(0.02)
+                                .zIndex(1)
                         }
+                        .frame(width: 44, height: 44)
                     }
                     .padding(.horizontal, 4)
                     .padding(.vertical, 4)

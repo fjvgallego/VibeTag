@@ -22,19 +22,24 @@ struct FloatingVibeBar: View {
                 
                 Spacer()
                 
-                Image(systemName: "mic.fill")
-                    .font(.system(size: 14))
-                    .foregroundColor(.secondary)
+                Image(systemName: "arrow.up")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(Color("appleMusicRed"))
+                    .padding(8)
+                    .background(Color("appleMusicRed").opacity(0.1))
+                    .clipShape(Circle())
             }
-            .padding(.horizontal, 20)
+            .padding(.leading, 20)
+            .padding(.trailing, 8)
             .frame(height: 50)
-            .background(.regularMaterial)
+            .glassEffect(.regular)
             .clipShape(Capsule())
             .overlay(
                 Capsule()
                     .stroke(Color.primary.opacity(0.1), lineWidth: 0.5)
             )
             .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+            .contentShape(.rect)
         }
         .buttonStyle(PlainButtonStyle())
     }

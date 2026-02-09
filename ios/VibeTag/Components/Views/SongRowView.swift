@@ -3,71 +3,111 @@ import SwiftUI
 struct SongRowView: View {
     let song: VTSong
     @State private var showTagsSheet = false
+    @State private var dragOffset: CGFloat = 0
+    @State private var hasTriggeredHaptic = false
     @Environment(AppRouter.self) private var router
     
+    private let threshold: CGFloat = 80
+    
     var body: some View {
-        HStack(spacing: 16) {
-            // Artwork
-            AsyncImage(url: URL(string: song.artworkUrl ?? "")) { phase in
-                switch phase {
-                case .empty:
-                    placeholderView
-                case .success(let image):
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                case .failure:
-                    placeholderView
-                @unknown default:
-                    placeholderView
-                }
+        ZStack {
+            // Reveal Layer (Behind the card)
+            HStack {
+                Image(systemName: "tag.fill")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(.blue)
+                    .scaleEffect(dragOffset > threshold ? 1.2 : 0.8)
+                    .opacity(dragOffset > 20 ? 1 : 0)
+                    .animation(.spring(response: 0.3), value: dragOffset > threshold)
+                Spacer()
             }
-            .frame(width: 64, height: 64)
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .padding(.leading, 32)
             
-            // Text Content
-            VStack(alignment: .leading, spacing: 2) {
-                Text(song.title)
-                    .font(.nunito(.headline, weight: .bold))
-                    .foregroundColor(.primary)
-                    .lineLimit(1)
-                
-                Text(song.artist)
-                    .font(.nunito(.subheadline, weight: .medium))
-                    .foregroundColor(.secondary)
-                    .lineLimit(1)
-                
-                // Tags
-                if !song.tags.isEmpty {
-                    TagFlowView(tags: song.tags.sorted(by: { $0.name < $1.name }))
-                        .padding(.top, 4)
+            // Main Content Card
+            HStack(spacing: 16) {
+                // Artwork
+                AsyncImage(url: URL(string: song.artworkUrl ?? "")) { phase in
+                    switch phase {
+                    case .empty:
+                        placeholderView
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    case .failure:
+                        placeholderView
+                    @unknown default:
+                        placeholderView
+                    }
                 }
+                .frame(width: 64, height: 64)
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                
+                // Text Content
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(song.title)
+                        .font(.nunito(.headline, weight: .bold))
+                        .foregroundColor(.primary)
+                        .lineLimit(1)
+                    
+                    Text(song.artist)
+                        .font(.nunito(.subheadline, weight: .medium))
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                    
+                    // Tags
+                    if !song.tags.isEmpty {
+                        TagFlowView(tags: song.tags.sorted(by: { $0.name < $1.name }))
+                            .padding(.top, 4)
+                    }
+                }
+                
+                Spacer()
             }
-            
-            Spacer()
+            .padding(12)
+            .background(Color(.secondarySystemGroupedBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .shadow(color: Color.black.opacity(0.04), radius: 12, x: 0, y: 4)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 6)
+            .offset(x: dragOffset)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                router.navigate(to: .songDetail(songID: song.id))
+            }
+            .gesture(
+                DragGesture(minimumDistance: 20, coordinateSpace: .local)
+                    .onChanged { value in
+                        // Only allow leading-to-trailing swipe
+                        if value.translation.width > 0 {
+                            dragOffset = value.translation.width
+                            
+                            // Haptic feedback threshold
+                            if dragOffset > threshold && !hasTriggeredHaptic {
+                                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                hasTriggeredHaptic = true
+                            } else if dragOffset <= threshold {
+                                hasTriggeredHaptic = false
+                            }
+                        }
+                    }
+                    .onEnded { value in
+                        if dragOffset > threshold {
+                            showTagsSheet = true
+                        }
+                        
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                            dragOffset = 0
+                        }
+                        hasTriggeredHaptic = false
+                    }
+            )
         }
-        .padding(12)
-        .background(Color(.secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .shadow(color: Color.black.opacity(0.04), radius: 12, x: 0, y: 4)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 6)
-        .contentShape(Rectangle())
-        .onTapGesture {
-            router.navigate(to: .songDetail(songID: song.id))
-        }
-        .contextMenu {
+        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
             Button {
                 showTagsSheet = true
             } label: {
-                Label("Manage Tags", systemImage: "tag")
-            }
-        }
-        .swipeActions(edge: .trailing) {
-            Button {
-                showTagsSheet = true
-            } label: {
-                Label("Tags", systemImage: "tag")
+                Label("Tags", systemImage: "tag.fill")
             }
             .tint(Color("appleMusicRed"))
         }
