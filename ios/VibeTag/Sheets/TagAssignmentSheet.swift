@@ -80,12 +80,12 @@ struct TagAssignmentSheet: View {
         .frame(maxWidth: .infinity)
         .background(.ultraThinMaterial)
         .sheet(isPresented: $showingCreateTag) {
-            CreateTagSheet { name, hexColor in
-                let newTag = Tag(name: name, hexColor: hexColor)
+            CreateTagSheet { name, hexColor, description in
+                let newTag = Tag(name: name, tagDescription: description, hexColor: hexColor)
                 modelContext.insert(newTag)
                 toggleTag(newTag)
             }
-            .presentationDetents([.medium])
+            .presentationDetents([.medium, .large])
             .presentationDragIndicator(.visible)
         }
     }

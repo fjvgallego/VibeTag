@@ -149,20 +149,21 @@ struct TagsView: View {
         .background(Color(.systemGroupedBackground))
         .toolbar(.hidden, for: .navigationBar)
         .sheet(isPresented: $showingCreateTag) {
-            CreateTagSheet { name, hexColor in
-                let newTag = Tag(name: name, hexColor: hexColor)
+            CreateTagSheet { name, hexColor, description in
+                let newTag = Tag(name: name, tagDescription: description, hexColor: hexColor)
                 modelContext.insert(newTag)
             }
-            .presentationDetents([.medium])
+            .presentationDetents([.medium, .large])
             .presentationDragIndicator(.visible)
         }
         .sheet(item: $tagToEdit) { tag in
-            CreateTagSheet(tagName: tag.name, selectedColor: Color(hex: tag.hexColor) ?? .appleMusicRed) { name, hexColor in
+            CreateTagSheet(tagName: tag.name, tagDescription: tag.tagDescription, selectedColor: Color(hex: tag.hexColor) ?? .appleMusicRed) { name, hexColor, description in
                 tag.name = name
                 tag.hexColor = hexColor
+                tag.tagDescription = description
                 try? modelContext.save()
             }
-            .presentationDetents([.medium])
+            .presentationDetents([.medium, .large])
             .presentationDragIndicator(.visible)
         }
         .confirmationDialog("¿Eliminar etiqueta?", isPresented: $showingDeleteConfirmation, titleVisibility: .visible) {

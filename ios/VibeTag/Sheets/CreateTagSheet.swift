@@ -3,13 +3,15 @@ import SwiftUI
 struct CreateTagSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var tagName: String
+    @State private var tagDescription: String
     @State private var selectedColor: Color
     private var isEditing: Bool
     
-    var onSave: (String, String) -> Void
+    var onSave: (String, String, String?) -> Void
     
-    init(tagName: String = "", selectedColor: Color = .appleMusicRed, onSave: @escaping (String, String) -> Void) {
+    init(tagName: String = "", tagDescription: String? = nil, selectedColor: Color = .appleMusicRed, onSave: @escaping (String, String, String?) -> Void) {
         self._tagName = State(initialValue: tagName)
+        self._tagDescription = State(initialValue: tagDescription ?? "")
         self._selectedColor = State(initialValue: selectedColor)
         self.isEditing = !tagName.isEmpty
         self.onSave = onSave
@@ -47,6 +49,25 @@ struct CreateTagSheet: View {
                 
                 TextField("Nombre de la etiqueta...", text: $tagName)
                     .font(.nunito(.body))
+                    .padding(16)
+                    .background(.regularMaterial)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(Color.primary.opacity(0.05), lineWidth: 1)
+                    )
+            }
+            
+            // Description Input
+            VStack(alignment: .leading, spacing: 10) {
+                Text("DESCRIPCIÓN (OPCIONAL)")
+                    .font(.nunito(size: 12, weight: .bold))
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal, 4)
+                
+                TextField("Añade una descripción...", text: $tagDescription, axis: .vertical)
+                    .font(.nunito(.body))
+                    .lineLimit(3...6)
                     .padding(16)
                     .background(.regularMaterial)
                     .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
@@ -118,7 +139,8 @@ struct CreateTagSheet: View {
             
             // Action Button
             PrimaryActionButton(isEditing ? "Editar Etiqueta" : "Crear Etiqueta", icon: isEditing ? "pencil" : "plus") {
-                onSave(tagName, selectedColor.toHex() ?? "#8E8E93")
+                let finalDescription = tagDescription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : tagDescription
+                onSave(tagName, selectedColor.toHex() ?? "#8E8E93", finalDescription)
                 dismiss()
             }
             .disabled(tagName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -157,5 +179,5 @@ private struct ColorCircle: View {
 }
 
 #Preview {
-    CreateTagSheet(onSave: { _, _ in })
+    CreateTagSheet(onSave: { _, _, _ in })
 }
