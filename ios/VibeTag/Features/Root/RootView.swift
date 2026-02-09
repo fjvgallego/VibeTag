@@ -21,23 +21,28 @@ struct RootView: View {
         Group {
             if viewModel.isAuthorized {
                 NavigationStack(path: $router.path) {
-                    HomeView(container: container)
+                    MainTabView(container: container)
                         .navigationDestination(for: AppRoute.self) { route in
                             switch route {
                             case .songDetail(let songID):
                                 SongDetailDestinationView(songID: songID, container: container)
                             case .tagDetail(let tagID):
                                 Text("Tag Detail: \(tagID)") // Placeholder
-                            case .generatePlaylist:
-                                CreatePlaylistView(generatePlaylistUseCase: container.generatePlaylistUseCase)
+                            case .generatePlaylist(let prompt):
+                                CreatePlaylistView(generatePlaylistUseCase: container.generatePlaylistUseCase, prompt: prompt)
                             }
                         }
                 }
                 .environment(router)
             } else {
-                WelcomeView {
-                    viewModel.requestMusicPermissions()
-                }
+                WelcomeView(
+                    onRequestPermissions: {
+                        viewModel.requestMusicPermissions()
+                    },
+                    onContinueAsGuest: {
+                        viewModel.continueAsGuest()
+                    }
+                )
             }
         }
         .environment(sessionManager)

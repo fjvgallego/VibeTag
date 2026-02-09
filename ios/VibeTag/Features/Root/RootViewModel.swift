@@ -5,9 +5,10 @@ import SwiftUI
 @Observable
 class RootViewModel {
     private var musicAuthorizationStatus: MusicAuthorization.Status = .notDetermined
+    var isGuest: Bool = false
     
     var isAuthorized: Bool {
-        musicAuthorizationStatus == .authorized
+        musicAuthorizationStatus == .authorized || isGuest
     }
     
     init() {
@@ -25,5 +26,9 @@ class RootViewModel {
                 self.musicAuthorizationStatus = status
             }
         }
+    }
+    
+    func continueAsGuest() {
+        self.isGuest = true
     }
 }

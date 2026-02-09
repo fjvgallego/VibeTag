@@ -8,6 +8,14 @@ class SongDetailViewModel {
     var errorMessage: String?
     var showError: Bool = false
     
+    var systemTags: [Tag] {
+        song.tags.filter { $0.isSystemTag }.sorted(by: { $0.name < $1.name })
+    }
+    
+    var userTags: [Tag] {
+        song.tags.filter { !$0.isSystemTag }.sorted(by: { $0.name < $1.name })
+    }
+    
     private let useCase: AnalyzeSongUseCaseProtocol
     private let repository: SongStorageRepository
     private let syncEngine: SyncEngine
@@ -20,10 +28,6 @@ class SongDetailViewModel {
         self.useCase = useCase
         self.repository = repository
         self.syncEngine = syncEngine
-        
-        if song.tags.isEmpty {
-            analyzeSong()
-        }
     }
     
     @MainActor
