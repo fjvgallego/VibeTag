@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import AuthenticationServices
 
 struct SettingsView: View {
     let container: AppContainer
@@ -196,9 +197,13 @@ struct SettingsView: View {
                     .foregroundColor(.secondary)
                     .padding(.horizontal, 4)
                 
-                PrimaryActionButton("Iniciar sesión con Apple", icon: "apple.logo") {
-                    // Logic to show login
+                SignInWithAppleButton(.signIn) { request in
+                    request.requestedScopes = [.fullName, .email]
+                } onCompletion: { result in
+                    viewModel.handleAuthorization(result: result, sessionManager: sessionManager, syncEngine: syncEngine)
                 }
+                .signInWithAppleButtonStyle(Color.primary == .white ? .white : .black)
+                .frame(height: 50)
             }
             .padding(20)
             .background(Color(.secondarySystemGroupedBackground))

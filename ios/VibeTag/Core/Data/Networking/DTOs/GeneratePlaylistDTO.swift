@@ -5,12 +5,17 @@ struct GeneratePlaylistRequestDTO: Encodable {
 }
 
 struct GeneratePlaylistResponseDTO: Decodable {
+    struct PlaylistTagDTO: Decodable {
+        let name: String
+        let type: String
+    }
+
     struct SongDTO: Decodable, Identifiable {
         let id: String
         let title: String
         let artist: String
-        // Backend sends tags as [String], mapped from VibeTag.name
-        let tags: [String] 
+        let appleMusicId: String?
+        let tags: [PlaylistTagDTO] 
     }
     
     let playlistTitle: String

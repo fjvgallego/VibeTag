@@ -1,6 +1,11 @@
 import Foundation
 
+struct RemoteTagSyncInfo {
+    let name: String
+    let type: String
+}
+
 struct RemoteSongSyncInfo {
     let id: String
-    let tags: [String]
+    let tags: [RemoteTagSyncInfo]
 }

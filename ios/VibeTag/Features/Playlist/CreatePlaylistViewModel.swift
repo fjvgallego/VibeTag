@@ -16,7 +16,7 @@ class CreatePlaylistViewModel {
     
     @MainActor
     func generatePlaylist() async {
-        guard !prompt.isEmpty else { return }
+        guard !prompt.isEmpty, result == nil else { return }
         
         isLoading = true
         errorMessage = nil

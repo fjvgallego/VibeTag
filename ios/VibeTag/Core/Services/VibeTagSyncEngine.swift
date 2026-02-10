@@ -51,7 +51,12 @@ class VibeTagSyncEngine: SyncEngine {
         while hasMoreData {
             let remoteLibrary: [SyncedSongDTO] = try await APIClient.shared.request(SongEndpoint.getSyncedSongs(page: page, limit: limit))
             if !remoteLibrary.isEmpty {
-                let syncInfo = remoteLibrary.map { RemoteSongSyncInfo(id: $0.id, tags: $0.tags) }
+                let syncInfo = remoteLibrary.map { song in
+                    RemoteSongSyncInfo(
+                        id: song.id,
+                        tags: song.tags.map { RemoteTagSyncInfo(name: $0.name, type: $0.type) }
+                    )
+                }
                 try await localRepo.hydrateRemoteTags(syncInfo)
             }
             
@@ -74,7 +79,11 @@ class VibeTagSyncEngine: SyncEngine {
             let pendingSongs = try await localRepo.fetchPendingUploads()
             
             for song in pendingSongs {
-                let tagsToSync = song.tags.map { $0.name }.sorted()
+                // Only sync user tags (non-system tags)
+                let tagsToSync = song.tags
+                    .filter { !$0.isSystemTag }
+                    .map { $0.name }
+                    .sorted()
                 
                 do {
                     let dto = UpdateSongDTO(tags: tagsToSync, title: song.title, artist: song.artist, appleMusicId: song.appleMusicId)

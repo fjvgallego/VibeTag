@@ -2,6 +2,7 @@ import Foundation
 import Observation
 import SwiftData
 import MusicKit
+import AuthenticationServices
 
 @Observable
 class SettingsViewModel {
@@ -19,10 +20,12 @@ class SettingsViewModel {
     
     private let analyzeUseCase: AnalyzeSongUseCase
     private let localRepository: SongStorageRepository
+    private let authRepository: AuthRepository
     
-    init(analyzeUseCase: AnalyzeSongUseCase, localRepository: SongStorageRepository) {
+    init(analyzeUseCase: AnalyzeSongUseCase, localRepository: SongStorageRepository, authRepository: AuthRepository = VibeTagAuthRepositoryImpl()) {
         self.analyzeUseCase = analyzeUseCase
         self.localRepository = localRepository
+        self.authRepository = authRepository
         self.musicAuthorizationStatus = MusicAuthorization.currentStatus
     }
     
@@ -36,6 +39,51 @@ class SettingsViewModel {
             await MainActor.run {
                 self.musicAuthorizationStatus = status
             }
+        }
+    }
+    
+    @MainActor
+    func handleAuthorization(result: Result<ASAuthorization, Error>, sessionManager: SessionManager, syncEngine: VibeTagSyncEngine) {
+        switch result {
+        case .success(let auth):
+            guard let appleIDCredential = auth.credential as? ASAuthorizationAppleIDCredential,
+                  let identityTokenData = appleIDCredential.identityToken,
+                  let identityTokenString = String(data: identityTokenData, encoding: .utf8) else {
+                self.errorMessage = "Failed to process Apple Sign In credentials"
+                return
+            }
+            
+            let firstName = appleIDCredential.fullName?.givenName
+            let lastName = appleIDCredential.fullName?.familyName
+            
+            Task {
+                do {
+                    let response = try await authRepository.login(
+                        identityToken: identityTokenString,
+                        firstName: firstName,
+                        lastName: lastName
+                    )
+                    
+                    try sessionManager.login(token: response.token)
+                    
+                    // Trigger remote data pull after login
+                    self.isSyncing = true
+                    do {
+                        try await syncEngine.pullRemoteData()
+                    } catch {
+                        print("Initial sync failed: \(error.localizedDescription)")
+                    }
+                    self.isSyncing = false
+                    
+                } catch {
+                    self.errorMessage = error.localizedDescription
+                    self.isSyncing = false
+                    print("Login Error: \(error)")
+                }
+            }
+        case .failure(let error):
+            self.errorMessage = error.localizedDescription
+            print("Sign in failed: \(error.localizedDescription)")
         }
     }
     

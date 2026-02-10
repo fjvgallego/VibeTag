@@ -27,7 +27,7 @@ export class PrismaSongRepository implements ISongRepository {
           where: { userId: userId },
           select: {
             tag: {
-              select: { name: true },
+              select: { name: true, type: true },
             },
           },
         },
@@ -37,7 +37,10 @@ export class PrismaSongRepository implements ISongRepository {
     return songs.map((song) => ({
       id: song.id,
       appleMusicId: song.appleMusicId || undefined,
-      tags: song.songTags.map((st) => st.tag.name),
+      tags: song.songTags.map((st) => ({
+        name: st.tag.name,
+        type: st.tag.type as 'SYSTEM' | 'USER',
+      })),
     }));
   }
 

@@ -12,9 +12,9 @@ We organize code by **Layer** and **Feature** to maintain clear boundaries.
 - **`Features/`**: UI logic and views grouped by functional area.
   - **`Root/`**: Main container (`RootView`, `RootViewModel`, `WelcomeView`).
   - **`Home/`**: Dashboard logic (`HomeView`, `HomeViewModel`).
-  - **`Login/`**: SIWA implementation (`LoginView`, `LoginViewModel`).
   - **`SongDetail/`**: Detailed view of a song and its tags.
   - **`Tags/`**: Tag selection and creation sheets.
+  - **`Settings/`**: Account management, Apple Sign In, and sync settings.
 - **`Domain/`**: Pure business logic and entities.
   - **`Models/`**: SwiftData entities (`VTSong.swift`, `Tag.swift`).
   - **`UseCases/`**: Single-responsibility business actions (`AnalyzeSongUseCase.swift`).

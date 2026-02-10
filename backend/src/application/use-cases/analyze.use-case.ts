@@ -33,13 +33,17 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
         request.songId,
       );
 
-      if (existingAnalysis) {
+      const hasAITags = existingAnalysis?.tags.some((tag) => tag.source === 'ai');
+
+      if (existingAnalysis && hasAITags) {
         return Result.ok<AnalyzeResponseDTO, AppError>({
           songId: existingAnalysis.songId.value,
-          tags: existingAnalysis.tags.map((tag) => ({
-            name: tag.name,
-            description: tag.description || undefined,
-          })),
+          tags: existingAnalysis.tags
+            .filter((tag) => tag.source === 'ai')
+            .map((tag) => ({
+              name: tag.name,
+              description: tag.description || undefined,
+            })),
         });
       }
 
@@ -60,7 +64,7 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
         VibeTag.create(vibe.name, 'ai', undefined, vibe.description),
       );
 
-      const songId = request.songId || randomUUID();
+      const songId = request.songId || existingAnalysis?.songId.value || randomUUID();
       const newAnalysis = Analysis.create(songMetadata, newTags, VTDate.now(), songId);
 
       await this.analysisRepository.save(newAnalysis);
@@ -106,14 +110,18 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
           song.songId,
         );
 
-        if (existingAnalysis) {
+        const hasAITags = existingAnalysis?.tags.some((tag) => tag.source === 'ai');
+
+        if (existingAnalysis && hasAITags) {
           results.push({
             songId: existingAnalysis.songId.value,
             title: song.title,
-            tags: existingAnalysis.tags.map((t) => ({
-              name: t.name,
-              description: t.description || undefined,
-            })),
+            tags: existingAnalysis.tags
+              .filter((tag) => tag.source === 'ai')
+              .map((t) => ({
+                name: t.name,
+                description: t.description || undefined,
+              })),
           });
           continue; // No delay needed if found in cache
         }
@@ -133,7 +141,7 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
           VibeTag.create(vibe.name, 'ai', undefined, vibe.description),
         );
 
-        const songId = song.songId || randomUUID();
+        const songId = song.songId || existingAnalysis?.songId.value || randomUUID();
         const newAnalysis = Analysis.create(songMetadata, newTags, VTDate.now(), songId);
 
         await this.analysisRepository.save(newAnalysis);

@@ -44,7 +44,7 @@ class LocalSongStorageRepositoryImpl: SongStorageRepository {
             throw AppError.songNotFound
         }
 
-        var updatedTags: [Tag] = []
+        var finalTags = song.tags.filter { !$0.isSystemTag } // Keep user tags
         
         for analyzedTag in tags {
             let name = analyzedTag.name
@@ -54,15 +54,19 @@ class LocalSongStorageRepositoryImpl: SongStorageRepository {
                 if let newDesc = analyzedTag.description {
                     existingTag.tagDescription = newDesc
                 }
-                updatedTags.append(existingTag)
+                // Don't override isSystemTag if it's already a user tag
+                // If it was already a system tag, keep it as such.
+                if !finalTags.contains(where: { $0.id == existingTag.id }) {
+                    finalTags.append(existingTag)
+                }
             } else {
-                let newTag = Tag(name: name, tagDescription: analyzedTag.description, hexColor: "#808080", isSystemTag: false)
+                let newTag = Tag(name: name, tagDescription: analyzedTag.description, hexColor: "#808080", isSystemTag: true)
                 modelContext.insert(newTag)
-                updatedTags.append(newTag)
+                finalTags.append(newTag)
             }
         }
         
-        song.tags = updatedTags
+        song.tags = finalTags
         song.syncStatus = .pendingUpload
         try modelContext.save()
     }
@@ -109,20 +113,27 @@ class LocalSongStorageRepositoryImpl: SongStorageRepository {
         try modelContext.save()
     }
 
-    private func updateSongTags(_ song: VTSong, with tagNames: [String]) async throws {
-        var updatedTags: [Tag] = []
-        for tagName in tagNames {
-            let name = tagName
+    private func updateSongTags(_ song: VTSong, with remoteTags: [RemoteTagSyncInfo]) async throws {
+        // Keep only tags that are NOT in the remote list if they are user tags? 
+        // Actually, we should probably just trust the remote list for what's currently assigned,
+        // but preserve the "system" vs "user" status based on what the remote says.
+        
+        var finalTags: [Tag] = []
+        for remoteTag in remoteTags {
+            let name = remoteTag.name
+            let isRemoteSystem = remoteTag.type == "SYSTEM"
+            
             let tagDescriptor = FetchDescriptor<Tag>(predicate: #Predicate { $0.name == name })
             if let existingTag = try modelContext.fetch(tagDescriptor).first {
-                updatedTags.append(existingTag)
+                existingTag.isSystemTag = isRemoteSystem
+                finalTags.append(existingTag)
             } else {
-                let newTag = Tag(name: name, tagDescription: nil, hexColor: "#808080", isSystemTag: false)
+                let newTag = Tag(name: name, tagDescription: nil, hexColor: "#808080", isSystemTag: isRemoteSystem)
                 modelContext.insert(newTag)
-                updatedTags.append(newTag)
+                finalTags.append(newTag)
             }
         }
-        song.tags = updatedTags
+        song.tags = finalTags
     }
     
     func saveChanges() throws {
