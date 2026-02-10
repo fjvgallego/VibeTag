@@ -1,3 +1,8 @@
+export interface TagDTO {
+  name: string;
+  type: 'SYSTEM' | 'USER';
+}
+
 export interface UpdateSongTagsDTO {
   tags: string[];
   title: string;
@@ -11,7 +16,7 @@ export interface UpdateSongTagsDTO {
 export interface UserSongLibraryDTO {
   id: string;
   appleMusicId?: string;
-  tags: string[];
+  tags: TagDTO[];
 }
 
 export interface SongDTO {
@@ -21,5 +26,5 @@ export interface SongDTO {
   appleMusicId?: string;
   album?: string;
   genre?: string;
-  tags: string[];
+  tags: TagDTO[];
 }

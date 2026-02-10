@@ -15,12 +15,13 @@ class AnalyzeSongUseCase: AnalyzeSongUseCaseProtocol {
     }
     
     func execute(song: VTSong) async throws -> [AnalyzedTag] {
-        // 1. Check Local: If the song already has tags, return them (mapped to domain model).
-        if !song.tags.isEmpty {
-            return song.tags.map { AnalyzedTag(name: $0.name, description: $0.tagDescription) }
+        // 1. Check Local: If the song already has system tags, return them (mapped to domain model).
+        let systemTags = song.tags.filter { $0.isSystemTag }
+        if !systemTags.isEmpty {
+            return systemTags.map { AnalyzedTag(name: $0.name, description: $0.tagDescription) }
         }
         
-        // 2. If No Local Data: Call remoteRepository.fetchAnalysis(for: song).
+        // 2. If No System Data: Call remoteRepository.fetchAnalysis(for: song).
         let result = try await remoteRepository.fetchAnalysis(for: song)
         
         // 3. Save: Call localRepository.saveTags(for: song.id, tags: result).
@@ -30,8 +31,10 @@ class AnalyzeSongUseCase: AnalyzeSongUseCaseProtocol {
     }
     
     func executeBatch(songs: [VTSong], onProgress: @escaping (Int, Int) -> Void) async throws {
-        // Filter songs that don't have AI tags
-        let songsToAnalyze = songs.filter { $0.tags.isEmpty }
+        // Filter songs that don't have system (AI) tags
+        let songsToAnalyze = songs.filter { song in
+            !song.tags.contains { $0.isSystemTag }
+        }
         let totalCount = songsToAnalyze.count
         var currentCount = 0
         

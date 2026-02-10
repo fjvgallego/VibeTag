@@ -7,7 +7,9 @@ struct TagAssignmentSheet: View {
     @Environment(VibeTagSyncEngine.self) private var syncEngine
     
     @Bindable var song: VTSong
-    @Query(sort: \Tag.name) private var allTags: [Tag]
+    @Query(filter: #Predicate<Tag> { tag in
+        tag.isSystemTag == false
+    }, sort: \Tag.name) private var allTags: [Tag]
     
     @State private var showingCreateTag = false
     
@@ -85,7 +87,7 @@ struct TagAssignmentSheet: View {
                 modelContext.insert(newTag)
                 toggleTag(newTag)
             }
-            .presentationDetents([.medium, .large])
+            .presentationDetents([.large])
             .presentationDragIndicator(.visible)
         }
     }

@@ -4,7 +4,6 @@ import SwiftData
 struct HomeView: View {
     let container: AppContainer
     @State private var viewModel: HomeViewModel
-    @State private var showingLogin = false
     @State private var showingDeleteConfirmation = false
     @State private var showingVibeSheet = false
     @Environment(AppRouter.self) private var router
@@ -87,14 +86,36 @@ struct HomeView: View {
                 
                 // Scrollable Song List
                 if viewModel.isAppleMusicLinked {
-                    SongListView(
-                        searchText: viewModel.searchText,
-                        filter: viewModel.selectedFilter,
-                        sortOption: viewModel.selectedSort,
-                        sortOrder: viewModel.selectedOrder
-                    )
-                    .refreshable {
-                        await viewModel.syncLibrary(modelContext: modelContext)
+                    if viewModel.isSyncing && viewModel.totalSongsCount == 0 {
+                        VStack(spacing: 20) {
+                            Spacer()
+                            ProgressView()
+                                .controlSize(.large)
+                                .tint(Color("appleMusicRed"))
+                            
+                            VStack(spacing: 8) {
+                                Text("Sincronizando biblioteca")
+                                    .font(.nunito(.headline, weight: .bold))
+                                
+                                Text("Estamos importando tus canciones de Apple Music. Esto puede tardar unos momentos.")
+                                    .font(.nunito(.subheadline, weight: .medium))
+                                    .foregroundColor(.secondary)
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal, 40)
+                            }
+                            Spacer()
+                        }
+                        .frame(maxWidth: .infinity)
+                    } else {
+                        SongListView(
+                            searchText: viewModel.searchText,
+                            filter: viewModel.selectedFilter,
+                            sortOption: viewModel.selectedSort,
+                            sortOrder: viewModel.selectedOrder
+                        )
+                        .refreshable {
+                            await viewModel.syncLibrary(modelContext: modelContext)
+                        }
                     }
                 } else {
                     VStack(spacing: 24) {
@@ -171,9 +192,6 @@ struct HomeView: View {
                 }
             }
         }
-        .sheet(isPresented: $showingLogin) {
-            LoginView()
-        }
         .alert("Error", isPresented: Binding(
             get: { viewModel.errorMessage != nil },
             set: { if !$0 { viewModel.errorMessage = nil } }
@@ -184,6 +202,14 @@ struct HomeView: View {
         }
         .onAppear {
             viewModel.updateAuthorizationStatus()
+            
+            // If the user just authorized (e.g. from WelcomeView), 
+            // the library might be empty. Trigger an initial sync.
+            if viewModel.isAppleMusicLinked && viewModel.totalSongsCount == 0 {
+                Task {
+                    await viewModel.syncLibrary(modelContext: modelContext)
+                }
+            }
         }
         .onChange(of: viewModel.isAppleMusicLinked) { _, isLinked in
             if isLinked {
@@ -238,6 +264,23 @@ private struct AnalysisStatusView: View {
         Group {
             if !viewModel.isAppleMusicLinked {
                 EmptyView()
+            } else if viewModel.isSyncing {
+                // State: Syncing
+                HStack(spacing: 12) {
+                    ProgressView()
+                        .controlSize(.small)
+                    Text("Sincronizando biblioteca...")
+                        .font(.nunito(.subheadline, weight: .bold))
+                        .foregroundColor(.primary)
+                    Spacer()
+                }
+                .padding(12)
+                .background(.ultraThinMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .stroke(Color.primary.opacity(0.05), lineWidth: 1)
+                )
             } else if viewModel.isAnalyzing {
                 // State B: Analyzing (Active)
                 VStack(alignment: .leading, spacing: 10) {
@@ -312,6 +355,7 @@ private struct AnalysisStatusView: View {
             }
         }
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: viewModel.isAnalyzing)
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: viewModel.isSyncing)
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: viewModel.unanalyzedCount)
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: viewModel.isAppleMusicLinked)
     }

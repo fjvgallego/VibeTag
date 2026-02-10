@@ -15,20 +15,27 @@ struct TagCell: View {
                 
                 Spacer()
                 
-                Menu {
-                    Button(action: onEdit) {
-                        Label("Editar", systemImage: "pencil")
+                if !tag.isSystemTag {
+                    Menu {
+                        Button(action: onEdit) {
+                            Label("Editar", systemImage: "pencil")
+                        }
+                        
+                        Button(role: .destructive, action: onDelete) {
+                            Label("Eliminar", systemImage: "trash")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .foregroundColor(.gray)
+                            .font(.system(size: 14, weight: .bold))
+                            .padding(8)
+                            .contentShape(Rectangle())
                     }
-                    
-                    Button(role: .destructive, action: onDelete) {
-                        Label("Eliminar", systemImage: "trash")
-                    }
-                } label: {
-                    Image(systemName: "ellipsis")
-                        .foregroundColor(.gray)
+                } else {
+                    Image(systemName: "sparkles")
+                        .foregroundColor(.purple.opacity(0.6))
                         .font(.system(size: 14, weight: .bold))
                         .padding(8)
-                        .contentShape(Rectangle())
                 }
             }
             

@@ -153,7 +153,7 @@ struct TagsView: View {
                 let newTag = Tag(name: name, tagDescription: description, hexColor: hexColor)
                 modelContext.insert(newTag)
             }
-            .presentationDetents([.medium, .large])
+            .presentationDetents([.large])
             .presentationDragIndicator(.visible)
         }
         .sheet(item: $tagToEdit) { tag in
@@ -163,7 +163,7 @@ struct TagsView: View {
                 tag.tagDescription = description
                 try? modelContext.save()
             }
-            .presentationDetents([.medium, .large])
+            .presentationDetents([.large])
             .presentationDragIndicator(.visible)
         }
         .confirmationDialog("¿Eliminar etiqueta?", isPresented: $showingDeleteConfirmation, titleVisibility: .visible) {

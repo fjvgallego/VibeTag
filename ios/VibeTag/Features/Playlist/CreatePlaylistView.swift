@@ -99,7 +99,7 @@ struct CreatePlaylistView: View {
     private func resultState(response: GeneratePlaylistResponseDTO) -> some View {
         let vtSongs = response.songs.map { dto in
             let song = VTSong(id: dto.id, title: dto.title, artist: dto.artist)
-            song.tags = dto.tags.map { Tag(name: $0, hexColor: "#FF2D55") }
+            song.tags = dto.tags.map { Tag(name: $0.name, hexColor: "#FF2D55", isSystemTag: $0.type == "SYSTEM") }
             return song
         }
         
