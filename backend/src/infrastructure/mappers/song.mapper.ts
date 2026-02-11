@@ -14,14 +14,23 @@ type PrismaSongWithTags = PrismaSong & {
 
 export class SongMapper {
   public static toDomain(prismaSong: PrismaSongWithTags): Song {
-    const domainTags = prismaSong.songTags.map((st) =>
-      VibeTag.create(
-        st.tag.name,
-        st.tag.type === 'SYSTEM' ? 'ai' : 'user',
-        st.tag.id,
-        st.tag.description || undefined,
-      ),
-    );
+    const uniqueTagsMap = new Map<string, VibeTag>();
+
+    for (const st of prismaSong.songTags) {
+      if (!uniqueTagsMap.has(st.tag.id)) {
+        uniqueTagsMap.set(
+          st.tag.id,
+          VibeTag.create(
+            st.tag.name,
+            st.tag.type === 'SYSTEM' ? 'ai' : 'user',
+            st.tag.id,
+            st.tag.description || undefined,
+          ),
+        );
+      }
+    }
+
+    const domainTags = Array.from(uniqueTagsMap.values());
 
     return Song.create(
       prismaSong.id,

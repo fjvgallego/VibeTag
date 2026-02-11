@@ -21,6 +21,7 @@
   "type": "commonjs",
   "dependencies": {
     "@ai-sdk/google": "^3.0.15",
+    "@ai-sdk/groq": "^3.0.22",
     "@prisma/adapter-pg": "^7.3.0",
     "@prisma/client": "^7.3.0",
     "@sentry/node": "^10.38.0",

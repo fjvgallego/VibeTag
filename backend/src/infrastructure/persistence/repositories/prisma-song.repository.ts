@@ -53,16 +53,22 @@ export class PrismaSongRepository implements ISongRepository {
   ): Promise<Song[]> {
     const songs = await this.prisma.song.findMany({
       where: {
+        // MUST be in the user's library (defined by having ANY tag from this user)
         songTags: {
-          some: {
-            userId: userId,
-            tag: {
-              OR: [
-                { name: { in: tags, mode: Prisma.QueryMode.insensitive } },
-                ...tags.map((tag) => ({
-                  description: { contains: tag, mode: Prisma.QueryMode.insensitive },
-                })),
-              ],
+          some: { userId: userId },
+        },
+        // AND it MUST have a tag (SYSTEM or USER belonging to anyone) that matches the search
+        AND: {
+          songTags: {
+            some: {
+              tag: {
+                OR: [
+                  { name: { in: tags, mode: Prisma.QueryMode.insensitive } },
+                  ...tags.map((tag) => ({
+                    description: { contains: tag, mode: Prisma.QueryMode.insensitive },
+                  })),
+                ],
+              },
             },
           },
         },
@@ -70,7 +76,9 @@ export class PrismaSongRepository implements ISongRepository {
       take: limit * 2, // Fetch extra for in-memory ranking
       include: {
         songTags: {
-          where: { userId: userId },
+          where: {
+            OR: [{ userId: userId }, { tag: { type: 'SYSTEM' } }],
+          },
           include: {
             tag: true,
           },
@@ -80,7 +88,7 @@ export class PrismaSongRepository implements ISongRepository {
 
     const domainSongs = songs.map((s) => SongMapper.toDomain(s));
 
-    // Simple in-memory ranking: count how many input tags match the song's tags
+    // Simple in-memory ranking: count how many input tags match the song's tags (User + System)
     const rankedSongs = domainSongs
       .map((song) => {
         const matchingTagsCount = song.tags.filter((songTag) =>

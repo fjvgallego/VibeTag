@@ -8,7 +8,7 @@ export interface IAnalysisRepository {
     userId?: string,
     songId?: string,
   ): Promise<Analysis | null>;
-  save(analysis: Analysis): Promise<void>;
+  save(analysis: Analysis, userId?: string): Promise<void>;
   updateSongTags(
     userId: UserId,
     songId: string,

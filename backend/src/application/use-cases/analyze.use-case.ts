@@ -36,6 +36,19 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
       const hasAITags = existingAnalysis?.tags.some((tag) => tag.source === 'ai');
 
       if (existingAnalysis && hasAITags) {
+        if (request.userId) {
+          // Ensure song is linked to user's library even on cache hit
+          const aiOnlyTags = existingAnalysis.tags.filter((tag) => tag.source === 'ai');
+          const aiOnlyAnalysis = Analysis.create(
+            existingAnalysis.songMetadata,
+            aiOnlyTags,
+            existingAnalysis.createdAt,
+            existingAnalysis.songId.value,
+            existingAnalysis.id.value,
+          );
+          await this.analysisRepository.save(aiOnlyAnalysis, request.userId);
+        }
+
         return Result.ok<AnalyzeResponseDTO, AppError>({
           songId: existingAnalysis.songId.value,
           tags: existingAnalysis.tags
@@ -67,7 +80,7 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
       const songId = request.songId || existingAnalysis?.songId.value || randomUUID();
       const newAnalysis = Analysis.create(songMetadata, newTags, VTDate.now(), songId);
 
-      await this.analysisRepository.save(newAnalysis);
+      await this.analysisRepository.save(newAnalysis, request.userId);
 
       return Result.ok<AnalyzeResponseDTO, AppError>({
         songId: newAnalysis.songId.value,
@@ -113,6 +126,19 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
         const hasAITags = existingAnalysis?.tags.some((tag) => tag.source === 'ai');
 
         if (existingAnalysis && hasAITags) {
+          if (request.userId) {
+            // Ensure song is linked to user's library even on cache hit
+            const aiOnlyTags = existingAnalysis.tags.filter((tag) => tag.source === 'ai');
+            const aiOnlyAnalysis = Analysis.create(
+              existingAnalysis.songMetadata,
+              aiOnlyTags,
+              existingAnalysis.createdAt,
+              existingAnalysis.songId.value,
+              existingAnalysis.id.value,
+            );
+            await this.analysisRepository.save(aiOnlyAnalysis, request.userId);
+          }
+
           results.push({
             songId: existingAnalysis.songId.value,
             title: song.title,
@@ -144,7 +170,7 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
         const songId = song.songId || existingAnalysis?.songId.value || randomUUID();
         const newAnalysis = Analysis.create(songMetadata, newTags, VTDate.now(), songId);
 
-        await this.analysisRepository.save(newAnalysis);
+        await this.analysisRepository.save(newAnalysis, request.userId);
 
         results.push({
           songId: newAnalysis.songId.value,
@@ -155,11 +181,11 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
           })),
         });
 
-        // Step C: Delay to respect rate limits (4 seconds)
+        // Step C: Delay to respect rate limits (1 second)
         // Only delay if it's NOT the last song being analyzed via AI in this batch
         const isLastSong = i === request.songs.length - 1;
         if (!isLastSong) {
-          await new Promise((resolve) => setTimeout(resolve, 4000));
+          await new Promise((resolve) => setTimeout(resolve, 1000));
         }
       }
 

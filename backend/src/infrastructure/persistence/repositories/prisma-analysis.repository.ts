@@ -60,7 +60,7 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
     return Analysis.create(metadata, tags, VTDate.now(), song.id);
   }
 
-  public async save(analysis: Analysis): Promise<void> {
+  public async save(analysis: Analysis, userId?: string): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
       // 1. Upsert Song
       await tx.song.upsert({
@@ -106,10 +106,11 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
         }
 
         const targetType = 'SYSTEM'; // Since we rejected USER, it must be AI -> SYSTEM
+        const normalizedName = tagDomain.name.toLowerCase();
 
         let dbTag = await tx.tag.findFirst({
           where: {
-            name: tagDomain.name,
+            name: normalizedName,
             ownerId: systemUserId,
             type: targetType,
           },
@@ -118,7 +119,7 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
         if (!dbTag) {
           dbTag = await tx.tag.create({
             data: {
-              name: tagDomain.name,
+              name: normalizedName,
               description: tagDomain.description,
               color: '#808080',
               type: targetType,
@@ -127,6 +128,7 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
           });
         }
 
+        // Link to SYSTEM user (Global)
         await tx.songTag.upsert({
           where: {
             songId_tagId_userId: {
@@ -142,6 +144,26 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
             userId: systemUserId,
           },
         });
+
+        // Link to requesting User (Personal Library)
+        // Avoid double upsert if the requesting user IS the system user (unlikely but safe)
+        if (userId && userId !== systemUserId) {
+          await tx.songTag.upsert({
+            where: {
+              songId_tagId_userId: {
+                songId: analysis.songId.value,
+                tagId: dbTag.id,
+                userId: userId,
+              },
+            },
+            update: {},
+            create: {
+              songId: analysis.songId.value,
+              tagId: dbTag.id,
+              userId: userId,
+            },
+          });
+        }
       }
     });
   }

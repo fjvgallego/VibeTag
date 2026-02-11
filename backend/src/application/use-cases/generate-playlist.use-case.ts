@@ -71,6 +71,11 @@ export class GeneratePlaylistUseCase implements UseCase<
         })),
       };
 
+      console.log('GENERATE PLAYLIST USE CASE RESPONSE');
+      console.log('===================================');
+      console.log(response);
+      console.log();
+
       return Result.ok(response);
     } catch (error) {
       console.error('Playlist generation failed:', error);

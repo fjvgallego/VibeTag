@@ -62,10 +62,7 @@ describe('AnalyzeUseCase', () => {
     // Assert
     expect(result.success).toBe(true);
     expect(result.getValue().songId).toBe('song-123');
-    expect(result.getValue().tags).toEqual([
-      { name: 'chill', description: 'Relaxed' },
-      { name: 'happy', description: undefined },
-    ]);
+    expect(result.getValue().tags).toEqual([{ name: 'chill', description: 'Relaxed' }]);
     expect(mockAnalysisRepository.findBySong).toHaveBeenCalledWith(
       request.title,
       request.artist,
@@ -163,9 +160,9 @@ describe('AnalyzeUseCase', () => {
       // Act
       const promise = analyzeUseCase.executeBatch(batchRequest);
 
-      // Advance timers to handle the 4s delay after AI analysis
+      // Advance timers to handle the 1s delay after AI analysis
       // Song 1 is cache hit, so no delay before Song 2.
-      // Song 2 is AI analysis, so there's a 4s delay after it.
+      // Song 2 is AI analysis, so there's a 1s delay after it.
       await vi.runAllTimersAsync();
 
       const result = await promise;
