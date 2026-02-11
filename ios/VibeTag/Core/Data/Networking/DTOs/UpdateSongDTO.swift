@@ -5,4 +5,5 @@ struct UpdateSongDTO: Encodable {
     let title: String
     let artist: String
     let appleMusicId: String?
+    let artworkUrl: String?
 }

@@ -16,6 +16,7 @@ export interface UpdateSongTagsDTO {
 export interface UserSongLibraryDTO {
   id: string;
   appleMusicId?: string;
+  artworkUrl?: string;
   tags: TagDTO[];
 }
 
@@ -24,6 +25,7 @@ export interface SongDTO {
   title: string;
   artist: string;
   appleMusicId?: string;
+  artworkUrl?: string;
   album?: string;
   genre?: string;
   tags: TagDTO[];

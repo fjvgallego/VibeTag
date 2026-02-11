@@ -101,6 +101,10 @@ class LocalSongStorageRepositoryImpl: SongStorageRepository {
                     // Conflict Handling: If locally pending, skip it
                     guard song.syncStatus != .pendingUpload else { continue }
                     
+                    // Update Metadata if missing
+                    if song.artworkUrl == nil { song.artworkUrl = item.artworkUrl }
+                    if song.appleMusicId == nil { song.appleMusicId = item.appleMusicId }
+
                     // Update tags and set to synced
                     try await updateSongTags(song, with: item.tags)
                     song.syncStatus = .synced

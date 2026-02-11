@@ -7,5 +7,7 @@ struct RemoteTagSyncInfo {
 
 struct RemoteSongSyncInfo {
     let id: String
+    let appleMusicId: String?
+    let artworkUrl: String?
     let tags: [RemoteTagSyncInfo]
 }

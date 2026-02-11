@@ -54,6 +54,8 @@ class VibeTagSyncEngine: SyncEngine {
                 let syncInfo = remoteLibrary.map { song in
                     RemoteSongSyncInfo(
                         id: song.id,
+                        appleMusicId: song.appleMusicId,
+                        artworkUrl: song.artworkUrl,
                         tags: song.tags.map { RemoteTagSyncInfo(name: $0.name, type: $0.type) }
                     )
                 }
@@ -86,7 +88,7 @@ class VibeTagSyncEngine: SyncEngine {
                     .sorted()
                 
                 do {
-                    let dto = UpdateSongDTO(tags: tagsToSync, title: song.title, artist: song.artist, appleMusicId: song.appleMusicId)
+                    let dto = UpdateSongDTO(tags: tagsToSync, title: song.title, artist: song.artist, appleMusicId: song.appleMusicId, artworkUrl: song.artworkUrl)
                     try await APIClient.shared.requestVoid(SongEndpoint.updateSong(id: song.id, dto: dto))
                     
                     // Re-fetch to check if tags changed during upload (Race Condition Fix)

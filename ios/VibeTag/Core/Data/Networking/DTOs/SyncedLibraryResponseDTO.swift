@@ -7,6 +7,8 @@ struct SyncedTagDTO: Codable {
 
 struct SyncedSongDTO: Codable {
     let id: String
+    let appleMusicId: String?
+    let artworkUrl: String?
     let tags: [SyncedTagDTO]
 }
 

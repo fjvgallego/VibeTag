@@ -5,6 +5,7 @@ struct AnalyzeRequestDTO: Encodable {
     let appleMusicId: String?
     let artist: String
     let title: String
+    let artworkUrl: String?
 }
 
 struct BatchAnalyzeRequestDTO: Encodable {
@@ -15,6 +16,7 @@ struct BatchAnalyzeRequestDTO: Encodable {
         let artist: String
         let album: String?
         let genre: String?
+        let artworkUrl: String?
     }
     let songs: [SongInput]
 }

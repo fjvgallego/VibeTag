@@ -15,6 +15,7 @@ struct GeneratePlaylistResponseDTO: Decodable {
         let title: String
         let artist: String
         let appleMusicId: String?
+        let artworkUrl: String?
         let tags: [PlaylistTagDTO] 
     }
     

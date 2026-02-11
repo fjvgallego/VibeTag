@@ -54,6 +54,7 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
       appleMusicId: song.appleMusicId || undefined,
       album: song.album || undefined,
       genre: song.genre || undefined,
+      artworkUrl: song.artworkUrl || undefined,
     });
 
     return Analysis.create(metadata, tags, VTDate.now(), song.id);

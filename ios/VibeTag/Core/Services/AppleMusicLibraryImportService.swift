@@ -62,7 +62,24 @@ class AppleMusicLibraryImportService: LibraryImportSyncService {
             let localSongIDs = Set(localSongs.map { $0.id })
             
             for song in remoteSongs {
-                if !localSongIDs.contains(song.id) {
+                if let existing = localSongs.first(where: { $0.id == song.id }) {
+                    // Update missing metadata for existing songs
+                    var changed = false
+                    if existing.artworkUrl == nil && song.artworkUrl != nil {
+                        existing.artworkUrl = song.artworkUrl
+                        changed = true
+                    }
+                    if existing.appleMusicId == nil && song.appleMusicId != nil {
+                        existing.appleMusicId = song.appleMusicId
+                        changed = true
+                    }
+                    
+                    if changed {
+                        existing.syncStatus = .pendingUpload
+                    }
+                } else {
+                    // New song found
+                    song.syncStatus = .pendingUpload
                     storage.saveSong(song)
                 }
             }

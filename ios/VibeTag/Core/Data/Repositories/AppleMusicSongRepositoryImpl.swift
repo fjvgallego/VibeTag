@@ -8,7 +8,7 @@ import MediaPlayer
 class AppleMusicSongRepositoryImpl: SongRepository {
     
     func fetchAnalysis(for song: VTSong) async throws -> [AnalyzedTag] {
-        let endpoint = SongEndpoint.analyze(id: song.id, appleMusicId: song.appleMusicId, artist: song.artist, title: song.title)
+        let endpoint = SongEndpoint.analyze(id: song.id, appleMusicId: song.appleMusicId, artist: song.artist, title: song.title, artworkUrl: song.artworkUrl)
         do {
             let response: AnalyzeResponseDTO = try await APIClient.shared.request(endpoint)
             return response.tags.map { AnalyzedTag(name: $0.name, description: $0.description) }
@@ -27,7 +27,8 @@ class AppleMusicSongRepositoryImpl: SongRepository {
                 title: song.title,
                 artist: song.artist,
                 album: song.album,
-                genre: song.genre
+                genre: song.genre,
+                artworkUrl: song.artworkUrl
             )
         }
         

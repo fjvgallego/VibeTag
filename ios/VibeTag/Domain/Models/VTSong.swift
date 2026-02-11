@@ -22,7 +22,7 @@ final class VTSong {
         set { syncStatusRaw = newValue.rawValue }
     }
     
-    init(id: String, appleMusicId: String? = nil, title: String, artist: String, album: String? = nil, genre: String? = nil, artworkUrl: String? = nil, dateAdded: Date = Date(), syncStatus: SyncStatus = .synced) {
+    init(id: String, appleMusicId: String? = nil, title: String, artist: String, album: String? = nil, genre: String? = nil, artworkUrl: String? = nil, dateAdded: Date = Date(), syncStatus: SyncStatus = .pendingUpload) {
         self.id = id
         self.appleMusicId = appleMusicId
         self.title = title
