@@ -68,10 +68,28 @@ export class PrismaUserRepository implements UserRepository {
   }
 
   async delete(id: UserId): Promise<void> {
-    await this.prisma.user.delete({
-      where: {
-        id: id.value,
-      },
+    // Use transaction to ensure proper cascade deletion order
+    // 1. Delete all SongTags for this user
+    // 2. Delete all Tags owned by this user
+    // 3. Delete the user
+    // This respects the RESTRICT constraint on SongTag.tagId
+    await this.prisma.$transaction(async (tx) => {
+      const userId = id.value;
+
+      // First, delete all SongTags where this user is referenced
+      await tx.songTag.deleteMany({
+        where: { userId },
+      });
+
+      // Then, delete all Tags owned by this user
+      await tx.tag.deleteMany({
+        where: { ownerId: userId },
+      });
+
+      // Finally, delete the user
+      await tx.user.delete({
+        where: { id: userId },
+      });
     });
   }
 }

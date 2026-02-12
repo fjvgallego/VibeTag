@@ -5,9 +5,12 @@ struct CreatePlaylistView: View {
     @Environment(\.dismiss) private var dismiss
     let prompt: String
     
-    init(generatePlaylistUseCase: GeneratePlaylistUseCase, prompt: String) {
+    init(generatePlaylistUseCase: GeneratePlaylistUseCase, exportPlaylistUseCase: ExportPlaylistToAppleMusicUseCase, prompt: String) {
         self.prompt = prompt
-        self._viewModel = State(initialValue: CreatePlaylistViewModel(generatePlaylistUseCase: generatePlaylistUseCase))
+        self._viewModel = State(initialValue: CreatePlaylistViewModel(
+            generatePlaylistUseCase: generatePlaylistUseCase,
+            exportPlaylistUseCase: exportPlaylistUseCase
+        ))
     }
     
     var body: some View {
@@ -115,9 +118,15 @@ struct CreatePlaylistView: View {
                 }
             }
             
-            PrimaryActionButton("Exportar a Apple Music", icon: "apple.logo") {
-                print("Exporting...")
+            PrimaryActionButton(
+                viewModel.isExported ? "¡Exportado con éxito!" : (viewModel.isExporting ? "Exportando..." : "Exportar a Apple Music"),
+                icon: viewModel.isExported ? "checkmark" : "apple.logo"
+            ) {
+                Task {
+                    await viewModel.exportPlaylist()
+                }
             }
+            .disabled(viewModel.isExporting || viewModel.isExported)
             .padding(.horizontal, 24)
             .padding(.bottom, 20)
         }

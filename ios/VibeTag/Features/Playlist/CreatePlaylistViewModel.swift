@@ -5,13 +5,17 @@ import Observation
 class CreatePlaylistViewModel {
     var prompt: String = ""
     var isLoading: Bool = false
+    var isExporting: Bool = false
+    var isExported: Bool = false
     var result: GeneratePlaylistResponseDTO? = nil
     var errorMessage: String? = nil
     
     private let generatePlaylistUseCase: GeneratePlaylistUseCase
+    private let exportPlaylistUseCase: ExportPlaylistToAppleMusicUseCase
     
-    init(generatePlaylistUseCase: GeneratePlaylistUseCase) {
+    init(generatePlaylistUseCase: GeneratePlaylistUseCase, exportPlaylistUseCase: ExportPlaylistToAppleMusicUseCase) {
         self.generatePlaylistUseCase = generatePlaylistUseCase
+        self.exportPlaylistUseCase = exportPlaylistUseCase
     }
     
     @MainActor
@@ -28,6 +32,29 @@ class CreatePlaylistViewModel {
         } catch {
             self.errorMessage = error.localizedDescription
             self.isLoading = false
+        }
+    }
+    
+    @MainActor
+    func exportPlaylist() async {
+        guard let result = result, !isExporting, !isExported else { return }
+        
+        isExporting = true
+        errorMessage = nil
+        
+        let appleMusicIds = result.songs.compactMap { $0.appleMusicId }
+        
+        do {
+            try await exportPlaylistUseCase.execute(
+                name: result.playlistTitle,
+                description: result.description,
+                appleMusicIds: appleMusicIds
+            )
+            isExported = true
+            isExporting = false
+        } catch {
+            self.errorMessage = "Failed to export playlist: \(error.localizedDescription)"
+            isExporting = false
         }
     }
 }

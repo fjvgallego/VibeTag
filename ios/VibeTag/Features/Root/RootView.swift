@@ -29,7 +29,11 @@ struct RootView: View {
                             case .tagDetail(let tagID):
                                 Text("Tag Detail: \(tagID)") // Placeholder
                             case .generatePlaylist(let prompt):
-                                CreatePlaylistView(generatePlaylistUseCase: container.generatePlaylistUseCase, prompt: prompt)
+                                CreatePlaylistView(
+                                    generatePlaylistUseCase: container.generatePlaylistUseCase,
+                                    exportPlaylistUseCase: container.exportPlaylistUseCase,
+                                    prompt: prompt
+                                )
                             }
                         }
                 }
