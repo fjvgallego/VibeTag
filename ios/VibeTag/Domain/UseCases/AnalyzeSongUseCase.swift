@@ -24,8 +24,8 @@ class AnalyzeSongUseCase: AnalyzeSongUseCaseProtocol {
         // 2. If No System Data: Call remoteRepository.fetchAnalysis(for: song).
         let result = try await remoteRepository.fetchAnalysis(for: song)
         
-        // 3. Save: Call localRepository.saveTags(for: song.id, tags: result).
-        try await localRepository.saveTags(for: song.id, tags: result)
+        // 3. Save: Call localRepository.saveTags(for: song.id, tags: result, syncStatus: .synced).
+        try await localRepository.saveTags(for: song.id, tags: result, syncStatus: .synced)
         
         return result
     }
@@ -58,7 +58,7 @@ class AnalyzeSongUseCase: AnalyzeSongUseCaseProtocol {
                 
                 // Save results to Local DB
                 for result in results {
-                    try await localRepository.saveTags(for: result.songId, tags: result.tags)
+                    try await localRepository.saveTags(for: result.songId, tags: result.tags, syncStatus: .synced)
                 }
                 successCount += 1
             } catch {

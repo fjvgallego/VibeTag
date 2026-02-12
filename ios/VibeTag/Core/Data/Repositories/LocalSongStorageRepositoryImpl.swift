@@ -37,7 +37,7 @@ class LocalSongStorageRepositoryImpl: SongStorageRepository {
         modelContext.delete(song)
     }
 
-    func saveTags(for songId: String, tags: [AnalyzedTag]) async throws {
+    func saveTags(for songId: String, tags: [AnalyzedTag], syncStatus: SyncStatus = .pendingUpload) async throws {
         let id = songId
         let songDescriptor = FetchDescriptor<VTSong>(predicate: #Predicate { $0.id == id })
         guard let song = try modelContext.fetch(songDescriptor).first else {
@@ -67,7 +67,7 @@ class LocalSongStorageRepositoryImpl: SongStorageRepository {
         }
         
         song.tags = finalTags
-        song.syncStatus = .pendingUpload
+        song.syncStatus = syncStatus
         try modelContext.save()
     }
 

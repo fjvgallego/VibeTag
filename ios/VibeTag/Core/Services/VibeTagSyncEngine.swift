@@ -81,9 +81,7 @@ class VibeTagSyncEngine: SyncEngine {
             let pendingSongs = try await localRepo.fetchPendingUploads()
             
             for song in pendingSongs {
-                // Only sync user tags (non-system tags)
                 let tagsToSync = song.tags
-                    .filter { !$0.isSystemTag }
                     .map { $0.name }
                     .sorted()
                 
