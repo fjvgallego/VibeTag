@@ -2,9 +2,16 @@ import SwiftUI
 
 struct VibeInputSheet: View {
     @Environment(\.dismiss) private var dismiss
-    @State private var vibeText: String = ""
+    @State private var vibeText: String
     
+    var initialText: String
     var onGenerate: (String) -> Void
+    
+    init(initialText: String = "", onGenerate: @escaping (String) -> Void) {
+        self.initialText = initialText
+        self._vibeText = State(initialValue: initialText)
+        self.onGenerate = onGenerate
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {

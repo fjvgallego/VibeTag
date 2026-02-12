@@ -2,6 +2,7 @@ import SwiftUI
 
 struct CreatePlaylistView: View {
     @State private var viewModel: CreatePlaylistViewModel
+    @State private var isEditingPrompt = false
     @Environment(\.dismiss) private var dismiss
     let prompt: String
     
@@ -28,8 +29,13 @@ struct CreatePlaylistView: View {
                         loadingState
                             .transition(.opacity.combined(with: .scale(scale: 0.95)))
                     } else if let response = viewModel.result {
-                        resultState(response: response)
-                            .transition(.opacity.combined(with: .move(edge: .bottom)))
+                        if response.songs.isEmpty {
+                            noResultsState
+                                .transition(.opacity)
+                        } else {
+                            resultState(response: response)
+                                .transition(.opacity.combined(with: .move(edge: .bottom)))
+                        }
                     } else if viewModel.errorMessage != nil {
                         errorState
                     }
@@ -45,10 +51,24 @@ struct CreatePlaylistView: View {
                 }
             }
         }
+        .sheet(isPresented: $isEditingPrompt) {
+            VibeInputSheet(initialText: viewModel.prompt) { newPrompt in
+                isEditingPrompt = false
+                viewModel.prompt = newPrompt
+                Task {
+                    await viewModel.generatePlaylist()
+                }
+            }
+            .presentationDetents([.medium, .large])
+        }
         .onAppear {
-            viewModel.prompt = prompt
-            Task {
-                await viewModel.generatePlaylist()
+            if viewModel.prompt.isEmpty {
+                viewModel.prompt = prompt
+            }
+            if viewModel.result == nil && !viewModel.isLoading {
+                Task {
+                    await viewModel.generatePlaylist()
+                }
             }
         }
     }
@@ -61,7 +81,7 @@ struct CreatePlaylistView: View {
                 .font(.system(size: 14, weight: .bold))
                 .foregroundColor(.appleMusicRed)
             
-            Text(prompt)
+            Text(viewModel.prompt)
                 .font(.nunito(.body, weight: .medium))
                 .foregroundColor(.primary.opacity(0.8))
                 .italic()
@@ -129,6 +149,19 @@ struct CreatePlaylistView: View {
             .disabled(viewModel.isExporting || viewModel.isExported)
             .padding(.horizontal, 24)
             .padding(.bottom, 20)
+        }
+    }
+    
+    private var noResultsState: some View {
+        ContentUnavailableView {
+            Label("No encontramos canciones", systemImage: "music.note.list")
+        } description: {
+            Text("¡No te rindas! Intenta describir tus sentimientos con más detalle. Cuanto más específico seas (menciona géneros, estados de ánimo o momentos), mejor podrá la IA encontrar tu vibe.")
+        } actions: {
+            PrimaryActionButton("Reintentar y editar", icon: "pencil") {
+                isEditingPrompt = true
+            }
+            .padding(.horizontal, 40)
         }
     }
     
