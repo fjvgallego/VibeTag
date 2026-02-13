@@ -5,18 +5,21 @@ import Observation
 @MainActor
 class VibeTagSyncEngine: SyncEngine {
     private let localRepo: SongStorageRepository
-    private let networkMonitor: NetworkMonitor
+    private var networkMonitor: NetworkMonitorProtocol
     private let sessionManager: SessionManager
+    private let apiClient: APIClientProtocol
     private var isPulling = false
     private var isPushing = false
-    
-    init(localRepo: SongStorageRepository, 
+
+    init(localRepo: SongStorageRepository,
          sessionManager: SessionManager,
-         networkMonitor: NetworkMonitor = .shared) {
+         networkMonitor: NetworkMonitorProtocol = NetworkMonitor.shared,
+         apiClient: APIClientProtocol = APIClient.shared) {
         self.localRepo = localRepo
         self.sessionManager = sessionManager
         self.networkMonitor = networkMonitor
-        
+        self.apiClient = apiClient
+
         setupObservation()
     }
     
@@ -49,7 +52,7 @@ class VibeTagSyncEngine: SyncEngine {
         var hasMoreData = true
         
         while hasMoreData {
-            let remoteLibrary: [SyncedSongDTO] = try await APIClient.shared.request(SongEndpoint.getSyncedSongs(page: page, limit: limit))
+            let remoteLibrary: [SyncedSongDTO] = try await apiClient.request(SongEndpoint.getSyncedSongs(page: page, limit: limit))
             if !remoteLibrary.isEmpty {
                 let syncInfo = remoteLibrary.map { song in
                     RemoteSongSyncInfo(
@@ -89,7 +92,7 @@ class VibeTagSyncEngine: SyncEngine {
 
                 do {
                     let dto = UpdateSongDTO(tags: tagsToSync, title: song.title, artist: song.artist, appleMusicId: song.appleMusicId, artworkUrl: song.artworkUrl)
-                    try await APIClient.shared.requestVoid(SongEndpoint.updateSong(id: song.id, dto: dto))
+                    try await apiClient.requestVoid(SongEndpoint.updateSong(id: song.id, dto: dto))
                     
                     // Re-fetch to check if tags changed during upload (Race Condition Fix)
                     let currentTags = try localRepo.fetchSong(id: song.id)?.tags.map { $0.name }.sorted() ?? []

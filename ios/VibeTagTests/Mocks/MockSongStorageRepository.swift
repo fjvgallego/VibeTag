@@ -16,17 +16,51 @@ final class MockSongStorageRepository: SongStorageRepository {
         if let error = saveTagsShouldThrow { throw error }
     }
 
-    // MARK: - Unused in AnalyzeSongUseCase tests
+    // MARK: - fetchPendingUploads
+
+    var fetchPendingUploadsCallCount = 0
+    var pendingUploadsResult: [VTSong] = []
+
+    func fetchPendingUploads() async throws -> [VTSong] {
+        fetchPendingUploadsCallCount += 1
+        return pendingUploadsResult
+    }
+
+    // MARK: - fetchSong
+
+    var fetchSongResult: ((String) -> VTSong?)? = nil
+
+    func fetchSong(id: String) throws -> VTSong? {
+        fetchSongResult?(id)
+    }
+
+    // MARK: - markAsSynced
+
+    var markAsSyncedCallCount = 0
+    var markAsSyncedLastSongId: String?
+
+    func markAsSynced(songId: String) async throws {
+        markAsSyncedCallCount += 1
+        markAsSyncedLastSongId = songId
+    }
+
+    // MARK: - hydrateRemoteTags
+
+    var hydrateRemoteTagsCallCount = 0
+    var hydrateRemoteTagsReceivedItems: [[RemoteSongSyncInfo]] = []
+
+    func hydrateRemoteTags(_ remoteItems: [RemoteSongSyncInfo]) async throws {
+        hydrateRemoteTagsCallCount += 1
+        hydrateRemoteTagsReceivedItems.append(remoteItems)
+    }
+
+    // MARK: - Remaining stubs
 
     func fetchAllSongs() throws -> [VTSong] { [] }
-    func fetchSong(id: String) throws -> VTSong? { nil }
-    func fetchTag(name: String) throws -> Tag? { nil }
+    func fetchTag(name: String) throws -> VibeTag.Tag? { nil }
     func songExists(id: String) throws -> Bool { false }
     func saveSong(_ song: VTSong) {}
     func deleteSong(_ song: VTSong) {}
-    func markAsSynced(songId: String) async throws {}
-    func fetchPendingUploads() async throws -> [VTSong] { [] }
-    func hydrateRemoteTags(_ remoteItems: [RemoteSongSyncInfo]) async throws {}
     func clearAllTags() async throws {}
     func saveChanges() throws {}
 }

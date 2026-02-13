@@ -1,6 +1,6 @@
 import Foundation
 
-final class APIClient {
+final class APIClient: APIClientProtocol {
     static let shared = APIClient()
     
     // NOTE: This needs to be the local IP for physical devices.
