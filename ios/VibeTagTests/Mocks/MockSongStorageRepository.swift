@@ -54,9 +54,17 @@ final class MockSongStorageRepository: SongStorageRepository {
         hydrateRemoteTagsReceivedItems.append(remoteItems)
     }
 
-    // MARK: - Remaining stubs
+    // MARK: - fetchAllSongs
 
-    func fetchAllSongs() throws -> [VTSong] { [] }
+    var fetchAllSongsResult: [VTSong] = []
+    var fetchAllSongsShouldThrow: Error?
+
+    func fetchAllSongs() throws -> [VTSong] {
+        if let error = fetchAllSongsShouldThrow { throw error }
+        return fetchAllSongsResult
+    }
+
+    // MARK: - Remaining stubs
     func fetchTag(name: String) throws -> VibeTag.Tag? { nil }
     func songExists(id: String) throws -> Bool { false }
     func saveSong(_ song: VTSong) {}

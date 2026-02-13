@@ -11,17 +11,17 @@ class CreatePlaylistViewModel {
     var result: GeneratePlaylistResponseDTO? = nil
     var errorMessage: String? = nil
     
-    private let generatePlaylistUseCase: GeneratePlaylistUseCase
+    private let generatePlaylistUseCase: GeneratePlaylistUseCaseProtocol
     private let exportPlaylistUseCase: ExportPlaylistToAppleMusicUseCase
-    
-    init(generatePlaylistUseCase: GeneratePlaylistUseCase, exportPlaylistUseCase: ExportPlaylistToAppleMusicUseCase) {
+
+    init(generatePlaylistUseCase: GeneratePlaylistUseCaseProtocol, exportPlaylistUseCase: ExportPlaylistToAppleMusicUseCase) {
         self.generatePlaylistUseCase = generatePlaylistUseCase
         self.exportPlaylistUseCase = exportPlaylistUseCase
     }
     
     @MainActor
     func generatePlaylist() async {
-        guard !prompt.isEmpty else { return }
+        guard !prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         
         result = nil
         isLoading = true

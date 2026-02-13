@@ -52,10 +52,14 @@ class HomeViewModel {
     
     private let analyzeUseCase: AnalyzeSongUseCaseProtocol
     private let localRepository: SongStorageRepository
-    
-    init(analyzeUseCase: AnalyzeSongUseCaseProtocol, localRepository: SongStorageRepository) {
+    private let libraryImportService: LibraryImportSyncService?
+
+    init(analyzeUseCase: AnalyzeSongUseCaseProtocol,
+         localRepository: SongStorageRepository,
+         libraryImportService: LibraryImportSyncService? = nil) {
         self.analyzeUseCase = analyzeUseCase
         self.localRepository = localRepository
+        self.libraryImportService = libraryImportService
         self.musicAuthorizationStatus = MusicAuthorization.currentStatus
         refreshLibraryStats()
     }
@@ -90,25 +94,25 @@ class HomeViewModel {
     func syncLibrary(modelContext: ModelContext) async {
         isSyncing = true
         errorMessage = nil
-        
+
         do {
-            let service = AppleMusicLibraryImportService(modelContext: modelContext)
+            let service = libraryImportService ?? AppleMusicLibraryImportService(modelContext: modelContext)
             try await service.syncLibrary()
             refreshLibraryStats()
         } catch {
             errorMessage = "Failed to sync library: \(error.localizedDescription)"
         }
-        
+
         isSyncing = false
     }
 
-    func performFullSync(modelContext: ModelContext, syncEngine: VibeTagSyncEngine) async {
+    func performFullSync(modelContext: ModelContext, syncEngine: any SyncEngine) async {
         isSyncing = true
         errorMessage = nil
 
         do {
             // 1. Sync local library with Apple Music
-            let service = AppleMusicLibraryImportService(modelContext: modelContext)
+            let service = libraryImportService ?? AppleMusicLibraryImportService(modelContext: modelContext)
             try await service.syncLibrary()
 
             // 2. Pull remote data

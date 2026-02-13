@@ -88,7 +88,7 @@ class SettingsViewModel {
     }
     
     @MainActor
-    func performFullSync(modelContext: ModelContext, syncEngine: VibeTagSyncEngine) async {
+    func performFullSync(modelContext: ModelContext, syncEngine: any SyncEngine) async {
         isSyncing = true
         errorMessage = nil
 
