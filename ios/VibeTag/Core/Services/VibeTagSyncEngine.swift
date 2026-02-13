@@ -56,7 +56,7 @@ class VibeTagSyncEngine: SyncEngine {
                         id: song.id,
                         appleMusicId: song.appleMusicId,
                         artworkUrl: song.artworkUrl,
-                        tags: song.tags.map { RemoteTagSyncInfo(name: $0.name, type: $0.type) }
+                        tags: song.tags.map { RemoteTagSyncInfo(name: $0.name, type: $0.type, color: $0.color) }
                     )
                 }
                 try await localRepo.hydrateRemoteTags(syncInfo)
@@ -82,9 +82,11 @@ class VibeTagSyncEngine: SyncEngine {
             
             for song in pendingSongs {
                 let tagsToSync = song.tags
-                    .map { $0.name }
-                    .sorted()
+                    .map { TagUpdateDTO(name: $0.name, color: $0.hexColor) }
+                    .sorted { $0.name < $1.name }
                 
+                let tagsNamesOnly = tagsToSync.map { $0.name }
+
                 do {
                     let dto = UpdateSongDTO(tags: tagsToSync, title: song.title, artist: song.artist, appleMusicId: song.appleMusicId, artworkUrl: song.artworkUrl)
                     try await APIClient.shared.requestVoid(SongEndpoint.updateSong(id: song.id, dto: dto))
@@ -92,7 +94,7 @@ class VibeTagSyncEngine: SyncEngine {
                     // Re-fetch to check if tags changed during upload (Race Condition Fix)
                     let currentTags = try localRepo.fetchSong(id: song.id)?.tags.map { $0.name }.sorted() ?? []
                     
-                    if currentTags == tagsToSync {
+                    if currentTags == tagsNamesOnly {
                         try await localRepo.markAsSynced(songId: song.id)
                         print("Successfully synced song: \(song.title)")
                     } else {

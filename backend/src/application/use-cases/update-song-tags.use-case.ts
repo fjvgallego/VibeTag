@@ -17,7 +17,11 @@ export class UpdateSongTagsUseCase implements UseCase<UpdateSongTagsInput, void,
     try {
       const userId = UserId.create(request.userId);
 
-      await this.analysisRepository.updateSongTags(userId, request.songId, request.tags, {
+      const mappedTags = request.tags.map((t) =>
+        typeof t === 'string' ? { name: t } : { name: t.name, color: t.color },
+      );
+
+      await this.analysisRepository.updateSongTags(userId, request.songId, mappedTags, {
         title: request.title,
         artist: request.artist,
         appleMusicId: request.appleMusicId,

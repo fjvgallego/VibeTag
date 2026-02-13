@@ -9,6 +9,7 @@ struct TagsView: View {
     @State private var tagToDelete: Tag? = nil
     @State private var showingDeleteConfirmation = false
     @Environment(\.modelContext) private var modelContext
+    @Environment(VibeTagSyncEngine.self) private var syncEngine
     
     let columns = [
         GridItem(.adaptive(minimum: 160), spacing: 16)
@@ -150,8 +151,18 @@ struct TagsView: View {
         .toolbar(.hidden, for: .navigationBar)
         .sheet(isPresented: $showingCreateTag) {
             CreateTagSheet { name, hexColor, description in
-                let newTag = Tag(name: name, tagDescription: description, hexColor: hexColor)
+                let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+                
+                // Check if a tag with this name already exists (case-insensitive)
+                if let existingTag = allTags.first(where: { $0.name.caseInsensitiveCompare(trimmedName) == .orderedSame }) {
+                    // Optionally update existing tag's description or color if desired, 
+                    // but for now let's just avoid duplication.
+                    return
+                }
+                
+                let newTag = Tag(name: trimmedName, tagDescription: description, hexColor: hexColor)
                 modelContext.insert(newTag)
+                try? modelContext.save()
             }
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
@@ -169,7 +180,19 @@ struct TagsView: View {
         .confirmationDialog("¿Eliminar etiqueta?", isPresented: $showingDeleteConfirmation, titleVisibility: .visible) {
             Button("Eliminar \"\(tagToDelete?.name ?? "")\"", role: .destructive) {
                 if let tag = tagToDelete {
+                    // Mark all songs that have this tag as pending upload so the removal syncs
+                    let songsToUpdate = tag.songs
+                    for song in songsToUpdate {
+                        song.syncStatus = .pendingUpload
+                    }
+                    
                     modelContext.delete(tag)
+                    try? modelContext.save()
+                    
+                    // Trigger sync to notify backend of the removals
+                    Task {
+                        await syncEngine.syncPendingChanges()
+                    }
                     tagToDelete = nil
                 }
             }
@@ -185,8 +208,14 @@ struct TagsView: View {
 #Preview {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: Tag.self, VTSong.self, configurations: config)
+    let syncEngine = VibeTagSyncEngine(
+        localRepo: LocalSongStorageRepositoryImpl(modelContext: container.mainContext),
+        sessionManager: SessionManager(tokenStorage: KeychainTokenStorage(), authRepository: VibeTagAuthRepositoryImpl())
+    )
+    
     return NavigationStack {
         TagsView()
             .modelContainer(container)
+            .environment(syncEngine)
     }
 }

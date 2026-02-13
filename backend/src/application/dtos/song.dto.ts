@@ -1,10 +1,16 @@
 export interface TagDTO {
   name: string;
   type: 'SYSTEM' | 'USER';
+  color?: string;
+}
+
+export interface TagUpdateDTO {
+  name: string;
+  color?: string;
 }
 
 export interface UpdateSongTagsDTO {
-  tags: string[];
+  tags: (string | TagUpdateDTO)[];
   title: string;
   artist: string;
   appleMusicId?: string;

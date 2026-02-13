@@ -67,8 +67,9 @@ class SongDetailViewModel {
         var currentTags = song.tags.map { AnalyzedTag(name: $0.name, description: $0.tagDescription) }
         currentTags.append(AnalyzedTag(name: trimmedName, description: finalDesc))
         
-        // Optimistic update
-        let newTag = Tag(name: trimmedName, tagDescription: finalDesc, hexColor: "#808080")
+        // Optimistic update: Check if tag exists globally first
+        let existingTag = try? repository.fetchTag(name: trimmedName)
+        let newTag = existingTag ?? Tag(name: trimmedName, tagDescription: finalDesc, hexColor: "#808080")
         song.tags.append(newTag)
         
         Task {

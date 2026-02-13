@@ -3,6 +3,7 @@ import Foundation
 struct SyncedTagDTO: Codable {
     let name: String
     let type: String // "SYSTEM" or "USER"
+    let color: String?
 }
 
 struct SyncedSongDTO: Codable {

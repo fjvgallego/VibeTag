@@ -9,7 +9,11 @@ export class GeminiAIService implements IAIService {
   private readonly modelName: string;
   private readonly sanitizer: ITextSanitizer;
 
-  constructor(apiKey: string, sanitizer: ITextSanitizer, modelName: string = 'gemini-2.5-flash') {
+  constructor(
+    apiKey: string,
+    sanitizer: ITextSanitizer,
+    modelName: string = 'gemini-2.0-flash-lite',
+  ) {
     this.google = createGoogleGenerativeAI({
       apiKey,
     });
@@ -71,6 +75,8 @@ export class GeminiAIService implements IAIService {
         model: this.google(this.modelName),
         prompt: systemPrompt,
       });
+
+      console.log(this.parseSentimentResponse(text));
 
       return this.parseSentimentResponse(text);
     } catch (error) {

@@ -22,6 +22,12 @@ class LocalSongStorageRepositoryImpl: SongStorageRepository {
         return try modelContext.fetch(descriptor).first
     }
     
+    func fetchTag(name: String) throws -> Tag? {
+        let tagName = name
+        let descriptor = FetchDescriptor<Tag>(predicate: #Predicate { $0.name == tagName })
+        return try modelContext.fetch(descriptor).first
+    }
+    
     func songExists(id: String) throws -> Bool {
         let songId = id
         let descriptor = FetchDescriptor<VTSong>(predicate: #Predicate { $0.id == songId })
@@ -118,12 +124,21 @@ class LocalSongStorageRepositoryImpl: SongStorageRepository {
     }
     
     func clearAllTags() async throws {
-        let descriptor = FetchDescriptor<VTSong>()
-        let allSongs = try modelContext.fetch(descriptor)
+        // 1. Unlink tags from all songs and reset sync status
+        let songDescriptor = FetchDescriptor<VTSong>()
+        let allSongs = try modelContext.fetch(songDescriptor)
         for song in allSongs {
             song.tags = []
             song.syncStatus = .synced
         }
+        
+        // 2. Delete all Tag entities
+        let tagDescriptor = FetchDescriptor<Tag>()
+        let allTags = try modelContext.fetch(tagDescriptor)
+        for tag in allTags {
+            modelContext.delete(tag)
+        }
+        
         try modelContext.save()
     }
 
@@ -136,13 +151,17 @@ class LocalSongStorageRepositoryImpl: SongStorageRepository {
         for remoteTag in remoteTags {
             let name = remoteTag.name
             let isRemoteSystem = remoteTag.type == "SYSTEM"
+            let remoteColor = remoteTag.color
             
             let tagDescriptor = FetchDescriptor<Tag>(predicate: #Predicate { $0.name == name })
             if let existingTag = try modelContext.fetch(tagDescriptor).first {
                 existingTag.isSystemTag = isRemoteSystem
+                if let color = remoteColor {
+                    existingTag.hexColor = color
+                }
                 finalTags.append(existingTag)
             } else {
-                let newTag = Tag(name: name, tagDescription: nil, hexColor: "#808080", isSystemTag: isRemoteSystem)
+                let newTag = Tag(name: name, tagDescription: nil, hexColor: remoteColor ?? "#808080", isSystemTag: isRemoteSystem)
                 modelContext.insert(newTag)
                 finalTags.append(newTag)
             }

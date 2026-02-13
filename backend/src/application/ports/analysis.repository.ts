@@ -12,7 +12,7 @@ export interface IAnalysisRepository {
   updateSongTags(
     userId: UserId,
     songId: string,
-    tags: string[],
+    tags: { name: string; color?: string }[],
     metadata: {
       title: string;
       artist: string;

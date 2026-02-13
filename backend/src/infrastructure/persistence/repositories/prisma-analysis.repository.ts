@@ -171,7 +171,7 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
   public async updateSongTags(
     userId: UserId,
     songId: string,
-    tags: string[],
+    tags: { name: string; color?: string }[],
     metadata: {
       title: string;
       artist: string;
@@ -181,7 +181,7 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
       artworkUrl?: string;
     },
   ): Promise<void> {
-    const uniqueTags = Array.from(new Set(tags));
+    const uniqueTags = Array.from(new Map(tags.map((t) => [t.name, t])).values());
     await this.prisma.$transaction(async (tx) => {
       // Upsert Song
       await tx.song.upsert({
@@ -211,12 +211,12 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
       });
 
       // Create new ones
-      for (const tagName of uniqueTags) {
+      for (const tagData of uniqueTags) {
         // Find reusable tag (SYSTEM or MINE)
         // Priority Search: User custom tag OR System tag
         let tag = await tx.tag.findFirst({
           where: {
-            name: tagName,
+            name: tagData.name,
             OR: [{ ownerId: userId.value }, { type: 'SYSTEM' }],
           },
           orderBy: {
@@ -226,7 +226,18 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
 
         if (!tag) {
           tag = await tx.tag.create({
-            data: { name: tagName, color: '#808080', type: 'USER', ownerId: userId.value },
+            data: {
+              name: tagData.name,
+              color: tagData.color ?? '#808080',
+              type: 'USER',
+              ownerId: userId.value,
+            },
+          });
+        } else if (tagData.color && tag.ownerId === userId.value && tag.color !== tagData.color) {
+          // Update color if it's the user's tag and color changed
+          tag = await tx.tag.update({
+            where: { id: tag.id },
+            data: { color: tagData.color },
           });
         }
 

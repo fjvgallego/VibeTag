@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import UIKit
 
 @Observable
 class CreatePlaylistViewModel {
@@ -53,6 +54,13 @@ class CreatePlaylistViewModel {
             )
             isExported = true
             isExporting = false
+            
+            // Open Apple Music app
+            if let musicURL = URL(string: "music://") {
+                if await UIApplication.shared.canOpenURL(musicURL) {
+                    await UIApplication.shared.open(musicURL)
+                }
+            }
         } catch {
             self.errorMessage = "Failed to export playlist: \(error.localizedDescription)"
             isExporting = false

@@ -4,6 +4,7 @@ import Foundation
 protocol SongStorageRepository {
     func fetchAllSongs() throws -> [VTSong]
     func fetchSong(id: String) throws -> VTSong?
+    func fetchTag(name: String) throws -> Tag?
     func songExists(id: String) throws -> Bool
     func saveSong(_ song: VTSong)
     func deleteSong(_ song: VTSong)

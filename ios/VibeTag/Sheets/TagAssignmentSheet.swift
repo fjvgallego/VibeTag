@@ -83,7 +83,19 @@ struct TagAssignmentSheet: View {
         .background(.ultraThinMaterial)
         .sheet(isPresented: $showingCreateTag) {
             CreateTagSheet { name, hexColor, description in
-                let newTag = Tag(name: name, tagDescription: description, hexColor: hexColor)
+                let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+                
+                // 1. Check if it already exists in the context (including system tags)
+                let descriptor = FetchDescriptor<Tag>(predicate: #Predicate { $0.name == trimmedName })
+                let existingTags = try? modelContext.fetch(descriptor)
+                
+                if let existingTag = existingTags?.first {
+                    toggleTag(existingTag)
+                    return
+                }
+                
+                // 2. Create new if truly unique
+                let newTag = Tag(name: trimmedName, tagDescription: description, hexColor: hexColor)
                 modelContext.insert(newTag)
                 toggleTag(newTag)
             }

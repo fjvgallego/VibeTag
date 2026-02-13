@@ -28,7 +28,7 @@ export class PrismaSongRepository implements ISongRepository {
           where: { userId: userId },
           select: {
             tag: {
-              select: { name: true, type: true },
+              select: { name: true, type: true, color: true },
             },
           },
         },
@@ -42,6 +42,7 @@ export class PrismaSongRepository implements ISongRepository {
       tags: song.songTags.map((st) => ({
         name: st.tag.name,
         type: st.tag.type as 'SYSTEM' | 'USER',
+        color: st.tag.color,
       })),
     }));
   }
@@ -53,22 +54,17 @@ export class PrismaSongRepository implements ISongRepository {
   ): Promise<Song[]> {
     const songs = await this.prisma.song.findMany({
       where: {
-        // MUST be in the user's library (defined by having ANY tag from this user)
+        // MUST have a tag belonging to THIS user that matches the search
         songTags: {
-          some: { userId: userId },
-        },
-        // AND it MUST have a tag (SYSTEM or USER belonging to anyone) that matches the search
-        AND: {
-          songTags: {
-            some: {
-              tag: {
-                OR: [
-                  { name: { in: tags, mode: Prisma.QueryMode.insensitive } },
-                  ...tags.map((tag) => ({
-                    description: { contains: tag, mode: Prisma.QueryMode.insensitive },
-                  })),
-                ],
-              },
+          some: {
+            userId: userId,
+            tag: {
+              OR: [
+                { name: { in: tags, mode: Prisma.QueryMode.insensitive } },
+                ...tags.map((tag) => ({
+                  description: { contains: tag, mode: Prisma.QueryMode.insensitive },
+                })),
+              ],
             },
           },
         },
@@ -77,7 +73,7 @@ export class PrismaSongRepository implements ISongRepository {
       include: {
         songTags: {
           where: {
-            OR: [{ userId: userId }, { tag: { type: 'SYSTEM' } }],
+            userId: userId,
           },
           include: {
             tag: true,
