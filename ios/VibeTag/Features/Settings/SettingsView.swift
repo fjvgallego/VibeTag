@@ -6,6 +6,7 @@ struct SettingsView: View {
     let container: AppContainer
     @State private var viewModel: SettingsViewModel
     @State private var showingDeleteConfirmation = false
+    @State private var showingDeleteSuccess = false
     @Environment(SessionManager.self) var sessionManager
     @Environment(VibeTagSyncEngine.self) var syncEngine
     @Environment(\.modelContext) private var modelContext
@@ -135,6 +136,11 @@ struct SettingsView: View {
         } message: {
             Text(viewModel.errorMessage ?? "Unknown error")
         }
+        .alert("Cuenta eliminada", isPresented: $showingDeleteSuccess) {
+            Button("Entendido", role: .cancel) { }
+        } message: {
+            Text("Tu cuenta y todos tus datos han sido eliminados correctamente de la app.")
+        }
         .onAppear {
             viewModel.updateAuthorizationStatus()
         }
@@ -143,6 +149,7 @@ struct SettingsView: View {
                 Task { @MainActor in
                     do {
                         try await sessionManager.deleteAccount()
+                        showingDeleteSuccess = true
                     } catch {
                         viewModel.errorMessage = "Error al eliminar cuenta: \(error.localizedDescription)"
                     }
