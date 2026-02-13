@@ -116,6 +116,16 @@ class LocalSongStorageRepositoryImpl: SongStorageRepository {
         }
         try modelContext.save()
     }
+    
+    func clearAllTags() async throws {
+        let descriptor = FetchDescriptor<VTSong>()
+        let allSongs = try modelContext.fetch(descriptor)
+        for song in allSongs {
+            song.tags = []
+            song.syncStatus = .synced
+        }
+        try modelContext.save()
+    }
 
     private func updateSongTags(_ song: VTSong, with remoteTags: [RemoteTagSyncInfo]) async throws {
         // Keep only tags that are NOT in the remote list if they are user tags? 

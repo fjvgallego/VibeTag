@@ -28,34 +28,46 @@ struct VibeInputSheet: View {
             .padding(.top, 40)
             
             // Input Area
-            ZStack(alignment: .bottomTrailing) {
-                ZStack(alignment: .topLeading) {
-                    if vibeText.isEmpty {
-                        Text("Describe tu vibe...")
+            VStack(alignment: .trailing, spacing: 8) {
+                ZStack(alignment: .bottomTrailing) {
+                    ZStack(alignment: .topLeading) {
+                        if vibeText.isEmpty {
+                            Text("Describe tu vibe...")
+                                .font(.nunito(.body))
+                                .foregroundColor(.gray.opacity(0.6))
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 16)
+                        }
+                        
+                        TextEditor(text: $vibeText)
                             .font(.nunito(.body))
-                            .foregroundColor(.gray.opacity(0.6))
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 16)
+                            .scrollContentBackground(.hidden)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .onChange(of: vibeText) { _, newValue in
+                                if newValue.count > 100 {
+                                    vibeText = String(newValue.prefix(100))
+                                }
+                            }
                     }
                     
-                    TextEditor(text: $vibeText)
-                        .font(.nunito(.body))
-                        .scrollContentBackground(.hidden)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
+                    Image(systemName: "sparkles")
+                        .foregroundColor(.appleMusicRed)
+                        .padding(16)
                 }
+                .frame(minHeight: 140)
+                .background(Color(.secondarySystemBackground).opacity(0.5))
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .stroke(Color.primary.opacity(0.05), lineWidth: 1)
+                )
                 
-                Image(systemName: "sparkles")
-                    .foregroundColor(.appleMusicRed)
-                    .padding(16)
+                Text("\(vibeText.count)/100")
+                    .font(.nunito(size: 10, weight: .medium))
+                    .foregroundColor(vibeText.count >= 100 ? .red : .secondary)
+                    .padding(.horizontal, 4)
             }
-            .frame(minHeight: 140)
-            .background(Color(.secondarySystemBackground).opacity(0.5))
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(Color.primary.opacity(0.05), lineWidth: 1)
-            )
             
             Spacer()
             

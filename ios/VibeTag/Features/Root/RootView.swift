@@ -12,7 +12,20 @@ struct RootView: View {
     init(container: AppContainer) {
         self.container = container
         
-        let sessionManager = SessionManager(tokenStorage: container.tokenStorage, authRepository: container.authRepo)
+        let sessionManager = SessionManager(
+            tokenStorage: container.tokenStorage,
+            authRepository: container.authRepo,
+            onAccountDeleted: {
+                Task {
+                    try? await container.localRepo.clearAllTags()
+                }
+            },
+            onLogout: {
+                Task {
+                    try? await container.localRepo.clearAllTags()
+                }
+            }
+        )
         self._sessionManager = State(initialValue: sessionManager)
         self._syncEngine = State(initialValue: VibeTagSyncEngine(localRepo: container.localRepo, sessionManager: sessionManager))
     }

@@ -11,6 +11,7 @@ protocol SongStorageRepository {
     func markAsSynced(songId: String) async throws
     func fetchPendingUploads() async throws -> [VTSong]
     func hydrateRemoteTags(_ remoteItems: [RemoteSongSyncInfo]) async throws
+    func clearAllTags() async throws
     func saveChanges() throws
 }
 

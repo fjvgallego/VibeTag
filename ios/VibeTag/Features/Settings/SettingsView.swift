@@ -60,29 +60,31 @@ struct SettingsView: View {
                                 }
                             }
                             
-                            Divider().padding(.leading, 56)
-                            
-                            SettingsRow(
-                                title: "Sincronizar ahora",
-                                icon: "arrow.triangle.2.circlepath",
-                                iconColor: .blue,
-                                isLoading: viewModel.isSyncing
-                            ) {
-                                Task {
-                                    await viewModel.performFullSync(modelContext: modelContext, syncEngine: syncEngine)
+                            if sessionManager.isAuthenticated {
+                                Divider().padding(.leading, 56)
+                                
+                                SettingsRow(
+                                    title: "Sincronizar ahora",
+                                    icon: "arrow.triangle.2.circlepath",
+                                    iconColor: .blue,
+                                    isLoading: viewModel.isSyncing
+                                ) {
+                                    Task {
+                                        await viewModel.performFullSync(modelContext: modelContext, syncEngine: syncEngine)
+                                    }
                                 }
-                            }
-                            
-                            Divider().padding(.leading, 56)
-                            
-                            SettingsRow(
-                                title: "Analizar Biblioteca (IA)",
-                                icon: "sparkles",
-                                iconColor: .purple,
-                                isLoading: viewModel.isAnalyzing
-                            ) {
-                                Task {
-                                    await viewModel.analyzeLibrary()
+                                
+                                Divider().padding(.leading, 56)
+                                
+                                SettingsRow(
+                                    title: "Analizar Biblioteca (IA)",
+                                    icon: "sparkles",
+                                    iconColor: .purple,
+                                    isLoading: viewModel.isAnalyzing
+                                ) {
+                                    Task {
+                                        await viewModel.analyzeLibrary()
+                                    }
                                 }
                             }
                         }
@@ -92,12 +94,7 @@ struct SettingsView: View {
                     }
                     
                     // Section 3: Danger Zone
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("ZONA DE PELIGRO")
-                            .font(.nunito(size: 12, weight: .bold))
-                            .foregroundColor(.secondary)
-                            .padding(.horizontal, 20)
-                        
+                    if sessionManager.isAuthenticated {
                         VStack(spacing: 0) {
                             SettingsRow(
                                 title: "Eliminar Cuenta",
@@ -125,6 +122,7 @@ struct SettingsView: View {
                     .padding(.bottom, 40)
                 }
                 .padding(.top, 20)
+                .animation(.spring(response: 0.5, dampingFraction: 0.8), value: sessionManager.isAuthenticated)
             }
         }
         .background(Color(.systemGroupedBackground))
@@ -158,40 +156,42 @@ struct SettingsView: View {
     
     @ViewBuilder
     private var accountSection: some View {
-        if sessionManager.isAuthenticated {
-            VStack(spacing: 16) {
-                HStack(spacing: 16) {
-                    Image(systemName: "person.crop.circle.fill")
-                        .font(.system(size: 60))
-                        .foregroundColor(.secondary)
-                    
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(sessionManager.userEmail ?? "Usuario")
-                            .font(.nunito(.headline, weight: .bold))
-                        Text("Plan Premium")
-                            .font(.nunito(.subheadline, weight: .medium))
-                            .foregroundColor(.secondary)
+        VStack(alignment: .leading, spacing: 16) {
+            if sessionManager.isAuthenticated {
+                VStack(spacing: 16) {
+                    HStack(spacing: 16) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                .fill(Color.green.opacity(0.1))
+                            Image(systemName: "person.crop.circle.badge.checkmark")
+                                .foregroundColor(.green)
+                                .font(.system(size: 16, weight: .semibold))
+                        }
+                        .frame(width: 32, height: 32)
+                        
+                        Text("Cuenta de Apple enlazada")
+                            .font(.nunito(.body, weight: .medium))
+                        
+                        Spacer()
+                        
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(.green)
                     }
+                    .padding(.horizontal, 4)
                     
-                    Spacer()
+                    Divider()
+                    
+                    Button(action: { sessionManager.logout() }) {
+                        Text("Cerrar Sesión")
+                            .font(.nunito(.body, weight: .bold))
+                            .foregroundColor(.red)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(Color.red.opacity(0.05))
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    }
                 }
-                .padding(20)
-                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                .padding(.horizontal, 16)
-                
-                Button(action: { sessionManager.logout() }) {
-                    Text("Cerrar Sesión")
-                        .font(.nunito(.body, weight: .bold))
-                        .foregroundColor(.red)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color(.secondarySystemGroupedBackground))
-                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                }
-                .padding(.horizontal, 16)
-            }
-        } else {
-            VStack(alignment: .leading, spacing: 16) {
+            } else {
                 Text("Crea una cuenta para sincronizar tus etiquetas entre dispositivos.")
                     .font(.nunito(.subheadline, weight: .medium))
                     .foregroundColor(.secondary)
@@ -205,11 +205,11 @@ struct SettingsView: View {
                 .signInWithAppleButtonStyle(Color.primary == .white ? .white : .black)
                 .frame(height: 50)
             }
-            .padding(20)
-            .background(Color(.secondarySystemGroupedBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-            .padding(.horizontal, 16)
         }
+        .padding(20)
+        .background(Color(.secondarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .padding(.horizontal, 16)
     }
 }
 

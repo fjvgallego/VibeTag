@@ -42,10 +42,18 @@ struct CreateTagSheet: View {
             
             // Name Input
             VStack(alignment: .leading, spacing: 10) {
-                Text("NOMBRE")
-                    .font(.nunito(size: 12, weight: .bold))
-                    .foregroundColor(.secondary)
-                    .padding(.horizontal, 4)
+                HStack {
+                    Text("NOMBRE")
+                        .font(.nunito(size: 12, weight: .bold))
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                    
+                    Text("\(tagName.count)/20")
+                        .font(.nunito(size: 10, weight: .medium))
+                        .foregroundColor(tagName.count >= 20 ? .red : .secondary)
+                }
+                .padding(.horizontal, 4)
                 
                 TextField("Nombre de la etiqueta...", text: $tagName)
                     .font(.nunito(.body))
@@ -56,14 +64,27 @@ struct CreateTagSheet: View {
                         RoundedRectangle(cornerRadius: 12, style: .continuous)
                             .stroke(Color.primary.opacity(0.05), lineWidth: 1)
                     )
+                    .onChange(of: tagName) { _, newValue in
+                        if newValue.count > 20 {
+                            tagName = String(newValue.prefix(20))
+                        }
+                    }
             }
             
             // Description Input
             VStack(alignment: .leading, spacing: 10) {
-                Text("DESCRIPCIÓN (OPCIONAL)")
-                    .font(.nunito(size: 12, weight: .bold))
-                    .foregroundColor(.secondary)
-                    .padding(.horizontal, 4)
+                HStack {
+                    Text("DESCRIPCIÓN (OPCIONAL)")
+                        .font(.nunito(size: 12, weight: .bold))
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                    
+                    Text("\(tagDescription.count)/60")
+                        .font(.nunito(size: 10, weight: .medium))
+                        .foregroundColor(tagDescription.count >= 60 ? .red : .secondary)
+                }
+                .padding(.horizontal, 4)
                 
                 TextField("Añade una descripción...", text: $tagDescription, axis: .vertical)
                     .font(.nunito(.body))
@@ -75,6 +96,11 @@ struct CreateTagSheet: View {
                         RoundedRectangle(cornerRadius: 12, style: .continuous)
                             .stroke(Color.primary.opacity(0.05), lineWidth: 1)
                     )
+                    .onChange(of: tagDescription) { _, newValue in
+                        if newValue.count > 60 {
+                            tagDescription = String(newValue.prefix(60))
+                        }
+                    }
             }
             
             // Color Selection
