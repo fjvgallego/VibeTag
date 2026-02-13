@@ -43,7 +43,7 @@ class AnalyzeSongUseCase: AnalyzeSongUseCaseProtocol {
             return
         }
         
-        // Chunking: Split the array into chunks of 5
+        // Chunking: Split the array into chunks of 20
         let chunkSize = 20
         let chunks = stride(from: 0, to: totalCount, by: chunkSize).map {
             Array(songsToAnalyze[$0..<min($0 + chunkSize, totalCount)])
