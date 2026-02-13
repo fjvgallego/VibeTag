@@ -257,14 +257,18 @@ private struct DetailTagCapsule: View {
             .lineLimit(1)
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
-            .foregroundColor(tagColor)
+            .foregroundColor(tag.isSystemTag ? .white : tagColor)
             .background(
                 Capsule()
-                    .fill(backgroundColor)
+                    .fill(
+                        tag.isSystemTag ? 
+                        AnyShapeStyle(LinearGradient(colors: [.purple, .indigo, .blue], startPoint: .leading, endPoint: .trailing)) :
+                        AnyShapeStyle(backgroundColor)
+                    )
             )
             .overlay(
                 Capsule()
-                    .strokeBorder(strokeColor, lineWidth: 1)
+                    .strokeBorder(tag.isSystemTag ? .white.opacity(0.3) : strokeColor, lineWidth: 1)
             )
             .frame(maxWidth: 250)
             .onTapGesture {

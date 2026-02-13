@@ -9,9 +9,22 @@ struct TagCell: View {
         VStack(alignment: .leading, spacing: 12) {
             // Top Row
             HStack {
-                Circle()
-                    .fill(Color(hex: tag.hexColor) ?? .gray)
-                    .frame(width: 12, height: 12)
+                if tag.isSystemTag {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [.purple, .indigo, .blue],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 14, height: 14)
+                        .shadow(color: .purple.opacity(0.3), radius: 4)
+                } else {
+                    Circle()
+                        .fill(Color(hex: tag.hexColor) ?? .gray)
+                        .frame(width: 12, height: 12)
+                }
                 
                 Spacer()
                 
@@ -63,20 +76,37 @@ struct TagCell: View {
             ZStack {
                 Color(.secondarySystemGroupedBackground)
                 
-                LinearGradient(
-                    colors: [
-                        (Color(hex: tag.hexColor) ?? .gray).opacity(0.12),
-                        .clear
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
+                if tag.isSystemTag {
+                    LinearGradient(
+                        colors: [
+                            Color.purple.opacity(0.12),
+                            Color.blue.opacity(0.05),
+                            .clear
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                } else {
+                    LinearGradient(
+                        colors: [
+                            (Color(hex: tag.hexColor) ?? .gray).opacity(0.12),
+                            .clear
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                }
             }
         )
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .stroke((Color(hex: tag.hexColor) ?? .gray).opacity(0.1), lineWidth: 1)
+                .stroke(
+                    tag.isSystemTag ? 
+                    AnyShapeStyle(LinearGradient(colors: [.purple.opacity(0.2), .blue.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing)) :
+                    AnyShapeStyle((Color(hex: tag.hexColor) ?? .gray).opacity(0.1)), 
+                    lineWidth: 1
+                )
         )
         .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 5)
     }

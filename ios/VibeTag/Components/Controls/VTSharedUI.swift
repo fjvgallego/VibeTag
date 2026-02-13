@@ -39,7 +39,19 @@ struct VTFilterChip: View {
                 .font(.nunito(.subheadline, weight: isSelected ? .bold : .medium))
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
-                .background(isSelected ? Color("appleMusicRed") : Color.clear)
+                .background(
+                    Group {
+                        if isSelected {
+                            if title == "Sistema" {
+                                LinearGradient(colors: [.purple, .blue], startPoint: .leading, endPoint: .trailing)
+                            } else {
+                                Color("appleMusicRed")
+                            }
+                        } else {
+                            Color.clear
+                        }
+                    }
+                )
                 .foregroundColor(isSelected ? .white : .secondary)
                 .overlay(
                     Capsule()

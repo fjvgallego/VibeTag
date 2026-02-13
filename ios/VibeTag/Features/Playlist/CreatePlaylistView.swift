@@ -134,19 +134,74 @@ struct CreatePlaylistView: View {
                             SongRowView(song: song)
                         }
                     }
-                    .padding(.bottom, 100)
+                    .padding(.bottom, 150)
                 }
             }
             
-            PrimaryActionButton(
-                viewModel.isExported ? "¡Exportado con éxito!" : (viewModel.isExporting ? "Exportando..." : "Exportar a Apple Music"),
-                icon: viewModel.isExported ? "checkmark" : "apple.logo"
-            ) {
-                Task {
-                    await viewModel.exportPlaylist()
+            VStack(spacing: 12) {
+                if viewModel.isExported {
+                    VStack(spacing: 16) {
+                        HStack(spacing: 12) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                                .font(.title2)
+                            Text("¡Playlist guardada en Apple Music!")
+                                .font(.nunito(.headline, weight: .bold))
+                        }
+                        .padding(.top, 8)
+                        
+                        HStack(spacing: 12) {
+                            Button(action: { dismiss() }) {
+                                Text("Hecho")
+                                    .font(.nunito(.headline, weight: .bold))
+                                    .foregroundColor(.primary)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 56)
+                                    .background(Color.primary.opacity(0.05))
+                                    .clipShape(Capsule())
+                            }
+                            
+                            Button(action: {
+                                if let musicURL = URL(string: "music://") {
+                                    UIApplication.shared.open(musicURL)
+                                }
+                            }) {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "apple.logo")
+                                    Text("Abrir Music")
+                                }
+                                .font(.nunito(.headline, weight: .bold))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 56)
+                                .background(
+                                    LinearGradient(colors: [.green, .green.opacity(0.8)], startPoint: .top, endPoint: .bottom)
+                                )
+                                .clipShape(Capsule())
+                                .shadow(color: .green.opacity(0.3), radius: 10, x: 0, y: 5)
+                            }
+                        }
+                    }
+                    .padding(20)
+                    .background(.ultraThinMaterial)
+                    .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 30, style: .continuous)
+                            .stroke(Color.green.opacity(0.2), lineWidth: 1)
+                    )
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                } else {
+                    PrimaryActionButton(
+                        viewModel.isExporting ? "Exportando..." : "Exportar a Apple Music",
+                        icon: "apple.logo"
+                    ) {
+                        Task {
+                            await viewModel.exportPlaylist()
+                        }
+                    }
+                    .disabled(viewModel.isExporting)
                 }
             }
-            .disabled(viewModel.isExporting || viewModel.isExported)
             .padding(.horizontal, 24)
             .padding(.bottom, 20)
         }
