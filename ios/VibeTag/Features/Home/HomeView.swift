@@ -190,6 +190,7 @@ struct HomeView: View {
                     Image(systemName: "ellipsis.circle")
                         .foregroundColor(Color("appleMusicRed"))
                 }
+                .accessibilityIdentifier("homeToolbarMenu")
             }
         }
         .alert("Error", isPresented: Binding(
