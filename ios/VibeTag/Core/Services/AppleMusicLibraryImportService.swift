@@ -53,14 +53,12 @@ class AppleMusicLibraryImportService: LibraryImportSyncService {
                  print("MusicSyncService: User cannot play catalog content (No Subscription).")
             }
             
-            // Fetch remote songs. We use a reasonable limit to avoid excessive sync times
-            // while capturing a good portion of the user's library.
-            // Additive-only sync prevents data loss if the fetch is partial.
-            let remoteSongs = try await songRepository.fetchSongs(limit: 300)
-            
+            let fetchLimit = 300
+            let remoteSongs = try await songRepository.fetchSongs(limit: fetchLimit)
+
             let localSongs = try storage.fetchAllSongs()
-            let localSongIDs = Set(localSongs.map { $0.id })
-            
+            let remoteSongIDs = Set(remoteSongs.map { $0.id })
+
             for song in remoteSongs {
                 if let existing = localSongs.first(where: { $0.id == song.id }) {
                     // Update missing metadata for existing songs
@@ -73,7 +71,7 @@ class AppleMusicLibraryImportService: LibraryImportSyncService {
                         existing.appleMusicId = song.appleMusicId
                         changed = true
                     }
-                    
+
                     if changed {
                         existing.syncStatus = .pendingUpload
                     }
@@ -83,7 +81,16 @@ class AppleMusicLibraryImportService: LibraryImportSyncService {
                     storage.saveSong(song)
                 }
             }
-            
+
+            // Remove songs deleted from Apple Music.
+            // Only safe when we fetched the full library (count < limit),
+            // otherwise songs beyond the limit would be incorrectly deleted.
+            if remoteSongs.count < fetchLimit {
+                for localSong in localSongs where !remoteSongIDs.contains(localSong.id) {
+                    storage.deleteSong(localSong)
+                }
+            }
+
             try storage.saveChanges()
             
         } catch {
