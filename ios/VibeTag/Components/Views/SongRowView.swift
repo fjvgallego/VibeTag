@@ -133,31 +133,27 @@ private struct TagFlowView: View {
     @State private var showOverflow: Bool = false
     
     var body: some View {
-        // Use a hidden version to calculate how many fit
-        ZStack(alignment: .topLeading) {
-            // The actual visible view
-            TagFlowLayout(spacing: 6, maxRows: 2) {
-                ForEach(tags.prefix(visibleTagCount)) { tag in
-                    TagCapsule(tag: tag)
-                }
-                
-                if showOverflow {
-                    let remaining = max(0, tags.count - visibleTagCount)
-                    if remaining > 0 {
-                        Text("+\(remaining)")
-                            .font(.nunito(size: 10, weight: .black))
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(
-                                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                    .fill(Color.secondary.opacity(0.1))
-                            )
-                            .foregroundColor(.secondary)
-                    }
+        TagFlowLayout(spacing: 6, maxRows: 2) {
+            ForEach(tags.prefix(visibleTagCount)) { tag in
+                TagCapsule(tag: tag)
+            }
+
+            if showOverflow {
+                let remaining = max(0, tags.count - visibleTagCount)
+                if remaining > 0 {
+                    Text("+\(remaining)")
+                        .font(.nunito(size: 10, weight: .black))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                .fill(Color.secondary.opacity(0.1))
+                        )
+                        .foregroundColor(.secondary)
                 }
             }
-            
-            // Measurement layer (Hidden)
+        }
+        .background {
             GeometryReader { geometry in
                 Color.clear.onAppear {
                     calculateVisibleTags(width: geometry.size.width)
@@ -169,40 +165,59 @@ private struct TagFlowView: View {
         }
     }
     
+    private static let measureFont: UIFont = UIFont(name: "Nunito-Bold", size: 10) ?? .systemFont(ofSize: 10, weight: .bold)
+
+    private func measureTagWidth(_ name: String) -> CGFloat {
+        let text = name.uppercased() as NSString
+        let size = text.size(withAttributes: [.font: Self.measureFont])
+        return ceil(size.width) + 20 // .padding(.horizontal, 10) on each side
+    }
+
+    private func measureBadgeWidth(_ count: Int) -> CGFloat {
+        let text = "+\(count)" as NSString
+        let size = text.size(withAttributes: [.font: Self.measureFont])
+        return ceil(size.width) + 16 // .padding(.horizontal, 8) on each side
+    }
+
     private func calculateVisibleTags(width: CGFloat) {
-        // Simple but effective estimation for the row limit
-        // An exact measurement would require rendering every tag, which is overkill.
-        // We'll use a more refined version of the previous logic that accounts for length.
-        
         var currentWidth: CGFloat = 0
         var currentRow: Int = 1
         var count = 0
-        let overflowReservedWidth: CGFloat = 30 // Approx width for "+99"
         let spacing: CGFloat = 6
-        
-        for (index, tag) in tags.enumerated() {
-            // Estimate tag width (Character count * avg width + padding)
-            let estimatedWidth = CGFloat(tag.name.count * 7) + 20 
-            
-            if currentWidth + estimatedWidth > width {
+
+        var rowStartCount = 0
+
+        for tag in tags {
+            let tagWidth = measureTagWidth(tag.name)
+
+            if currentWidth + tagWidth > width {
                 currentRow += 1
-                currentWidth = estimatedWidth + spacing
+                rowStartCount = count
+                currentWidth = tagWidth + spacing
             } else {
-                currentWidth += estimatedWidth + spacing
+                currentWidth += tagWidth + spacing
             }
-            
+
             if currentRow > 2 {
-                // We reached the 3rd row. 
-                // We need to check if we should have stopped earlier to fit the "+N" 
-                // on the 2nd row if there are remaining tags.
+                var fitCount = count
+                var fitWidth = currentWidth - tagWidth - spacing
+                let remaining = tags.count - fitCount
+                let badgeWidth = measureBadgeWidth(remaining)
+
+                while fitCount > rowStartCount && fitWidth + badgeWidth + spacing > width {
+                    fitCount -= 1
+                    let removedWidth = measureTagWidth(tags[fitCount].name) + spacing
+                    fitWidth -= removedWidth
+                }
+
                 showOverflow = true
-                visibleTagCount = count
+                visibleTagCount = fitCount
                 return
             }
-            
+
             count += 1
         }
-        
+
         showOverflow = false
         visibleTagCount = tags.count
     }
