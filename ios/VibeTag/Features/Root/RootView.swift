@@ -5,29 +5,10 @@ struct RootView: View {
     let container: AppContainer
     @State private var router = AppRouter()
     @State private var viewModel = RootViewModel()
-    @State private var sessionManager: SessionManager
-    @State private var syncEngine: VibeTagSyncEngine
     @Environment(\.scenePhase) private var scenePhase
-    
+
     init(container: AppContainer) {
         self.container = container
-        
-        let sessionManager = SessionManager(
-            tokenStorage: container.tokenStorage,
-            authRepository: container.authRepo,
-            onAccountDeleted: {
-                Task {
-                    try? await container.localRepo.clearAllTags()
-                }
-            },
-            onLogout: {
-                Task {
-                    try? await container.localRepo.clearAllTags()
-                }
-            }
-        )
-        self._sessionManager = State(initialValue: sessionManager)
-        self._syncEngine = State(initialValue: VibeTagSyncEngine(localRepo: container.localRepo, sessionManager: sessionManager))
     }
 
     var body: some View {
@@ -62,8 +43,8 @@ struct RootView: View {
                 )
             }
         }
-        .environment(sessionManager)
-        .environment(syncEngine)
+        .environment(container.sessionManager)
+        .environment(container.syncEngine)
         .onAppear {
             viewModel.updateAuthorizationStatus()
         }
@@ -71,10 +52,9 @@ struct RootView: View {
             if newPhase == .active {
                 Task {
                     do {
-                        try await syncEngine.pullRemoteData()
-                        await syncEngine.syncPendingChanges()
+                        try await container.syncEngine.pullRemoteData()
+                        await container.syncEngine.syncPendingChanges()
                     } catch {
-                        // Log or handle sync failure appropriately
                         print("Background sync failed: \(error)")
                     }
                 }
@@ -108,7 +88,7 @@ struct SongDetailDestinationView: View {
 
 #Preview {
     let modelContainer = try! ModelContainer(for: VTSong.self, Tag.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
-    let container = AppContainer(modelContext: modelContainer.mainContext)
-    return RootView(container: container)
+    let appContainer = AppContainer(modelContext: modelContainer.mainContext)
+    return RootView(container: appContainer)
         .modelContainer(modelContainer)
 }

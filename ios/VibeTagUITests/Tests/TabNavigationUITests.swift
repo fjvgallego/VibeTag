@@ -1,5 +1,6 @@
 import XCTest
 
+@MainActor
 final class TabNavigationUITests: XCTestCase {
 
     private var app: XCUIApplication!

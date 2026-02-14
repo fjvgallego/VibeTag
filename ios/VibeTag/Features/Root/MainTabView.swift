@@ -10,7 +10,7 @@ struct MainTabView: View {
                     Label("Biblioteca", systemImage: "music.note.house.fill")
                 }
             
-            TagsView()
+            TagsView(container: container)
                 .tabItem {
                     Label("Etiquetas", systemImage: "tag.fill")
                 }

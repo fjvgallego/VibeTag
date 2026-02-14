@@ -1,5 +1,6 @@
 import XCTest
 
+@MainActor
 final class SettingsScreenUITests: XCTestCase {
 
     private var app: XCUIApplication!

@@ -1,38 +1,51 @@
 import Foundation
 import Observation
-import SwiftData
 import MusicKit
 import AuthenticationServices
 
+@MainActor
 @Observable
 class SettingsViewModel {
-    var isSyncing = false
-    var isAnalyzing = false
-    var analysisProgress: Double = 0
-    var analysisStatus: String = ""
-    var errorMessage: String? = nil
-    
+
+    // MARK: - UI-only State
+
     var musicAuthorizationStatus: MusicAuthorization.Status = .notDetermined
-    
+
     var isAppleMusicLinked: Bool {
         musicAuthorizationStatus == .authorized
     }
-    
-    private let analyzeUseCase: AnalyzeSongUseCase
-    private let localRepository: SongStorageRepository
+
+    // MARK: - Pass-throughs from LibraryActionService
+
+    var isSyncing: Bool { libraryActionService.isSyncing }
+    var isAnalyzing: Bool { libraryActionService.isAnalyzing }
+    var analysisProgress: Double { libraryActionService.analysisProgress }
+    var analysisStatus: String { libraryActionService.analysisStatus }
+    var errorMessage: String? {
+        get { libraryActionService.errorMessage }
+        set { libraryActionService.errorMessage = newValue }
+    }
+
+    // MARK: - Dependencies
+
+    private let libraryActionService: LibraryActionServiceProtocol
     private let authRepository: AuthRepository
-    
-    init(analyzeUseCase: AnalyzeSongUseCase, localRepository: SongStorageRepository, authRepository: AuthRepository = VibeTagAuthRepositoryImpl()) {
-        self.analyzeUseCase = analyzeUseCase
-        self.localRepository = localRepository
+
+    init(
+        libraryActionService: LibraryActionServiceProtocol,
+        authRepository: AuthRepository = VibeTagAuthRepositoryImpl()
+    ) {
+        self.libraryActionService = libraryActionService
         self.authRepository = authRepository
         self.musicAuthorizationStatus = MusicAuthorization.currentStatus
     }
-    
+
+    // MARK: - Actions
+
     func updateAuthorizationStatus() {
-        self.musicAuthorizationStatus = MusicAuthorization.currentStatus
+        musicAuthorizationStatus = MusicAuthorization.currentStatus
     }
-    
+
     func requestMusicPermissions() {
         Task {
             let status = await MusicAuthorization.request()
@@ -41,21 +54,20 @@ class SettingsViewModel {
             }
         }
     }
-    
-    @MainActor
-    func handleAuthorization(result: Result<ASAuthorization, Error>, sessionManager: SessionManager, syncEngine: VibeTagSyncEngine) {
+
+    func handleAuthorization(result: Result<ASAuthorization, Error>, sessionManager: SessionManager) {
         switch result {
         case .success(let auth):
             guard let appleIDCredential = auth.credential as? ASAuthorizationAppleIDCredential,
                   let identityTokenData = appleIDCredential.identityToken,
                   let identityTokenString = String(data: identityTokenData, encoding: .utf8) else {
-                self.errorMessage = "Failed to process Apple Sign In credentials"
+                libraryActionService.errorMessage = "Failed to process Apple Sign In credentials"
                 return
             }
-            
+
             let firstName = appleIDCredential.fullName?.givenName
             let lastName = appleIDCredential.fullName?.familyName
-            
+
             Task {
                 do {
                     let response = try await authRepository.login(
@@ -63,81 +75,35 @@ class SettingsViewModel {
                         firstName: firstName,
                         lastName: lastName
                     )
-                    
                     try sessionManager.login(token: response.token)
-                    
-                    // Trigger remote data pull after login
-                    self.isSyncing = true
+
+                    // Pull remote data after login
                     do {
-                        try await syncEngine.pullRemoteData()
+                        try await libraryActionService.pullRemoteData()
                     } catch {
                         print("Initial sync failed: \(error.localizedDescription)")
                     }
-                    self.isSyncing = false
-                    
                 } catch {
-                    self.errorMessage = error.localizedDescription
-                    self.isSyncing = false
+                    libraryActionService.errorMessage = error.localizedDescription
                     print("Login Error: \(error)")
                 }
             }
+
         case .failure(let error):
-            self.errorMessage = error.localizedDescription
+            libraryActionService.errorMessage = error.localizedDescription
             print("Sign in failed: \(error.localizedDescription)")
         }
     }
-    
-    @MainActor
-    func performFullSync(modelContext: ModelContext, syncEngine: any SyncEngine) async {
-        isSyncing = true
-        errorMessage = nil
 
-        do {
-            // 1. Sync local library with Apple Music
-            let service = AppleMusicLibraryImportService(modelContext: modelContext)
-            try await service.syncLibrary()
-
-            // 2. Pull remote data
-            try await syncEngine.pullRemoteData()
-        } catch {
-            errorMessage = "Sync failed: \(error.localizedDescription)"
-        }
-
-        isSyncing = false
+    func performFullSync() async {
+        await libraryActionService.performFullSync()
     }
-    
-    @MainActor
+
     func analyzeLibrary() async {
-        isAnalyzing = true
-        errorMessage = nil
-        analysisProgress = 0
-        analysisStatus = "Iniciando análisis..."
-        
-        do {
-            let songs = try localRepository.fetchAllSongs()
-            let songsToAnalyze = songs.filter { $0.tags.isEmpty }
-            
-            if songsToAnalyze.isEmpty {
-                analysisStatus = "La biblioteca ya está analizada"
-                isAnalyzing = false
-                return
-            }
-            
-            try await analyzeUseCase.executeBatch(songs: songsToAnalyze) { current, total in
-                self.analysisProgress = Double(current) / Double(total)
-                self.analysisStatus = "Analizando \(current)/\(total)..."
-            }
-            
-            let remaining = try localRepository.fetchAllSongs().filter { $0.tags.isEmpty }.count
-            if remaining > 0 {
-                analysisStatus = "Análisis finalizado con \(remaining) canciones omitidas."
-            } else {
-                analysisStatus = "¡Análisis completo!"
-            }
-        } catch {
-            errorMessage = "Error en el análisis: \(error.localizedDescription)"
-        }
-        
-        isAnalyzing = false
+        await libraryActionService.analyzeLibrary()
+    }
+
+    func cancelAnalysis() {
+        libraryActionService.cancelAnalysis()
     }
 }

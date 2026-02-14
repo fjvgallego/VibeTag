@@ -52,14 +52,19 @@ Four layers with strict dependency rules (inner layers have no knowledge of oute
 
 **Database schema** (Prisma): `User`, `Song`, `Tag` (type: `SYSTEM | USER`), `SongTag` pivot with unique constraint `(songId, tagId, userId)`.
 
-## iOS Architecture (MVVM)
+## iOS Architecture (MVVM + Clean Architecture)
 
-- **Features/** — one folder per screen, each has `*View.swift` + `*ViewModel.swift`. ViewModels use `@Observable` macro and are `@MainActor`.
-- **Domain/** — SwiftData models (`VTSong`, `Tag`), use case protocols, error types.
-- **Core/** — `AppContainer` (DI), `APIClient` (URLSession), repositories (SwiftData, MusicKit, backend), `VibeTagSyncEngine`, `KeychainTokenStorage`.
+- **Features/** — one folder per screen, each has `*View.swift` + `*ViewModel.swift`. Views are fragmented into private subviews/structs; no business logic in views.
+- **Sheets/** — modal presentations, each in its own subfolder (e.g., `Sheets/TagAssignment/`) with co-located `*Sheet.swift` and `*ViewModel.swift`.
+- **Domain/** — SwiftData models (`VTSong`, `Tag`), use cases, domain interfaces (protocols), `AppError`.
+- **Core/DI/** — `AppContainer` is the single DI root. It owns and creates all shared dependencies: `modelContext`, `sessionManager`, `syncEngine`, `libraryActionService`, use cases, and repositories. Pass `AppContainer` to views that need it; never construct dependencies inside views.
+- **Core/Services/** — `LibraryActionService` (owns all sync/analyze logic, shared by Home and Settings via `LibraryActionServiceProtocol`), `SessionManager`, `NetworkMonitor`. The "service vs manager" distinction is collapsed — if it isn't a Repository, it lives here.
+- **Core/Data/** — `APIClient` (URLSession wrapper, injectable via `APIClientProtocol`), repositories, DTOs, endpoints, `KeychainTokenStorage`.
 - **Components/** — shared UI building blocks.
 
-Navigation is managed via a Router pattern in `Core/Navigation/`.
+ViewModels: always `@MainActor @Observable class`. All service/library dependencies injected at construction time via protocols. State that comes from an injected service is exposed as a pass-through computed property (observation tracking propagates through the chain).
+
+Navigation is managed via `AppRouter` (`Core/Navigation/`), a `@Observable` class using a `NavigationPath`.
 
 ## Key Workflows
 
