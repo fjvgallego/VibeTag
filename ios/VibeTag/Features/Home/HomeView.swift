@@ -23,25 +23,32 @@ struct HomeView: View {
                 LibraryHeaderSection(viewModel: viewModel)
                     .padding(.bottom, 16)
 
-                if viewModel.isAppleMusicLinked {
-                    if viewModel.isSyncing && viewModel.totalSongsCount == 0 {
-                        LibrarySyncingView()
-                    } else {
-                        SongListView(
-                            searchText: viewModel.searchText,
-                            filter: viewModel.selectedFilter,
-                            sortOption: viewModel.selectedSort,
-                            sortOrder: viewModel.selectedOrder
-                        )
-                        .refreshable {
-                            await viewModel.syncLibrary()
+                Group {
+                    if viewModel.isAppleMusicLinked {
+                        if viewModel.isSyncing && viewModel.totalSongsCount == 0 {
+                            LibrarySyncingView()
+                                .transition(.opacity)
+                        } else {
+                            SongListView(
+                                searchText: viewModel.searchText,
+                                filter: viewModel.selectedFilter,
+                                sortOption: viewModel.selectedSort,
+                                sortOrder: viewModel.selectedOrder
+                            )
+                            .refreshable {
+                                await viewModel.performFullSync()
+                            }
+                            .transition(.opacity)
                         }
-                    }
-                } else {
-                    AppleMusicNotLinkedView {
-                        viewModel.requestMusicPermissions()
+                    } else {
+                        AppleMusicNotLinkedView {
+                            viewModel.requestMusicPermissions()
+                        }
+                        .transition(.opacity)
                     }
                 }
+                .animation(.easeInOut(duration: 0.3), value: viewModel.isAppleMusicLinked)
+                .animation(.easeInOut(duration: 0.3), value: viewModel.isSyncing)
             }
 
             FloatingVibeBar { showingVibeSheet = true }
@@ -75,12 +82,12 @@ struct HomeView: View {
         }
         .onAppear {
             viewModel.updateAuthorizationStatus()
-            if viewModel.isAppleMusicLinked && viewModel.totalSongsCount == 0 {
-                Task { await viewModel.syncLibrary() }
+            if viewModel.isAppleMusicLinked {
+                Task { await viewModel.performFullSync() }
             }
         }
         .onChange(of: viewModel.isAppleMusicLinked) { _, isLinked in
-            if isLinked { Task { await viewModel.syncLibrary() } }
+            if isLinked { Task { await viewModel.performFullSync() } }
         }
     }
 

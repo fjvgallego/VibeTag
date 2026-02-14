@@ -111,6 +111,7 @@ private struct TagToggleCapsule: View {
                         .fill(isSelected ? (Color(hex: tag.hexColor) ?? .appleMusicRed) : Color(.systemGray6).opacity(0.5))
                 )
                 .foregroundColor(isSelected ? .white : .primary.opacity(0.8))
+                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
         }
         .buttonStyle(.plain)
     }

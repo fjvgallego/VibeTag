@@ -79,7 +79,8 @@ struct SongListView: View {
     
     var body: some View {
         let songs = filteredSongs
-        
+
+        Group {
         if songs.isEmpty {
             List {
                 VStack(spacing: 24) {
@@ -128,5 +129,7 @@ struct SongListView: View {
             .scrollContentBackground(.hidden)
             .background(Color.clear)
         }
+        }
+        .animation(.easeInOut(duration: 0.3), value: songs.isEmpty)
     }
 }

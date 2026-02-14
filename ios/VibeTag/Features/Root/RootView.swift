@@ -4,7 +4,6 @@ import SwiftData
 struct RootView: View {
     let container: AppContainer
     @State private var router = AppRouter()
-    @State private var viewModel = RootViewModel()
     @Environment(\.scenePhase) private var scenePhase
 
     init(container: AppContainer) {
@@ -13,7 +12,7 @@ struct RootView: View {
 
     var body: some View {
         Group {
-            if viewModel.isAuthorized {
+            if container.sessionManager.isAuthenticated {
                 NavigationStack(path: $router.path) {
                     MainTabView(container: container)
                         .navigationDestination(for: AppRoute.self) { route in
@@ -32,24 +31,17 @@ struct RootView: View {
                         }
                 }
                 .environment(router)
+                .transition(.opacity)
             } else {
-                WelcomeView(
-                    onRequestPermissions: {
-                        viewModel.requestMusicPermissions()
-                    },
-                    onContinueAsGuest: {
-                        viewModel.continueAsGuest()
-                    }
-                )
+                WelcomeView(container: container)
+                    .transition(.opacity)
             }
         }
+        .animation(.easeInOut(duration: 0.4), value: container.sessionManager.isAuthenticated)
         .environment(container.sessionManager)
         .environment(container.syncEngine)
-        .onAppear {
-            viewModel.updateAuthorizationStatus()
-        }
         .onChange(of: scenePhase) { _, newPhase in
-            if newPhase == .active {
+            if newPhase == .active && container.sessionManager.isAuthenticated {
                 Task {
                     do {
                         try await container.syncEngine.pullRemoteData()

@@ -141,8 +141,10 @@ struct TagsView: View {
                                         showingDeleteConfirmation = true
                                     }
                                 )
+                                .transition(.scale.combined(with: .opacity))
                             }
                         }
+                        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: filteredTags.map(\.id))
                         .padding(.horizontal)
                         .padding(.bottom, 20)
                     }

@@ -80,6 +80,7 @@ struct SongDetailView: View {
                             .aspectRatio(contentMode: .fill)
                             .frame(width: geometry.size.width, height: geometry.size.height)
                             .clipped()
+                            .transition(.opacity)
                     default:
                         Color.clear
                     }
@@ -96,6 +97,7 @@ struct SongDetailView: View {
                 image
                     .resizable()
                     .aspectRatio(contentMode: .fill)
+                    .transition(.opacity)
             default:
                 placeholderArtwork
             }
@@ -152,6 +154,7 @@ struct SongDetailView: View {
                         .foregroundColor(.white.opacity(0.7))
                 }
                 .padding(.vertical, 8)
+                .transition(.opacity.combined(with: .scale))
             } else if viewModel.systemTags.isEmpty {
                 Button(action: { viewModel.analyzeSong() }) {
                     HStack(spacing: 10) {
@@ -165,16 +168,20 @@ struct SongDetailView: View {
                     .background(Color.appleMusicRed)
                     .clipShape(Capsule())
                 }
+                .transition(.opacity.combined(with: .scale))
             } else {
                 TagFlowLayout(spacing: 12, alignment: .leading) {
                     ForEach(viewModel.systemTags) { tag in
                         DetailTagCapsule(tag: tag)
                     }
                 }
+                .transition(.opacity.combined(with: .scale))
             }
         }
+        .animation(.spring(response: 0.5, dampingFraction: 0.8), value: viewModel.isAnalyzing)
+        .animation(.spring(response: 0.5, dampingFraction: 0.8), value: viewModel.systemTags.count)
     }
-    
+
     private var userTagsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(alignment: .center) {
