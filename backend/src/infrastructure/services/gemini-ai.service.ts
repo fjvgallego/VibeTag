@@ -1,5 +1,6 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { generateText } from 'ai';
+import { AIServiceError } from '../../domain/errors/app-error';
 import { IAIService } from '../../domain/services/ai-service.interface';
 import { SongMetadata } from '../../domain/value-objects/song-metadata.vo';
 import { ITextSanitizer } from '../../shared/text-sanitizer';
@@ -26,17 +27,23 @@ export class GeminiAIService implements IAIService {
   ): Promise<{ name: string; description: string }[]> {
     const prompt = this.constructPrompt(song);
 
+    let text: string;
     try {
-      const { text } = await generateText({
+      const response = await generateText({
         model: this.google(this.modelName),
         prompt: prompt,
       });
-
-      return this.parseResponse(text);
+      text = response.text;
     } catch (error) {
-      console.error('Error calling Gemini API via AI SDK:', error);
-      return [];
+      throw new AIServiceError('Gemini API call failed', { cause: error as Error });
     }
+
+    const parsed = this.parseResponse(text);
+    if (parsed.length === 0) {
+      throw new AIServiceError(`Gemini returned unparseable or empty response for "${song.title}"`);
+    }
+
+    return parsed;
   }
 
   private constructPrompt(song: SongMetadata): string {

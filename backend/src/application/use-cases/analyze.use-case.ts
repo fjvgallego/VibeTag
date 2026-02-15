@@ -11,7 +11,7 @@ import { IAIService } from '../../domain/services/ai-service.interface';
 import { Analysis } from '../../domain/entities/analysis';
 import { SongMetadata } from '../../domain/value-objects/song-metadata.vo';
 import { VibeTag } from '../../domain/entities/vibe-tag';
-import { AppError, UseCaseError } from '../../domain/errors/app-error';
+import { AIServiceError, AppError, UseCaseError } from '../../domain/errors/app-error';
 import { VTDate } from '../../domain/value-objects/vt-date.vo';
 import { randomUUID } from 'crypto';
 
@@ -108,6 +108,7 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
         songId?: string;
         title: string;
         tags: { name: string; description?: string }[];
+        error?: string;
       }[] = [];
 
       for (let i = 0; i < request.songs.length; i++) {
@@ -162,24 +163,34 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
           artworkUrl: song.artworkUrl,
         });
 
-        const aiVibes = await this.aiService.getVibesForSong(songMetadata);
-        const newTags = aiVibes.map((vibe) =>
-          VibeTag.create(vibe.name, 'ai', undefined, vibe.description),
-        );
+        try {
+          const aiVibes = await this.aiService.getVibesForSong(songMetadata);
+          const newTags = aiVibes.map((vibe) =>
+            VibeTag.create(vibe.name, 'ai', undefined, vibe.description),
+          );
 
-        const songId = song.songId || existingAnalysis?.songId.value || randomUUID();
-        const newAnalysis = Analysis.create(songMetadata, newTags, VTDate.now(), songId);
+          const songId = song.songId || existingAnalysis?.songId.value || randomUUID();
+          const newAnalysis = Analysis.create(songMetadata, newTags, VTDate.now(), songId);
 
-        await this.analysisRepository.save(newAnalysis, request.userId);
+          await this.analysisRepository.save(newAnalysis, request.userId);
 
-        results.push({
-          songId: newAnalysis.songId.value,
-          title: song.title,
-          tags: newAnalysis.tags.map((t) => ({
-            name: t.name,
-            description: t.description || undefined,
-          })),
-        });
+          results.push({
+            songId: newAnalysis.songId.value,
+            title: song.title,
+            tags: newAnalysis.tags.map((t) => ({
+              name: t.name,
+              description: t.description || undefined,
+            })),
+          });
+        } catch (error) {
+          console.error(`AI analysis failed for "${song.title}":`, error);
+          results.push({
+            title: song.title,
+            tags: [],
+            error: error instanceof AIServiceError ? error.message : 'AI analysis failed',
+          });
+          continue;
+        }
 
         // Step C: Delay to respect rate limits (1 second)
         // Only delay if it's NOT the last song being analyzed via AI in this batch

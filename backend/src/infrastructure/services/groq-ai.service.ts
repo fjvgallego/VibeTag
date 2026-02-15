@@ -1,5 +1,6 @@
 import { createGroq } from '@ai-sdk/groq';
 import { generateText } from 'ai';
+import { AIServiceError } from '../../domain/errors/app-error';
 import { IAIService } from '../../domain/services/ai-service.interface';
 import { SongMetadata } from '../../domain/value-objects/song-metadata.vo';
 import { ITextSanitizer } from '../../shared/text-sanitizer';
@@ -26,17 +27,23 @@ export class GroqAIService implements IAIService {
   ): Promise<{ name: string; description: string }[]> {
     const prompt = this.constructPrompt(song);
 
+    let text: string;
     try {
-      const { text } = await generateText({
+      const response = await generateText({
         model: this.groq(this.modelName),
         prompt: prompt,
       });
-
-      return this.parseResponse(text);
+      text = response.text;
     } catch (error) {
-      console.error('Error calling Gemini API via AI SDK:', error);
-      return [];
+      throw new AIServiceError('Groq API call failed', { cause: error as Error });
     }
+
+    const parsed = this.parseResponse(text);
+    if (parsed.length === 0) {
+      throw new AIServiceError(`Groq returned unparseable or empty response for "${song.title}"`);
+    }
+
+    return parsed;
   }
 
   private constructPrompt(song: SongMetadata): string {
@@ -63,7 +70,7 @@ export class GroqAIService implements IAIService {
       const vibes = JSON.parse(cleanedText);
 
       if (!Array.isArray(vibes)) {
-        console.warn('Gemini response was not an array:', cleanedText);
+        console.warn('Groq response was not an array:', cleanedText);
         return [];
       }
 
@@ -79,7 +86,7 @@ export class GroqAIService implements IAIService {
           description: v.description ? this.sanitizer.sanitize(v.description) : '',
         }));
     } catch (error) {
-      console.warn('Failed to parse Gemini response:', text, error);
+      console.warn('Failed to parse Groq response:', text, error);
       return [];
     }
   }

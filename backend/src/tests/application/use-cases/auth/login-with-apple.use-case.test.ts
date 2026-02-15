@@ -113,4 +113,40 @@ describe('LoginWithAppleUseCase', () => {
     expect(upsertArg.email?.value).toBe('jane@example.com');
     expect(upsertArg.appleId?.value).toBe('apple-456');
   });
+
+  it('should return failure if Apple token verification fails', async () => {
+    const request: LoginWithAppleRequestDTO = {
+      identityToken: 'invalid-token',
+    };
+
+    vi.mocked(mockAuthProvider.verifyAppleToken).mockRejectedValue(
+      new Error('Invalid identity token'),
+    );
+
+    const result = await loginWithAppleUseCase.execute(request);
+
+    expect(result.isFailure).toBe(true);
+    expect(result.error).toBeDefined();
+    expect(mockUserRepository.upsertByAppleId).not.toHaveBeenCalled();
+    expect(mockTokenService.generate).not.toHaveBeenCalled();
+  });
+
+  it('should return failure if user repository throws', async () => {
+    const request: LoginWithAppleRequestDTO = {
+      identityToken: 'valid-token',
+    };
+
+    vi.mocked(mockAuthProvider.verifyAppleToken).mockResolvedValue({
+      appleId: 'apple-789',
+      email: 'test@example.com',
+    });
+    vi.mocked(mockUserRepository.upsertByAppleId).mockRejectedValue(
+      new Error('Database unavailable'),
+    );
+
+    const result = await loginWithAppleUseCase.execute(request);
+
+    expect(result.isFailure).toBe(true);
+    expect(mockTokenService.generate).not.toHaveBeenCalled();
+  });
 });

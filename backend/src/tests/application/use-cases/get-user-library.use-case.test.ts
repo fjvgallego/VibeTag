@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GetUserLibraryUseCase } from '../../../application/use-cases/get-user-library.use-case';
 import { ISongRepository } from '../../../application/ports/song.repository';
-import { ValidationError } from '../../../domain/errors/app-error';
+import { ValidationError, UseCaseError } from '../../../domain/errors/app-error';
 
 describe('GetUserLibraryUseCase', () => {
   let useCase: GetUserLibraryUseCase;
@@ -46,5 +46,26 @@ describe('GetUserLibraryUseCase', () => {
     expect(result.success).toBe(true);
     expect(result.getValue()).toEqual(mockLibrary);
     expect(mockSongRepository.findUserLibrary).toHaveBeenCalledWith(userId, { page, limit });
+  });
+
+  it('should return failure if repository throws', async () => {
+    vi.mocked(mockSongRepository.findUserLibrary).mockRejectedValue(
+      new Error('DB connection error'),
+    );
+
+    const result = await useCase.execute('user-123', 1, 10);
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBeInstanceOf(UseCaseError);
+    expect(result.error?.message).toBe('Failed to fetch user library');
+  });
+
+  it('should return empty array when user has no songs', async () => {
+    vi.mocked(mockSongRepository.findUserLibrary).mockResolvedValue([]);
+
+    const result = await useCase.execute('user-123', 1, 50);
+
+    expect(result.success).toBe(true);
+    expect(result.getValue()).toEqual([]);
   });
 });

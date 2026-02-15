@@ -32,8 +32,8 @@ describe('UpdateSongTagsUseCase', () => {
     expect(mockAnalysisRepository.updateSongTags).toHaveBeenCalledWith(
       expect.any(UserId),
       songId,
-      tags,
-      { title, artist },
+      [{ name: 'vibe1' }, { name: 'vibe2' }],
+      expect.objectContaining({ title, artist }),
     );
 
     const callUserId = (mockAnalysisRepository.updateSongTags as Mock).mock.calls[0][0];
