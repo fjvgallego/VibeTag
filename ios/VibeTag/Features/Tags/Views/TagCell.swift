@@ -4,7 +4,8 @@ struct TagCell: View {
     let tag: Tag
     var onEdit: () -> Void = {}
     var onDelete: () -> Void = {}
-    
+    @State private var isPressed = false
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             // Top Row
@@ -109,6 +110,11 @@ struct TagCell: View {
                 )
         )
         .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 5)
+        .scaleEffect(isPressed ? 0.96 : 1.0)
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isPressed)
+        .onLongPressGesture(minimumDuration: .infinity, pressing: { pressing in
+            isPressed = pressing
+        }, perform: {})
     }
 }
 

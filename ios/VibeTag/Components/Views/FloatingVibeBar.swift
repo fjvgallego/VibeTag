@@ -2,7 +2,8 @@ import SwiftUI
 
 struct FloatingVibeBar: View {
     let action: () -> Void
-    
+    @State private var isVisible = false
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: 12) {
@@ -41,7 +42,22 @@ struct FloatingVibeBar: View {
             .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
             .contentShape(.rect)
         }
-        .buttonStyle(PlainButtonStyle())
+        .buttonStyle(VibeBarButtonStyle())
+        .opacity(isVisible ? 1 : 0)
+        .offset(y: isVisible ? 0 : 20)
+        .onAppear {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                isVisible = true
+            }
+        }
+    }
+}
+
+private struct VibeBarButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: configuration.isPressed)
     }
 }
 

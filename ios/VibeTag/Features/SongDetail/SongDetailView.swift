@@ -5,7 +5,7 @@ struct SongDetailView: View {
     @State private var viewModel: SongDetailViewModel
     @State private var showingEditTags = false
     @Environment(\.dismiss) private var dismiss
-    
+
     init(song: VTSong, container: AppContainer, syncEngine: VibeTagSyncEngine) {
         self._viewModel = State(initialValue: SongDetailViewModel(
             song: song,
@@ -80,6 +80,7 @@ struct SongDetailView: View {
                             .aspectRatio(contentMode: .fill)
                             .frame(width: geometry.size.width, height: geometry.size.height)
                             .clipped()
+                            .transition(.opacity)
                     default:
                         Color.clear
                     }
@@ -96,6 +97,7 @@ struct SongDetailView: View {
                 image
                     .resizable()
                     .aspectRatio(contentMode: .fill)
+                    .transition(.opacity)
             default:
                 placeholderArtwork
             }
@@ -152,6 +154,7 @@ struct SongDetailView: View {
                         .foregroundColor(.white.opacity(0.7))
                 }
                 .padding(.vertical, 8)
+                .transition(.opacity.combined(with: .scale))
             } else if viewModel.systemTags.isEmpty {
                 Button(action: { viewModel.analyzeSong() }) {
                     HStack(spacing: 10) {
@@ -165,16 +168,20 @@ struct SongDetailView: View {
                     .background(Color.appleMusicRed)
                     .clipShape(Capsule())
                 }
+                .transition(.opacity.combined(with: .scale))
             } else {
                 TagFlowLayout(spacing: 12, alignment: .leading) {
                     ForEach(viewModel.systemTags) { tag in
                         DetailTagCapsule(tag: tag)
                     }
                 }
+                .transition(.opacity.combined(with: .scale))
             }
         }
+        .animation(.spring(response: 0.5, dampingFraction: 0.8), value: viewModel.isAnalyzing)
+        .animation(.spring(response: 0.5, dampingFraction: 0.8), value: viewModel.systemTags.count)
     }
-    
+
     private var userTagsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(alignment: .center) {
@@ -297,24 +304,21 @@ private struct DetailTagCapsule: View {
 
 #Preview {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(for: VTSong.self, Tag.self, configurations: config)
-    
+    let modelContainer = try! ModelContainer(for: VTSong.self, Tag.self, configurations: config)
+    let appContainer = AppContainer(modelContext: modelContainer.mainContext)
+
     let song = VTSong(
         id: "1",
         title: "Starboy",
         artist: "The Weeknd",
         artworkUrl: "https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/08/43/d8/0843d83c-684a-6fbc-979d-02cfc7FB4401/16UMGIM56450.rgb.jpg/600x600bb.jpg"
     )
-    
     let tag1 = Tag(name: "Electronic", hexColor: "#5856D6")
     let tag2 = Tag(name: "Vibey", hexColor: "#FF2D55")
     song.tags = [tag1, tag2]
-    
-    let appContainer = AppContainer(modelContext: container.mainContext)
-    let syncEngine = VibeTagSyncEngine(localRepo: appContainer.localRepo, sessionManager: SessionManager(tokenStorage: appContainer.tokenStorage, authRepository: appContainer.authRepo))
-    
+
     return NavigationStack {
-        SongDetailView(song: song, container: appContainer, syncEngine: syncEngine)
+        SongDetailView(song: song, container: appContainer, syncEngine: appContainer.syncEngine)
     }
-    .modelContainer(container)
+    .modelContainer(modelContainer)
 }

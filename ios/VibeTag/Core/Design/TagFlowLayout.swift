@@ -41,15 +41,15 @@ struct TagFlowLayout: Layout {
     
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
         var rows: [[LayoutSubview]] = [[]]
+        var placed: Set<Int> = []
         var x = bounds.minX
         var currentRow = 0
-        
+
         // Group subviews into rows
-        for subview in subviews {
+        for (index, subview) in subviews.enumerated() {
             let size = subview.sizeThatFits(.unspecified)
             if x + size.width > bounds.maxX {
                 if let max = maxRows, currentRow + 1 >= max {
-                    // This subview doesn't fit in allowed rows
                     continue
                 }
                 rows.append([])
@@ -57,15 +57,21 @@ struct TagFlowLayout: Layout {
                 x = bounds.minX
             }
             rows[currentRow].append(subview)
+            placed.insert(index)
             x += size.width + spacing
         }
-        
+
+        // Hide subviews that didn't fit within maxRows
+        for (index, subview) in subviews.enumerated() where !placed.contains(index) {
+            subview.place(at: CGPoint(x: bounds.minX, y: bounds.minY), proposal: .zero)
+        }
+
         var y = bounds.minY
         for row in rows {
             let rowSizes = row.map { $0.sizeThatFits(.unspecified) }
             let rowWidth = rowSizes.reduce(0) { $0 + $1.width } + CGFloat(max(0, row.count - 1)) * spacing
             let maxHeight = rowSizes.reduce(0) { max($0, $1.height) }
-            
+
             var xOffset: CGFloat = 0
             switch alignment {
             case .leading:
@@ -75,7 +81,7 @@ struct TagFlowLayout: Layout {
             case .trailing:
                 xOffset = bounds.minX + (bounds.width - rowWidth)
             }
-            
+
             var currentX = xOffset
             for subview in row {
                 let size = subview.sizeThatFits(.unspecified)

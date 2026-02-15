@@ -2,19 +2,22 @@ import SwiftUI
 import SwiftData
 
 struct TagsView: View {
-    @Query private var allTags: [Tag]
-    @State private var viewModel = TagsViewModel()
+    @Query private var allTags: [VibeTag.Tag]
+    @State private var viewModel: TagsViewModel
     @State private var showingCreateTag = false
-    @State private var tagToEdit: Tag? = nil
-    @State private var tagToDelete: Tag? = nil
+    @State private var tagToEdit: VibeTag.Tag? = nil
+    @State private var tagToDelete: VibeTag.Tag? = nil
     @State private var showingDeleteConfirmation = false
-    @Environment(\.modelContext) private var modelContext
-    @Environment(VibeTagSyncEngine.self) private var syncEngine
-    
-    let columns = [
-        GridItem(.adaptive(minimum: 160), spacing: 16)
-    ]
-    
+
+    let columns = [GridItem(.adaptive(minimum: 160), spacing: 16)]
+
+    init(container: AppContainer) {
+        self._viewModel = State(initialValue: TagsViewModel(
+            modelContext: container.modelContext,
+            syncEngine: container.syncEngine
+        ))
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             // Fixed Header Section
@@ -36,11 +39,11 @@ struct TagsView: View {
                 }
                 .padding(.horizontal)
                 .padding(.top, 10)
-                
+
                 // Search Bar & Sort
                 HStack(spacing: 12) {
                     VTSearchBar(text: $viewModel.searchText, placeholder: "Buscar etiquetas...")
-                    
+
                     Menu {
                         Section("Ordenar por") {
                             Picker("Criterio", selection: $viewModel.selectedSort) {
@@ -49,7 +52,7 @@ struct TagsView: View {
                                 }
                             }
                         }
-                        
+
                         Section("Orden") {
                             Picker("Sentido", selection: $viewModel.selectedOrder) {
                                 ForEach(SortOrder.allCases) { order in
@@ -67,7 +70,7 @@ struct TagsView: View {
                     }
                 }
                 .padding(.horizontal)
-                
+
                 // Filter Chips
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
@@ -88,26 +91,28 @@ struct TagsView: View {
             // Scrollable Tags Grid
             ScrollView {
                 let filteredTags = viewModel.filteredTags(allTags)
-                
+
                 if filteredTags.isEmpty {
                     VStack(spacing: 24) {
                         Spacer().frame(height: 60)
-                        
+
                         Image(systemName: allTags.isEmpty ? "tag.slash" : "magnifyingglass")
                             .font(.system(size: 60))
                             .foregroundColor(.secondary.opacity(0.3))
-                        
+
                         VStack(spacing: 8) {
                             Text(allTags.isEmpty ? "No hay etiquetas" : "Sin resultados")
                                 .font(.nunito(.title3, weight: .bold))
-                            
-                            Text(allTags.isEmpty ? "Crea tu primera etiqueta para empezar a organizar tu música de forma personalizada." : "No encontramos ninguna etiqueta que coincida con tu búsqueda o filtros.")
+
+                            Text(allTags.isEmpty
+                                 ? "Crea tu primera etiqueta para empezar a organizar tu música de forma personalizada."
+                                 : "No encontramos ninguna etiqueta que coincida con tu búsqueda o filtros.")
                                 .font(.nunito(.subheadline, weight: .medium))
                                 .foregroundColor(.secondary)
                                 .multilineTextAlignment(.center)
                                 .padding(.horizontal, 40)
                         }
-                        
+
                         if allTags.isEmpty {
                             Button(action: { showingCreateTag = true }) {
                                 HStack {
@@ -130,16 +135,16 @@ struct TagsView: View {
                             ForEach(filteredTags) { tag in
                                 TagCell(
                                     tag: tag,
-                                    onEdit: {
-                                        tagToEdit = tag
-                                    },
+                                    onEdit: { tagToEdit = tag },
                                     onDelete: {
                                         tagToDelete = tag
                                         showingDeleteConfirmation = true
                                     }
                                 )
+                                .transition(.scale.combined(with: .opacity))
                             }
                         }
+                        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: filteredTags.map(\.id))
                         .padding(.horizontal)
                         .padding(.bottom, 20)
                     }
@@ -151,28 +156,18 @@ struct TagsView: View {
         .toolbar(.hidden, for: .navigationBar)
         .sheet(isPresented: $showingCreateTag) {
             CreateTagSheet { name, hexColor, description in
-                let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
-                
-                // Check if a tag with this name already exists (case-insensitive)
-                if let existingTag = allTags.first(where: { $0.name.caseInsensitiveCompare(trimmedName) == .orderedSame }) {
-                    // Optionally update existing tag's description or color if desired, 
-                    // but for now let's just avoid duplication.
-                    return
-                }
-                
-                let newTag = Tag(name: trimmedName, tagDescription: description, hexColor: hexColor)
-                modelContext.insert(newTag)
-                try? modelContext.save()
+                viewModel.createTag(name: name, hexColor: hexColor, description: description, existingTags: allTags)
             }
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
         }
         .sheet(item: $tagToEdit) { tag in
-            CreateTagSheet(tagName: tag.name, tagDescription: tag.tagDescription, selectedColor: Color(hex: tag.hexColor) ?? .appleMusicRed) { name, hexColor, description in
-                tag.name = name
-                tag.hexColor = hexColor
-                tag.tagDescription = description
-                try? modelContext.save()
+            CreateTagSheet(
+                tagName: tag.name,
+                tagDescription: tag.tagDescription,
+                selectedColor: Color(hex: tag.hexColor) ?? .appleMusicRed
+            ) { name, hexColor, description in
+                viewModel.updateTag(tag, name: name, hexColor: hexColor, description: description)
             }
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
@@ -180,19 +175,7 @@ struct TagsView: View {
         .confirmationDialog("¿Eliminar etiqueta?", isPresented: $showingDeleteConfirmation, titleVisibility: .visible) {
             Button("Eliminar \"\(tagToDelete?.name ?? "")\"", role: .destructive) {
                 if let tag = tagToDelete {
-                    // Mark all songs that have this tag as pending upload so the removal syncs
-                    let songsToUpdate = tag.songs
-                    for song in songsToUpdate {
-                        song.syncStatus = .pendingUpload
-                    }
-                    
-                    modelContext.delete(tag)
-                    try? modelContext.save()
-                    
-                    // Trigger sync to notify backend of the removals
-                    Task {
-                        await syncEngine.syncPendingChanges()
-                    }
+                    viewModel.deleteTag(tag)
                     tagToDelete = nil
                 }
             }
@@ -207,15 +190,12 @@ struct TagsView: View {
 
 #Preview {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(for: Tag.self, VTSong.self, configurations: config)
-    let syncEngine = VibeTagSyncEngine(
-        localRepo: LocalSongStorageRepositoryImpl(modelContext: container.mainContext),
-        sessionManager: SessionManager(tokenStorage: KeychainTokenStorage(), authRepository: VibeTagAuthRepositoryImpl())
-    )
-    
+    let modelContainer = try! ModelContainer(for: VibeTag.Tag.self, VTSong.self, configurations: config)
+    let appContainer = AppContainer(modelContext: modelContainer.mainContext)
+
     return NavigationStack {
-        TagsView()
-            .modelContainer(container)
-            .environment(syncEngine)
+        TagsView(container: appContainer)
+            .modelContainer(modelContainer)
+            .environment(appContainer.syncEngine)
     }
 }

@@ -20,6 +20,7 @@ struct VTSearchBar: View {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundColor(.secondary)
                 }
+                .accessibilityLabel("Limpiar búsqueda")
             }
         }
         .padding(12)

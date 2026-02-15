@@ -3,7 +3,7 @@ import Network
 import Observation
 
 @Observable
-class NetworkMonitor {
+class NetworkMonitor: NetworkMonitorProtocol {
     static let shared = NetworkMonitor()
     
     private let monitor = NWPathMonitor()

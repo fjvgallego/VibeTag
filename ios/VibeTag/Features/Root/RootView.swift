@@ -4,35 +4,15 @@ import SwiftData
 struct RootView: View {
     let container: AppContainer
     @State private var router = AppRouter()
-    @State private var viewModel = RootViewModel()
-    @State private var sessionManager: SessionManager
-    @State private var syncEngine: VibeTagSyncEngine
     @Environment(\.scenePhase) private var scenePhase
-    
+
     init(container: AppContainer) {
         self.container = container
-        
-        let sessionManager = SessionManager(
-            tokenStorage: container.tokenStorage,
-            authRepository: container.authRepo,
-            onAccountDeleted: {
-                Task {
-                    try? await container.localRepo.clearAllTags()
-                }
-            },
-            onLogout: {
-                Task {
-                    try? await container.localRepo.clearAllTags()
-                }
-            }
-        )
-        self._sessionManager = State(initialValue: sessionManager)
-        self._syncEngine = State(initialValue: VibeTagSyncEngine(localRepo: container.localRepo, sessionManager: sessionManager))
     }
 
     var body: some View {
         Group {
-            if viewModel.isAuthorized {
+            if container.sessionManager.isAuthenticated {
                 NavigationStack(path: $router.path) {
                     MainTabView(container: container)
                         .navigationDestination(for: AppRoute.self) { route in
@@ -51,30 +31,22 @@ struct RootView: View {
                         }
                 }
                 .environment(router)
+                .transition(.opacity)
             } else {
-                WelcomeView(
-                    onRequestPermissions: {
-                        viewModel.requestMusicPermissions()
-                    },
-                    onContinueAsGuest: {
-                        viewModel.continueAsGuest()
-                    }
-                )
+                WelcomeView(container: container)
+                    .transition(.opacity)
             }
         }
-        .environment(sessionManager)
-        .environment(syncEngine)
-        .onAppear {
-            viewModel.updateAuthorizationStatus()
-        }
+        .animation(.easeInOut(duration: 0.4), value: container.sessionManager.isAuthenticated)
+        .environment(container.sessionManager)
+        .environment(container.syncEngine)
         .onChange(of: scenePhase) { _, newPhase in
-            if newPhase == .active {
+            if newPhase == .active && container.sessionManager.isAuthenticated {
                 Task {
                     do {
-                        try await syncEngine.pullRemoteData()
-                        await syncEngine.syncPendingChanges()
+                        try await container.syncEngine.pullRemoteData()
+                        await container.syncEngine.syncPendingChanges()
                     } catch {
-                        // Log or handle sync failure appropriately
                         print("Background sync failed: \(error)")
                     }
                 }
@@ -108,7 +80,7 @@ struct SongDetailDestinationView: View {
 
 #Preview {
     let modelContainer = try! ModelContainer(for: VTSong.self, Tag.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
-    let container = AppContainer(modelContext: modelContainer.mainContext)
-    return RootView(container: container)
+    let appContainer = AppContainer(modelContext: modelContainer.mainContext)
+    return RootView(container: appContainer)
         .modelContainer(modelContainer)
 }

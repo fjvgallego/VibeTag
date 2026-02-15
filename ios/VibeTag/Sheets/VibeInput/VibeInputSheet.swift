@@ -77,6 +77,7 @@ struct VibeInputSheet: View {
             }
             .disabled(vibeText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             .opacity(vibeText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.6 : 1.0)
+            .animation(.easeInOut(duration: 0.2), value: vibeText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
         .padding(24)
         .background(Color(.systemBackground))
