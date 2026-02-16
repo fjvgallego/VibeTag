@@ -61,7 +61,7 @@ class SettingsViewModel {
             guard let appleIDCredential = auth.credential as? ASAuthorizationAppleIDCredential,
                   let identityTokenData = appleIDCredential.identityToken,
                   let identityTokenString = String(data: identityTokenData, encoding: .utf8) else {
-                libraryActionService.errorMessage = "Failed to process Apple Sign In credentials"
+                libraryActionService.errorMessage = "No se pudieron procesar las credenciales de Apple"
                 return
             }
 

@@ -76,9 +76,9 @@ struct HomeView: View {
             get: { viewModel.errorMessage != nil },
             set: { if !$0 { viewModel.errorMessage = nil } }
         )) {
-            Button("OK", role: .cancel) { }
+            Button("Aceptar", role: .cancel) { }
         } message: {
-            Text(viewModel.errorMessage ?? "Unknown error")
+            Text(viewModel.errorMessage ?? "Error desconocido")
         }
         .onAppear {
             viewModel.updateAuthorizationStatus()

@@ -60,8 +60,14 @@ export class SongController {
         return;
       }
 
-      if (!Array.isArray(tags) || !tags.every((t) => typeof t === 'string')) {
-        res.status(400).json({ error: 'Tags must be an array of strings' });
+      const isValidTag = (t: unknown): boolean =>
+        typeof t === 'string' ||
+        (typeof t === 'object' && t !== null && typeof (t as { name: unknown }).name === 'string');
+
+      if (!Array.isArray(tags) || !tags.every(isValidTag)) {
+        res
+          .status(400)
+          .json({ error: 'Tags must be an array of strings or objects with a name property' });
         return;
       }
 

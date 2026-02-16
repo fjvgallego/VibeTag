@@ -53,7 +53,7 @@ class LibraryActionService: LibraryActionServiceProtocol {
             try await libraryImportService.syncLibrary()
             refreshLibraryStats()
         } catch {
-            errorMessage = "Failed to sync library: \(error.localizedDescription)"
+            errorMessage = "Error al sincronizar la biblioteca: \(error.localizedDescription)"
         }
 
         isSyncing = false
@@ -68,7 +68,7 @@ class LibraryActionService: LibraryActionServiceProtocol {
             try await syncEngine.pullRemoteData()
             refreshLibraryStats()
         } catch {
-            errorMessage = "Sync failed: \(error.localizedDescription)"
+            errorMessage = "Error en la sincronización: \(error.localizedDescription)"
         }
 
         isSyncing = false
