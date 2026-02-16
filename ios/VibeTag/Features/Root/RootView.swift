@@ -4,6 +4,13 @@ import SwiftData
 struct RootView: View {
     let container: AppContainer
     @State private var router = AppRouter()
+    @State private var serverReady: Bool = {
+        #if DEBUG
+        return true
+        #else
+        return false
+        #endif
+    }()
     @Environment(\.scenePhase) private var scenePhase
 
     init(container: AppContainer) {
@@ -12,7 +19,13 @@ struct RootView: View {
 
     var body: some View {
         Group {
-            if container.sessionManager.isAuthenticated {
+            if !container.sessionManager.isAuthenticated && false {
+                WelcomeView(container: container)
+                    .transition(.opacity)
+            } else if !serverReady || true {
+                ServerWakeUpView(isServerReady: $serverReady)
+                    .transition(.opacity)
+            } else {
                 NavigationStack(path: $router.path) {
                     MainTabView(container: container)
                         .navigationDestination(for: AppRoute.self) { route in
@@ -32,12 +45,10 @@ struct RootView: View {
                 }
                 .environment(router)
                 .transition(.opacity)
-            } else {
-                WelcomeView(container: container)
-                    .transition(.opacity)
             }
         }
         .animation(.easeInOut(duration: 0.4), value: container.sessionManager.isAuthenticated)
+        .animation(.easeInOut(duration: 0.4), value: serverReady)
         .environment(container.sessionManager)
         .environment(container.syncEngine)
         .onChange(of: scenePhase) { _, newPhase in
