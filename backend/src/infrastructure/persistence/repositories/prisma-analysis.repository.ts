@@ -5,6 +5,10 @@ import { VibeTag, VibeTagSource } from '../../../domain/entities/vibe-tag';
 import { VTDate } from '../../../domain/value-objects/vt-date.vo';
 import { UserId } from '../../../domain/value-objects/ids/user-id.vo';
 import { Prisma, PrismaClient } from '../../../../prisma/generated';
+import {
+  deduplicateTags,
+  deduplicateByName,
+} from '../../../domain/services/tag-deduplication.service';
 
 export class PrismaAnalysisRepository implements IAnalysisRepository {
   constructor(private readonly prisma: PrismaClient) {}
@@ -95,7 +99,7 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
       const systemUserId = systemUser.id;
 
       // Deduplicate tags by name to avoid unique constraint violations
-      const uniqueTags = Array.from(new Map(analysis.tags.map((tag) => [tag.name, tag])).values());
+      const uniqueTags = deduplicateTags(analysis.tags);
 
       // 3. Process Tags (FIX: Lookup by Name, not ID)
       for (const tagDomain of uniqueTags) {
@@ -181,7 +185,7 @@ export class PrismaAnalysisRepository implements IAnalysisRepository {
       artworkUrl?: string;
     },
   ): Promise<void> {
-    const uniqueTags = Array.from(new Map(tags.map((t) => [t.name, t])).values());
+    const uniqueTags = deduplicateByName(tags);
     await this.prisma.$transaction(async (tx) => {
       // Upsert Song
       await tx.song.upsert({

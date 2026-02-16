@@ -23,7 +23,12 @@ export class GeneratePlaylistUseCase implements UseCase<
       const searchTags = await this.aiService.analyzeUserSentiment(request.userPrompt);
 
       // 2. Search songs in user library that match these tags (any match)
-      const matchingSongs = await this.songRepository.findSongsByTags(searchTags, request.userId);
+      // Fetch extra candidates so in-memory ranking can select the best 50
+      const matchingSongs = await this.songRepository.findSongsByTags(
+        searchTags,
+        request.userId,
+        100,
+      );
 
       // 3. Smart Ranking
       // Score each song based on how many keywords it matches
@@ -71,14 +76,8 @@ export class GeneratePlaylistUseCase implements UseCase<
         })),
       };
 
-      console.log('GENERATE PLAYLIST USE CASE RESPONSE');
-      console.log('===================================');
-      console.log(response);
-      console.log();
-
       return Result.ok(response);
     } catch (error) {
-      console.error('Playlist generation failed:', error);
       if (error instanceof AppError) {
         return Result.fail(error);
       }

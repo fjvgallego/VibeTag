@@ -1,8 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import {
-  createVerifyToken,
-  createSoftVerifyToken,
-} from '../../../../infrastructure/http/middleware/AuthMiddleware';
+import { createVerifyToken } from '../../../../infrastructure/http/middleware/auth-middleware';
 import { ITokenService, TokenPayload } from '../../../../application/ports/token-service';
 import type { Request, Response } from 'express';
 
@@ -98,55 +95,6 @@ describe('AuthMiddleware', () => {
 
       expect(next).not.toHaveBeenCalled();
       expect(res.statusCode).toBe(401);
-    });
-  });
-
-  describe('createSoftVerifyToken', () => {
-    it('should set req.user and call next() for valid token', () => {
-      const payload: TokenPayload = { userId: 'user-456', email: 'x@y.com' };
-      const tokenService = createMockTokenService(payload);
-      const softVerifyToken = createSoftVerifyToken(tokenService);
-
-      const req = createMockRequest('Bearer valid-token');
-      const res = createMockResponse();
-      const next = vi.fn();
-
-      softVerifyToken(req, res as unknown as Response, next);
-
-      expect(tokenService.verify).toHaveBeenCalledWith('valid-token');
-      expect(next).toHaveBeenCalled();
-      expect(req.user).toBeDefined();
-      expect(req.user!.userId).toBe('user-456');
-    });
-
-    it('should call next() without setting req.user when no token', () => {
-      const tokenService = createMockTokenService();
-      const softVerifyToken = createSoftVerifyToken(tokenService);
-
-      const req = createMockRequest();
-      const res = createMockResponse();
-      const next = vi.fn();
-
-      softVerifyToken(req, res as unknown as Response, next);
-
-      expect(tokenService.verify).not.toHaveBeenCalled();
-      expect(next).toHaveBeenCalled();
-      expect(req.user).toBeUndefined();
-    });
-
-    it('should call next() without setting req.user for invalid token', () => {
-      const tokenService = createMockTokenService(null);
-      const softVerifyToken = createSoftVerifyToken(tokenService);
-
-      const req = createMockRequest('Bearer garbage-token');
-      const res = createMockResponse();
-      const next = vi.fn();
-
-      softVerifyToken(req, res as unknown as Response, next);
-
-      expect(tokenService.verify).toHaveBeenCalledWith('garbage-token');
-      expect(next).toHaveBeenCalled();
-      expect(req.user).toBeUndefined();
     });
   });
 });

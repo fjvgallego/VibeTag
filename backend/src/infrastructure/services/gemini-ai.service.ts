@@ -83,8 +83,6 @@ export class GeminiAIService implements IAIService {
         prompt: systemPrompt,
       });
 
-      console.log(this.parseSentimentResponse(text));
-
       return this.parseSentimentResponse(text);
     } catch (error) {
       console.error('Error in analyzeUserSentiment:', error);

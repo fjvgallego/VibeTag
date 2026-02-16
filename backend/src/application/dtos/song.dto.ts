@@ -9,6 +9,12 @@ export interface TagUpdateDTO {
   color?: string;
 }
 
+export interface GetUserLibraryRequestDTO {
+  userId: string;
+  page: number;
+  limit: number;
+}
+
 export interface UpdateSongTagsDTO {
   tags: (string | TagUpdateDTO)[];
   title: string;

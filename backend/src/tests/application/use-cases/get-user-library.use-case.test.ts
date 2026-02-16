@@ -9,8 +9,6 @@ describe('GetUserLibraryUseCase', () => {
 
   beforeEach(() => {
     mockSongRepository = {
-      save: vi.fn(),
-      findById: vi.fn(),
       findUserLibrary: vi.fn(),
       findSongsByTags: vi.fn(),
     };
@@ -18,7 +16,7 @@ describe('GetUserLibraryUseCase', () => {
   });
 
   it('should return failure if page is less than 1', async () => {
-    const result = await useCase.execute('user-123', 0, 10);
+    const result = await useCase.execute({ userId: 'user-123', page: 0, limit: 10 });
 
     expect(result.success).toBe(false);
     expect(result.error).toBeInstanceOf(ValidationError);
@@ -26,7 +24,7 @@ describe('GetUserLibraryUseCase', () => {
   });
 
   it('should return failure if limit is less than 1', async () => {
-    const result = await useCase.execute('user-123', 1, 0);
+    const result = await useCase.execute({ userId: 'user-123', page: 1, limit: 0 });
 
     expect(result.success).toBe(false);
     expect(result.error).toBeInstanceOf(ValidationError);
@@ -41,7 +39,7 @@ describe('GetUserLibraryUseCase', () => {
 
     vi.mocked(mockSongRepository.findUserLibrary).mockResolvedValue(mockLibrary);
 
-    const result = await useCase.execute(userId, page, limit);
+    const result = await useCase.execute({ userId, page, limit });
 
     expect(result.success).toBe(true);
     expect(result.getValue()).toEqual(mockLibrary);
@@ -53,7 +51,7 @@ describe('GetUserLibraryUseCase', () => {
       new Error('DB connection error'),
     );
 
-    const result = await useCase.execute('user-123', 1, 10);
+    const result = await useCase.execute({ userId: 'user-123', page: 1, limit: 10 });
 
     expect(result.success).toBe(false);
     expect(result.error).toBeInstanceOf(UseCaseError);
@@ -63,7 +61,7 @@ describe('GetUserLibraryUseCase', () => {
   it('should return empty array when user has no songs', async () => {
     vi.mocked(mockSongRepository.findUserLibrary).mockResolvedValue([]);
 
-    const result = await useCase.execute('user-123', 1, 50);
+    const result = await useCase.execute({ userId: 'user-123', page: 1, limit: 50 });
 
     expect(result.success).toBe(true);
     expect(result.getValue()).toEqual([]);

@@ -51,6 +51,7 @@ describe('GeneratePlaylistUseCase', () => {
     expect(mockSongRepository.findSongsByTags).toHaveBeenCalledWith(
       ['Coding', 'Focus'],
       'user-123',
+      100,
     );
   });
 
@@ -79,6 +80,7 @@ describe('GeneratePlaylistUseCase', () => {
     expect(mockSongRepository.findSongsByTags).toHaveBeenCalledWith(
       ['Nostalgia', 'Relationships'],
       'user-123',
+      100,
     );
   });
 

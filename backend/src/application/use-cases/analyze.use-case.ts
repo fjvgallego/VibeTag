@@ -11,7 +11,7 @@ import { IAIService } from '../../domain/services/ai-service.interface';
 import { Analysis } from '../../domain/entities/analysis';
 import { SongMetadata } from '../../domain/value-objects/song-metadata.vo';
 import { VibeTag } from '../../domain/entities/vibe-tag';
-import { AIServiceError, AppError, UseCaseError } from '../../domain/errors/app-error';
+import { AppError, UseCaseError } from '../../domain/errors/app-error';
 import { VTDate } from '../../domain/value-objects/vt-date.vo';
 import { randomUUID } from 'crypto';
 
@@ -113,87 +113,34 @@ export class AnalyzeUseCase implements UseCase<AnalyzeRequestDTO, AnalyzeRespons
 
       for (let i = 0; i < request.songs.length; i++) {
         const song = request.songs[i];
-        const normalizedTitle = song.title?.trim() ?? '';
-        const normalizedArtist = song.artist?.trim() ?? '';
 
-        // Step A: Cache Check
-        const existingAnalysis = await this.analysisRepository.findBySong(
-          normalizedTitle,
-          normalizedArtist,
-          request.userId,
-          song.songId,
-        );
-
-        const hasAITags = existingAnalysis?.tags.some((tag) => tag.source === 'ai');
-
-        if (existingAnalysis && hasAITags) {
-          if (request.userId) {
-            // Ensure song is linked to user's library even on cache hit
-            const aiOnlyTags = existingAnalysis.tags.filter((tag) => tag.source === 'ai');
-            const aiOnlyAnalysis = Analysis.create(
-              existingAnalysis.songMetadata,
-              aiOnlyTags,
-              existingAnalysis.createdAt,
-              existingAnalysis.songId.value,
-              existingAnalysis.id.value,
-            );
-            await this.analysisRepository.save(aiOnlyAnalysis, request.userId);
-          }
-
-          results.push({
-            songId: existingAnalysis.songId.value,
-            title: song.title,
-            tags: existingAnalysis.tags
-              .filter((tag) => tag.source === 'ai')
-              .map((t) => ({
-                name: t.name,
-                description: t.description || undefined,
-              })),
-          });
-          continue; // No delay needed if found in cache
-        }
-
-        // Step B: AI Analysis
-        const songMetadata = SongMetadata.create({
-          title: normalizedTitle,
-          artist: normalizedArtist,
-          appleMusicId: song.appleMusicId,
+        const result = await this.execute({
+          title: song.title,
+          artist: song.artist,
           album: song.album,
           genre: song.genre,
+          appleMusicId: song.appleMusicId,
           artworkUrl: song.artworkUrl,
+          songId: song.songId,
+          userId: request.userId,
         });
 
-        try {
-          const aiVibes = await this.aiService.getVibesForSong(songMetadata);
-          const newTags = aiVibes.map((vibe) =>
-            VibeTag.create(vibe.name, 'ai', undefined, vibe.description),
-          );
-
-          const songId = song.songId || existingAnalysis?.songId.value || randomUUID();
-          const newAnalysis = Analysis.create(songMetadata, newTags, VTDate.now(), songId);
-
-          await this.analysisRepository.save(newAnalysis, request.userId);
-
+        if (result.success) {
+          const data = result.getValue();
           results.push({
-            songId: newAnalysis.songId.value,
+            songId: data.songId,
             title: song.title,
-            tags: newAnalysis.tags.map((t) => ({
-              name: t.name,
-              description: t.description || undefined,
-            })),
+            tags: data.tags,
           });
-        } catch (error) {
-          console.error(`AI analysis failed for "${song.title}":`, error);
+        } else {
           results.push({
             title: song.title,
             tags: [],
-            error: error instanceof AIServiceError ? error.message : 'AI analysis failed',
+            error: result.error?.message ?? 'AI analysis failed',
           });
-          continue;
         }
 
-        // Step C: Delay to respect rate limits (1 second)
-        // Only delay if it's NOT the last song being analyzed via AI in this batch
+        // Rate-limit delay between songs (skip after the last one)
         const isLastSong = i === request.songs.length - 1;
         if (!isLastSong) {
           await new Promise((resolve) => setTimeout(resolve, 1000));
