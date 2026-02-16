@@ -1,16 +1,19 @@
 import Foundation
 
 enum SongEndpoint: Endpoint {
-    case analyze(id: String?, artist: String, title: String)
+    case analyze(id: String?, appleMusicId: String?, artist: String, title: String, artworkUrl: String?)
+    case analyzeBatch(dto: BatchAnalyzeRequestDTO)
     case updateSong(id: String, dto: UpdateSongDTO)
-    case getSyncedSongs
+    case getSyncedSongs(page: Int, limit: Int)
     
     var path: String {
         switch self {
         case .analyze:
             return "/analyze/song"
+        case .analyzeBatch:
+            return "/analyze/batch"
         case .updateSong(let id, _):
-            return "/songs/\(id)"
+            return "/songs/\(id.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? id)"
         case .getSyncedSongs:
             return "/songs/synced"
         }
@@ -18,7 +21,7 @@ enum SongEndpoint: Endpoint {
     
     var method: HTTPMethod {
         switch self {
-        case .analyze:
+        case .analyze, .analyzeBatch:
             return .POST
         case .updateSong:
             return .PATCH
@@ -33,11 +36,25 @@ enum SongEndpoint: Endpoint {
     
     var body: Encodable? {
         switch self {
-        case .analyze(let id, let artist, let title):
-            return AnalyzeRequestDTO(songId: id, artist: artist, title: title)
+        case .analyze(let id, let appleMusicId, let artist, let title, let artworkUrl):
+            return AnalyzeRequestDTO(songId: id, appleMusicId: appleMusicId, artist: artist, title: title, artworkUrl: artworkUrl)
+        case .analyzeBatch(let dto):
+            return dto
         case .updateSong(_, let dto):
             return dto
         case .getSyncedSongs:
+            return nil
+        }
+    }
+    
+    var queryItems: [URLQueryItem]? {
+        switch self {
+        case .getSyncedSongs(let page, let limit):
+            return [
+                URLQueryItem(name: "page", value: String(page)),
+                URLQueryItem(name: "limit", value: String(limit))
+            ]
+        default:
             return nil
         }
     }

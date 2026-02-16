@@ -4,50 +4,62 @@ import SwiftData
 struct RootView: View {
     let container: AppContainer
     @State private var router = AppRouter()
-    @State private var viewModel = RootViewModel()
-    @State private var sessionManager: SessionManager
-    @State private var syncEngine: VibeTagSyncEngine
+    @State private var serverReady: Bool = {
+        #if DEBUG
+        return true
+        #else
+        return false
+        #endif
+    }()
     @Environment(\.scenePhase) private var scenePhase
-    
+
     init(container: AppContainer) {
         self.container = container
-        
-        let sessionManager = SessionManager(tokenStorage: container.tokenStorage, authRepository: container.authRepo)
-        self._sessionManager = State(initialValue: sessionManager)
-        self._syncEngine = State(initialValue: VibeTagSyncEngine(localRepo: container.localRepo, sessionManager: sessionManager))
     }
 
     var body: some View {
         Group {
-            if viewModel.isAuthorized {
+            if !container.sessionManager.isAuthenticated && false {
+                WelcomeView(container: container)
+                    .transition(.opacity)
+            } else if !serverReady || true {
+                ServerWakeUpView(isServerReady: $serverReady)
+                    .transition(.opacity)
+            } else {
                 NavigationStack(path: $router.path) {
-                    HomeView()
+                    MainTabView(container: container)
                         .navigationDestination(for: AppRoute.self) { route in
                             switch route {
                             case .songDetail(let songID):
                                 SongDetailDestinationView(songID: songID, container: container)
                             case .tagDetail(let tagID):
                                 Text("Tag Detail: \(tagID)") // Placeholder
+                            case .generatePlaylist(let prompt):
+                                CreatePlaylistView(
+                                    generatePlaylistUseCase: container.generatePlaylistUseCase,
+                                    exportPlaylistUseCase: container.exportPlaylistUseCase,
+                                    prompt: prompt
+                                )
                             }
                         }
                 }
                 .environment(router)
-            } else {
-                WelcomeView {
-                    viewModel.requestMusicPermissions()
-                }
+                .transition(.opacity)
             }
         }
-        .environment(sessionManager)
-        .environment(syncEngine)
-        .onAppear {
-            viewModel.updateAuthorizationStatus()
-        }
+        .animation(.easeInOut(duration: 0.4), value: container.sessionManager.isAuthenticated)
+        .animation(.easeInOut(duration: 0.4), value: serverReady)
+        .environment(container.sessionManager)
+        .environment(container.syncEngine)
         .onChange(of: scenePhase) { _, newPhase in
-            if newPhase == .active {
+            if newPhase == .active && container.sessionManager.isAuthenticated {
                 Task {
-                    await syncEngine.pullRemoteData()
-                    await syncEngine.syncPendingChanges()
+                    do {
+                        try await container.syncEngine.pullRemoteData()
+                        await container.syncEngine.syncPendingChanges()
+                    } catch {
+                        print("Background sync failed: \(error)")
+                    }
                 }
             }
         }
@@ -64,6 +76,7 @@ struct SongDetailDestinationView: View {
     init(songID: String, container: AppContainer) {
         self.songID = songID
         self.container = container
+        let songID = songID
         self._songs = Query(filter: #Predicate<VTSong> { $0.id == songID })
     }
     
@@ -77,8 +90,8 @@ struct SongDetailDestinationView: View {
 }
 
 #Preview {
-    // Mock container for preview
-    let container = AppContainer(modelContext: try! ModelContainer(for: VTSong.self, Tag.self).mainContext)
-    RootView(container: container)
-        .modelContainer(for: [VTSong.self, Tag.self], inMemory: true)
+    let modelContainer = try! ModelContainer(for: VTSong.self, Tag.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+    let appContainer = AppContainer(modelContext: modelContainer.mainContext)
+    return RootView(container: appContainer)
+        .modelContainer(modelContainer)
 }

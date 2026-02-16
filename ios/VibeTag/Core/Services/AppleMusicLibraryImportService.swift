@@ -1,6 +1,7 @@
 import Foundation
 import MusicKit
 import SwiftData
+import MediaPlayer
 
 enum MusicSyncError: LocalizedError {
     case authorizationDenied
@@ -52,27 +53,44 @@ class AppleMusicLibraryImportService: LibraryImportSyncService {
                  print("MusicSyncService: User cannot play catalog content (No Subscription).")
             }
             
-            let remoteSongs = try await songRepository.fetchSongs(limit: 50)
-            let remoteSongIDs = Set(remoteSongs.map { $0.id })
-            
+            let fetchLimit = 300
+            let remoteSongs = try await songRepository.fetchSongs(limit: fetchLimit)
+
             let localSongs = try storage.fetchAllSongs()
-            
-            let songsToDelete = localSongs.filter { !remoteSongIDs.contains($0.id) }
-            
-            for song in songsToDelete {
-                storage.deleteSong(song)
-            }
-            
-            let localSongIDs = Set(localSongs.map { $0.id })
-            
+            let remoteSongIDs = Set(remoteSongs.map { $0.id })
+
             for song in remoteSongs {
-                if localSongIDs.contains(song.id) {
-                    continue 
+                if let existing = localSongs.first(where: { $0.id == song.id }) {
+                    // Update missing metadata for existing songs
+                    var changed = false
+                    if existing.artworkUrl == nil && song.artworkUrl != nil {
+                        existing.artworkUrl = song.artworkUrl
+                        changed = true
+                    }
+                    if existing.appleMusicId == nil && song.appleMusicId != nil {
+                        existing.appleMusicId = song.appleMusicId
+                        changed = true
+                    }
+
+                    if changed {
+                        existing.syncStatus = .pendingUpload
+                    }
+                } else {
+                    // New song found
+                    song.syncStatus = .pendingUpload
+                    storage.saveSong(song)
                 }
-                
-                storage.saveSong(song)
             }
-            
+
+            // Remove songs deleted from Apple Music.
+            // Only safe when we fetched the full library (count < limit),
+            // otherwise songs beyond the limit would be incorrectly deleted.
+            if remoteSongs.count < fetchLimit {
+                for localSong in localSongs where !remoteSongIDs.contains(localSong.id) {
+                    storage.deleteSong(localSong)
+                }
+            }
+
             try storage.saveChanges()
             
         } catch {

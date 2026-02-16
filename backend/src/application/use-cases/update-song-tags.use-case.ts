@@ -17,9 +17,17 @@ export class UpdateSongTagsUseCase implements UseCase<UpdateSongTagsInput, void,
     try {
       const userId = UserId.create(request.userId);
 
-      await this.analysisRepository.updateSongTags(userId, request.songId, request.tags, {
+      const mappedTags = request.tags.map((t) =>
+        typeof t === 'string' ? { name: t } : { name: t.name, color: t.color },
+      );
+
+      await this.analysisRepository.updateSongTags(userId, request.songId, mappedTags, {
         title: request.title,
         artist: request.artist,
+        appleMusicId: request.appleMusicId,
+        album: request.album,
+        genre: request.genre,
+        artworkUrl: request.artworkUrl,
       });
 
       return Result.ok<void, AppError>(undefined);
@@ -28,7 +36,9 @@ export class UpdateSongTagsUseCase implements UseCase<UpdateSongTagsInput, void,
       if (error instanceof AppError) {
         return Result.fail<void, AppError>(error);
       }
-      return Result.fail<void, AppError>(new UseCaseError('Failed to update song tags'));
+      return Result.fail<void, AppError>(
+        new UseCaseError('Failed to update song tags', { cause: error as Error }),
+      );
     }
   }
 }

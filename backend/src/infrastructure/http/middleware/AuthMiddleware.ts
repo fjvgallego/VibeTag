@@ -24,7 +24,10 @@ export function verifyToken(req: Request, res: Response, next: NextFunction) {
     req.user = decoded;
     next();
   } catch (error) {
-    console.error('Token verification failed:', error);
+    console.error(
+      'Token verification failed:',
+      error instanceof Error ? error.message : 'Unknown error',
+    );
     res.status(401).json({ error: 'Unauthorized: Invalid token' });
     return;
   }

@@ -1,6 +1,6 @@
 import Foundation
 
-class APIClient {
+final class APIClient: APIClientProtocol {
     static let shared = APIClient()
     
     // NOTE: This needs to be the local IP for physical devices.
@@ -15,18 +15,31 @@ class APIClient {
     }
     
     func request<T: Decodable>(_ endpoint: Endpoint) async throws -> T {
-        guard let url = URL(string: "\(baseURL)\(endpoint.path)") else {
+        guard let url = URL(string: baseURL) else {
             throw APIError.invalidURL
         }
         
-        var request = URLRequest(url: url)
+        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        components?.path += endpoint.path
+        
+        if let queryItems = endpoint.queryItems {
+            components?.queryItems = queryItems
+        }
+        
+        guard let finalURL = components?.url else {
+            throw APIError.invalidURL
+        }
+        
+        var request = URLRequest(url: finalURL)
         request.httpMethod = endpoint.method.rawValue
         
         // Default Content-Type
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         // Add Authorization header if token is available
-        if let token = tokenStorage?.getToken() {
+        let token = tokenStorage?.getToken()
+        
+        if let token = token {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
         
@@ -58,23 +71,36 @@ class APIClient {
         do {
             return try decoder.decode(T.self, from: data)
         } catch {
-            throw APIError.decodingError
+            throw APIError.decodingError(original: error)
         }
     }
     
     func requestVoid(_ endpoint: Endpoint) async throws {
-        guard let url = URL(string: "\(baseURL)\(endpoint.path)") else {
+        guard let url = URL(string: baseURL) else {
             throw APIError.invalidURL
         }
         
-        var request = URLRequest(url: url)
+        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        components?.path += endpoint.path
+        
+        if let queryItems = endpoint.queryItems {
+            components?.queryItems = queryItems
+        }
+        
+        guard let finalURL = components?.url else {
+            throw APIError.invalidURL
+        }
+        
+        var request = URLRequest(url: finalURL)
         request.httpMethod = endpoint.method.rawValue
         
         // Default Content-Type
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         // Add Authorization header if token is available
-        if let token = tokenStorage?.getToken() {
+        let token = tokenStorage?.getToken()
+        
+        if let token = token {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
         

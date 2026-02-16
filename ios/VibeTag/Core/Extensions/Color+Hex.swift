@@ -35,17 +35,22 @@ extension Color {
     }
     
     func toHex() -> String? {
-        let uic = UIColor(self)
-        var r: CGFloat = 0
-        var g: CGFloat = 0
-        var b: CGFloat = 0
-        var a: CGFloat = 0
+        let uiColor = UIColor(self)
         
-        guard uic.getRed(&r, green: &g, blue: &b, alpha: &a) else {
+        // Convert to sRGB to handle grayscale, P3, and dynamic colors correctly
+        guard let colorSpace = CGColorSpace(name: CGColorSpace.sRGB),
+              let cgColor = uiColor.cgColor.converted(to: colorSpace, intent: .defaultIntent, options: nil),
+              let components = cgColor.components,
+              components.count >= 3 else {
             return nil
         }
-
-        if a != 1.0 {
+        
+        let r = components[0]
+        let g = components[1]
+        let b = components[2]
+        let a = cgColor.alpha
+        
+        if abs(a - 1.0) > 0.001 {
             return String(format: "%02lX%02lX%02lX%02lX", lroundf(Float(r) * 255), lroundf(Float(g) * 255), lroundf(Float(b) * 255), lroundf(Float(a) * 255))
         } else {
             return String(format: "%02lX%02lX%02lX", lroundf(Float(r) * 255), lroundf(Float(g) * 255), lroundf(Float(b) * 255))

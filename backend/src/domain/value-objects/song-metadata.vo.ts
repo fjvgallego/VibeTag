@@ -1,26 +1,34 @@
 import { ValidationError } from '../errors/app-error';
 
+export interface SongMetadataProps {
+  title: string;
+  artist: string;
+  appleMusicId?: string;
+  album?: string;
+  genre?: string;
+  artworkUrl?: string;
+}
+
 export class SongMetadata {
   public readonly title: string;
   public readonly artist: string;
+  public readonly appleMusicId?: string;
   public readonly album?: string;
   public readonly genre?: string;
+  public readonly artworkUrl?: string;
 
-  private constructor(title: string, artist: string, album?: string, genre?: string) {
-    this.title = title;
-    this.artist = artist;
-    this.album = album;
-    this.genre = genre;
+  private constructor(props: SongMetadataProps) {
+    this.title = props.title;
+    this.artist = props.artist;
+    this.appleMusicId = props.appleMusicId;
+    this.album = props.album;
+    this.genre = props.genre;
+    this.artworkUrl = props.artworkUrl;
   }
 
-  public static create(
-    title: string,
-    artist: string,
-    album?: string,
-    genre?: string,
-  ): SongMetadata {
-    const t = title?.trim();
-    const a = artist?.trim();
+  public static create(props: SongMetadataProps): SongMetadata {
+    const t = props.title?.trim();
+    const a = props.artist?.trim();
 
     if (!t || !a) {
       throw new ValidationError('Title and artist are required');
@@ -30,7 +38,15 @@ export class SongMetadata {
       throw new ValidationError('Title or artist too long');
     }
 
-    return new SongMetadata(t, a, album?.trim(), genre?.trim());
+    return new SongMetadata({
+      ...props,
+      title: t,
+      artist: a,
+      appleMusicId: props.appleMusicId?.trim(),
+      album: props.album?.trim(),
+      genre: props.genre?.trim(),
+      artworkUrl: props.artworkUrl?.trim(),
+    });
   }
 
   public equals(other: SongMetadata): boolean {
@@ -38,8 +54,10 @@ export class SongMetadata {
     return (
       this.title === other.title &&
       this.artist === other.artist &&
+      this.appleMusicId === other.appleMusicId &&
       this.album === other.album &&
-      this.genre === other.genre
+      this.genre === other.genre &&
+      this.artworkUrl === other.artworkUrl
     );
   }
 }

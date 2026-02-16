@@ -7,6 +7,9 @@ export class JwtTokenService implements ITokenService {
   private readonly expiresIn: jwt.SignOptions['expiresIn'];
 
   constructor() {
+    if (!config.JWT_SECRET) {
+      throw new Error('JWT_SECRET must be configured');
+    }
     this.secret = config.JWT_SECRET;
     // Session duration. For mobile it is usually long (e.g. 30 days)
     this.expiresIn = '30d';
@@ -15,12 +18,13 @@ export class JwtTokenService implements ITokenService {
   generate(payload: TokenPayload): string {
     return jwt.sign(payload, this.secret, {
       expiresIn: this.expiresIn,
+      algorithm: 'HS256',
     });
   }
 
   verify(token: string): TokenPayload | null {
     try {
-      return jwt.verify(token, this.secret) as TokenPayload;
+      return jwt.verify(token, this.secret, { algorithms: ['HS256'] }) as TokenPayload;
     } catch {
       // If the token has expired or the signature is wrong, we return null
       return null;

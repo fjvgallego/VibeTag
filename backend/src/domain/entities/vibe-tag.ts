@@ -7,19 +7,31 @@ export type VibeTagSource = 'ai' | 'user';
 export class VibeTag {
   public readonly id: VibeTagId;
   public readonly name: string;
+  public readonly description: string | null;
   public readonly source: VibeTagSource;
 
-  private constructor(name: string, source: VibeTagSource, id?: VibeTagId) {
+  private constructor(
+    name: string,
+    source: VibeTagSource,
+    description?: string | null,
+    id?: VibeTagId,
+  ) {
     this.id = id || VibeTagId.create(randomUUID());
     this.name = name.toLowerCase();
     this.source = source;
+    this.description = description || null;
   }
 
-  public static create(name: string, source: VibeTagSource, id?: string): VibeTag {
+  public static create(
+    name: string,
+    source: VibeTagSource,
+    id?: string,
+    description?: string,
+  ): VibeTag {
     if (!name || name.trim().length === 0) {
       throw new ValidationError('VibeTag name cannot be empty');
     }
     const tagId = id ? VibeTagId.create(id) : undefined;
-    return new VibeTag(name.trim(), source, tagId);
+    return new VibeTag(name.trim(), source, description, tagId);
   }
 }

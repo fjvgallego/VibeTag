@@ -2,28 +2,32 @@ import Foundation
 import MusicKit
 import SwiftUI
 
+@MainActor
 @Observable
 class RootViewModel {
     private var musicAuthorizationStatus: MusicAuthorization.Status = .notDetermined
-    
+    var isGuest: Bool = false
+
     var isAuthorized: Bool {
-        musicAuthorizationStatus == .authorized
+        musicAuthorizationStatus == .authorized || isGuest
     }
-    
+
     init() {
         self.musicAuthorizationStatus = MusicAuthorization.currentStatus
     }
-    
+
     func updateAuthorizationStatus() {
-        self.musicAuthorizationStatus = MusicAuthorization.currentStatus
+        musicAuthorizationStatus = MusicAuthorization.currentStatus
     }
-    
+
     func requestMusicPermissions() {
         Task {
             let status = await MusicAuthorization.request()
-            await MainActor.run {
-                self.musicAuthorizationStatus = status
-            }
+            musicAuthorizationStatus = status
         }
+    }
+
+    func continueAsGuest() {
+        isGuest = true
     }
 }

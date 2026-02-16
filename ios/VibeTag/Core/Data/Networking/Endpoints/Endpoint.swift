@@ -12,4 +12,9 @@ protocol Endpoint {
     var method: HTTPMethod { get }
     var headers: [String: String]? { get }
     var body: Encodable? { get }
+    var queryItems: [URLQueryItem]? { get }
+}
+
+extension Endpoint {
+    var queryItems: [URLQueryItem]? { return nil }
 }

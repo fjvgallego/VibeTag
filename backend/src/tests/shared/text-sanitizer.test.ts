@@ -22,6 +22,10 @@ describe('TextSanitizer', () => {
     expect(sanitizer.sanitize('Line 1\nLine 2')).toBe('Line 1 Line 2');
   });
 
+  it('should escape backslashes before double quotes', () => {
+    expect(sanitizer.sanitize('test\\"more')).toBe('test\\\\\\"more');
+  });
+
   it('should handle complex input', () => {
     const input = '  Title: "My Song"\nArtist: "Me"  ';
     const expected = 'Title: \\"My Song\\" Artist: \\"Me\\"';

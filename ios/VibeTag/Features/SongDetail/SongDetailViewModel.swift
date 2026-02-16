@@ -8,6 +8,14 @@ class SongDetailViewModel {
     var errorMessage: String?
     var showError: Bool = false
     
+    var systemTags: [Tag] {
+        song.tags.filter { $0.isSystemTag }.sorted(by: { $0.name < $1.name })
+    }
+    
+    var userTags: [Tag] {
+        song.tags.filter { !$0.isSystemTag }.sorted(by: { $0.name < $1.name })
+    }
+    
     private let useCase: AnalyzeSongUseCaseProtocol
     private let repository: SongStorageRepository
     private let syncEngine: SyncEngine
@@ -20,10 +28,6 @@ class SongDetailViewModel {
         self.useCase = useCase
         self.repository = repository
         self.syncEngine = syncEngine
-        
-        if song.tags.isEmpty {
-            analyzeSong()
-        }
     }
     
     @MainActor
@@ -47,8 +51,11 @@ class SongDetailViewModel {
     }
 
     @MainActor
-    func addTag(_ tagName: String) {
+    func addTag(_ tagName: String, description: String? = nil) {
         let trimmedName = tagName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedDesc = description?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let finalDesc = (trimmedDesc?.isEmpty ?? true) ? nil : trimmedDesc
+        
         guard !trimmedName.isEmpty else { return }
         
         // Check for duplicates
@@ -57,16 +64,17 @@ class SongDetailViewModel {
         }
         
         let previousTags = song.tags
-        var currentTagNames = song.tags.map { $0.name }
-        currentTagNames.append(trimmedName)
+        var currentTags = song.tags.map { AnalyzedTag(name: $0.name, description: $0.tagDescription) }
+        currentTags.append(AnalyzedTag(name: trimmedName, description: finalDesc))
         
-        // Optimistic update
-        let newTag = Tag(name: trimmedName, hexColor: "#808080") // Default color for optimistic UI
+        // Optimistic update: Check if tag exists globally first
+        let existingTag = try? repository.fetchTag(name: trimmedName)
+        let newTag = existingTag ?? Tag(name: trimmedName, tagDescription: finalDesc, hexColor: "#808080")
         song.tags.append(newTag)
         
         Task {
             do {
-                try await repository.saveTags(for: song.id, tags: currentTagNames)
+                try await repository.saveTags(for: song.id, tags: currentTags)
                 await syncEngine.syncPendingChanges()
             } catch {
                 await MainActor.run {
@@ -84,14 +92,14 @@ class SongDetailViewModel {
             $0.name.caseInsensitiveCompare(tagName) == .orderedSame 
         }) else { return }
         
-        var currentTagNames = song.tags.map { $0.name }
-        currentTagNames.remove(at: index)
+        var currentTags = song.tags.map { AnalyzedTag(name: $0.name, description: $0.tagDescription) }
+        currentTags.remove(at: index)
         
         let updatedTags = song.tags.filter { $0.name.caseInsensitiveCompare(tagName) != .orderedSame }
         
         Task {
             do {
-                try await repository.saveTags(for: song.id, tags: currentTagNames)
+                try await repository.saveTags(for: song.id, tags: currentTags)
                 await syncEngine.syncPendingChanges()
                 
                 await MainActor.run {

@@ -5,14 +5,16 @@ import SwiftData
 final class Tag {
     var id: UUID
     @Attribute(.unique) var name: String
+    var tagDescription: String?
     var hexColor: String
     var isSystemTag: Bool
     
     var songs: [VTSong] = []
     
-    init(id: UUID = UUID(), name: String, hexColor: String, isSystemTag: Bool = false) {
+    init(id: UUID = UUID(), name: String, tagDescription: String? = nil, hexColor: String, isSystemTag: Bool = false) {
         self.id = id
         self.name = name
+        self.tagDescription = tagDescription
         self.hexColor = hexColor
         self.isSystemTag = isSystemTag
     }

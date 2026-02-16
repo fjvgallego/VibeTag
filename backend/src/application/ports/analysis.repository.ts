@@ -8,11 +8,18 @@ export interface IAnalysisRepository {
     userId?: string,
     songId?: string,
   ): Promise<Analysis | null>;
-  save(analysis: Analysis): Promise<void>;
+  save(analysis: Analysis, userId?: string): Promise<void>;
   updateSongTags(
     userId: UserId,
     songId: string,
-    tags: string[],
-    metadata: { title: string; artist: string },
+    tags: { name: string; color?: string }[],
+    metadata: {
+      title: string;
+      artist: string;
+      appleMusicId?: string;
+      album?: string;
+      genre?: string;
+      artworkUrl?: string;
+    },
   ): Promise<void>;
 }

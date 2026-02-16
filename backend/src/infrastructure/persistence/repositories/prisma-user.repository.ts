@@ -50,11 +50,12 @@ export class PrismaUserRepository implements UserRepository {
   async upsertByAppleId(user: User): Promise<User> {
     const data = UserMapper.toPersistence(user);
 
-    // Build update object with non-null fields
+    // Build update object with non-null and non-empty fields
     const updateData: Prisma.UserUpdateInput = {};
-    if (data.email !== null) updateData.email = data.email;
-    if (data.firstName !== null) updateData.firstName = data.firstName;
-    if (data.lastName !== null) updateData.lastName = data.lastName;
+    if (data.email != null && data.email.trim() !== '') updateData.email = data.email;
+    if (data.firstName != null && data.firstName.trim() !== '')
+      updateData.firstName = data.firstName;
+    if (data.lastName != null && data.lastName.trim() !== '') updateData.lastName = data.lastName;
 
     const savedUser = await this.prisma.user.upsert({
       where: {
@@ -67,10 +68,28 @@ export class PrismaUserRepository implements UserRepository {
   }
 
   async delete(id: UserId): Promise<void> {
-    await this.prisma.user.delete({
-      where: {
-        id: id.value,
-      },
+    // Use transaction to ensure proper cascade deletion order
+    // 1. Delete all SongTags for this user
+    // 2. Delete all Tags owned by this user
+    // 3. Delete the user
+    // This respects the RESTRICT constraint on SongTag.tagId
+    await this.prisma.$transaction(async (tx) => {
+      const userId = id.value;
+
+      // First, delete all SongTags where this user is referenced
+      await tx.songTag.deleteMany({
+        where: { userId },
+      });
+
+      // Then, delete all Tags owned by this user
+      await tx.tag.deleteMany({
+        where: { ownerId: userId },
+      });
+
+      // Finally, delete the user
+      await tx.user.delete({
+        where: { id: userId },
+      });
     });
   }
 }

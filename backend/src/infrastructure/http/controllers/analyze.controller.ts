@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { AnalyzeUseCase } from '../../../application/use-cases/analyze.use-case';
-import { ValidationError } from '../../../domain/errors/app-error';
+import { ErrorHandler } from '../utils/error-handler';
 
 export class AnalyzeController {
   constructor(private readonly analyzeUseCase: AnalyzeUseCase) {}
@@ -8,8 +8,21 @@ export class AnalyzeController {
   public async analyze(req: Request, res: Response): Promise<Response> {
     try {
       const userId = req.user?.userId;
+
+      if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const { songId, appleMusicId, title, artist, album, genre, artworkUrl } = req.body;
+
       const result = await this.analyzeUseCase.execute({
-        ...req.body,
+        songId,
+        appleMusicId,
+        title,
+        artist,
+        album,
+        genre,
+        artworkUrl,
         userId,
       });
 
@@ -17,18 +30,42 @@ export class AnalyzeController {
         return res.json(result.data);
       }
 
-      // Map known errors
-      const err = result.error;
-      if (err instanceof ValidationError) {
-        return res.status(400).json({ message: err.message });
+      ErrorHandler.handle(res, result.error);
+      return res;
+    } catch (e) {
+      ErrorHandler.handle(res, e);
+      return res;
+    }
+  }
+
+  public async analyzeBatch(req: Request, res: Response): Promise<Response> {
+    try {
+      const userId = req.user?.userId;
+
+      if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
       }
 
-      return res.status(500).json({
-        message: 'Internal server error',
+      const { songs } = req.body;
+
+      if (!Array.isArray(songs)) {
+        return res.status(400).json({ message: 'Songs must be an array' });
+      }
+
+      const result = await this.analyzeUseCase.executeBatch({
+        songs,
+        userId,
       });
+
+      if (result.success) {
+        return res.json(result.data);
+      }
+
+      ErrorHandler.handle(res, result.error);
+      return res;
     } catch (e) {
-      console.error(e);
-      return res.status(500).json({ message: 'Unexpected error' });
+      ErrorHandler.handle(res, e);
+      return res;
     }
   }
 }
