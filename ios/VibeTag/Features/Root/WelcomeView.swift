@@ -87,22 +87,12 @@ struct WelcomeView: View {
     }
 
     private var logoSection: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 30, style: .continuous)
-                .fill(Color.white)
-                .frame(width: 120, height: 120)
-                .shadow(color: .black.opacity(0.1), radius: 20, x: 0, y: 10)
-
-            Image(systemName: "music.quarternote.3")
-                .font(.system(size: 60))
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [.appleMusicRed, .appleMusicRed.opacity(0.7)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-        }
+        Image(.vibetag)
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .frame(width: 120)
+            .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
+            .shadow(color: .black.opacity(0.1), radius: 20, x: 0, y: 10)
     }
 
     private var backgroundView: some View {
