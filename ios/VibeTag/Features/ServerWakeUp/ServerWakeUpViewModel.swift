@@ -10,7 +10,7 @@ final class ServerWakeUpViewModel {
     private let phrases = [
         "Preparando tus vibes...",
         "Despertando el servidor...",
-        "Cargando tu música...",
+        "Asegurando los temazos...",
         "Afinando los algoritmos...",
         "Casi listo...",
         "Revisando novedades...",

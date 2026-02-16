@@ -10,18 +10,18 @@ enum AppError: Error, LocalizedError {
     
     var errorDescription: String? {
         switch self {
-        case .networkError(let original):
-            return "Network error: \(original.localizedDescription)"
+        case .networkError:
+            return "Error de conexión. Comprueba tu conexión a internet e inténtalo de nuevo."
         case .serverError(let statusCode):
-            return "Server returned an error. Status code: \(statusCode)"
+            return "Error del servidor (código \(statusCode)). Inténtalo de nuevo más tarde."
         case .unauthorized:
-            return "Session expired or invalid credentials."
-        case .decodingError(let original):
-            return "Failed to process server response: \(original.localizedDescription)"
+            return "Sesión expirada o credenciales inválidas. Inicia sesión de nuevo."
+        case .decodingError:
+            return "No se pudo procesar la respuesta del servidor."
         case .songNotFound:
-            return "The requested song could not be found."
+            return "No se encontró la canción solicitada."
         case .unknown:
-            return "An unknown error occurred."
+            return "Ha ocurrido un error inesperado."
         }
     }
 }

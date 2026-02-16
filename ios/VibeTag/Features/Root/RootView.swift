@@ -19,10 +19,10 @@ struct RootView: View {
 
     var body: some View {
         Group {
-            if !container.sessionManager.isAuthenticated && false {
+            if !container.sessionManager.isAuthenticated {
                 WelcomeView(container: container)
                     .transition(.opacity)
-            } else if !serverReady || true {
+            } else if !serverReady {
                 ServerWakeUpView(isServerReady: $serverReady)
                     .transition(.opacity)
             } else {

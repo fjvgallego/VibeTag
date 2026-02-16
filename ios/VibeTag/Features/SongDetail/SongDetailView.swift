@@ -59,7 +59,7 @@ struct SongDetailView: View {
                 .presentationDragIndicator(.visible)
         }
         .alert("Error", isPresented: $viewModel.showError) {
-            Button("OK", role: .cancel) { }
+            Button("Aceptar", role: .cancel) { }
         } message: {
             if let errorMessage = viewModel.errorMessage {
                 Text(errorMessage)

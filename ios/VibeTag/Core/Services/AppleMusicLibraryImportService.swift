@@ -11,11 +11,11 @@ enum MusicSyncError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .authorizationDenied:
-            return "Music library access denied. Please enable it in Settings."
+            return "Acceso a la biblioteca de música denegado. Actívalo en Ajustes."
         case .privacyAcknowledgementRequired:
-            return "⚠️ Setup Required: Please open the system 'Music' app once to accept the Welcome/Terms screen, then try again."
-        case .generic(let error):
-            return "Music Request Failed. (\(error.localizedDescription)). \n\nTip: Try opening the Music app to ensure your library is accessible."
+            return "Configuración necesaria: abre la app Música del sistema una vez para aceptar los términos y vuelve a intentarlo."
+        case .generic:
+            return "Error al acceder a la biblioteca de música.\n\nConsejo: abre la app Música para asegurarte de que tu biblioteca está accesible."
         }
     }
 }

@@ -49,9 +49,9 @@ struct WelcomeView: View {
             get: { errorMessage != nil },
             set: { if !$0 { errorMessage = nil } }
         )) {
-            Button("OK", role: .cancel) { }
+            Button("Aceptar", role: .cancel) { }
         } message: {
-            Text(errorMessage ?? "")
+            Text(errorMessage ?? "Error desconocido")
         }
     }
 

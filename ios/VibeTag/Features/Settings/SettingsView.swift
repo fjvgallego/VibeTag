@@ -43,12 +43,14 @@ struct SettingsView: View {
             get: { viewModel.errorMessage != nil },
             set: { if !$0 { viewModel.errorMessage = nil } }
         )) {
-            Button("OK", role: .cancel) { }
+            Button("Aceptar", role: .cancel) { }
         } message: {
-            Text(viewModel.errorMessage ?? "Unknown error")
+            Text(viewModel.errorMessage ?? "Error desconocido")
         }
         .alert("Cuenta eliminada", isPresented: $showingDeleteSuccess) {
-            Button("Entendido", role: .cancel) { }
+            Button("Entendido", role: .cancel) {
+                sessionManager.logout()
+            }
         } message: {
             Text("Tu cuenta y todos tus datos han sido eliminados correctamente de la app.")
         }

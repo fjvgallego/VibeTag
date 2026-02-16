@@ -69,7 +69,7 @@ class CreatePlaylistViewModel {
             isExported = true
             isExporting = false
         } catch {
-            errorMessage = "Failed to export playlist: \(error.localizedDescription)"
+            errorMessage = "Error al exportar la playlist: \(error.localizedDescription)"
             isExporting = false
         }
     }
