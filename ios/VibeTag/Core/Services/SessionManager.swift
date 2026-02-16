@@ -39,7 +39,6 @@ class SessionManager {
         do {
             try await authRepository.deleteAccount()
             self.onAccountDeleted?()
-            self.logout()
         } catch {
             print("Delete account failed: \(error)")
             throw error

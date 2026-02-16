@@ -48,7 +48,9 @@ struct SettingsView: View {
             Text(viewModel.errorMessage ?? "Unknown error")
         }
         .alert("Cuenta eliminada", isPresented: $showingDeleteSuccess) {
-            Button("Entendido", role: .cancel) { }
+            Button("Entendido", role: .cancel) {
+                sessionManager.logout()
+            }
         } message: {
             Text("Tu cuenta y todos tus datos han sido eliminados correctamente de la app.")
         }
