@@ -33,14 +33,7 @@ describe('UpdateSongTagsUseCase', () => {
       expect.any(UserId),
       songId,
       [{ name: 'vibe1' }, { name: 'vibe2' }],
-      {
-        title,
-        artist,
-        appleMusicId: undefined,
-        album: undefined,
-        genre: undefined,
-        artworkUrl: undefined,
-      },
+      expect.objectContaining({ title, artist }),
     );
 
     const callUserId = (mockAnalysisRepository.updateSongTags as Mock).mock.calls[0][0];

@@ -32,5 +32,6 @@ export interface BatchAnalyzeResponseDTO {
     songId?: string;
     title: string;
     tags: { name: string; description?: string }[];
+    error?: string;
   }[];
 }

@@ -1,16 +1,13 @@
 import jwt from 'jsonwebtoken';
 import { ITokenService, TokenPayload } from '../../application/ports/token-service';
-import { config } from '../../composition/config/config';
 
 export class JwtTokenService implements ITokenService {
-  private readonly secret: string;
   private readonly expiresIn: jwt.SignOptions['expiresIn'];
 
-  constructor() {
-    if (!config.JWT_SECRET) {
+  constructor(private readonly secret: string) {
+    if (!secret) {
       throw new Error('JWT_SECRET must be configured');
     }
-    this.secret = config.JWT_SECRET;
     // Session duration. For mobile it is usually long (e.g. 30 days)
     this.expiresIn = '30d';
   }

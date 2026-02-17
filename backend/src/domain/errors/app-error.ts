@@ -41,3 +41,9 @@ export class UserNotFoundError extends AppError {
     super(message, options);
   }
 }
+
+export class AIServiceError extends AppError {
+  constructor(message: string = 'AI service failed', options?: { cause?: Error }) {
+    super(message, options);
+  }
+}

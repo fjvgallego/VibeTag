@@ -1,8 +1,10 @@
-import { Router } from 'express';
+import { Router, RequestHandler } from 'express';
 import { PlaylistController } from '../controllers/playlist.controller';
-import { verifyToken } from '../middleware/AuthMiddleware';
 
-export function createPlaylistRouter(playlistController: PlaylistController): Router {
+export function createPlaylistRouter(
+  playlistController: PlaylistController,
+  verifyToken: RequestHandler,
+): Router {
   const router = Router();
 
   router.post('/generate', verifyToken, (req, res) => playlistController.generate(req, res));

@@ -31,7 +31,7 @@ export class SongController {
         return;
       }
 
-      const result = await this.getUserLibraryUseCase.execute(userId, page, limit);
+      const result = await this.getUserLibraryUseCase.execute({ userId, page, limit });
 
       if (result.isFailure) {
         ErrorHandler.handle(res, result.getError());

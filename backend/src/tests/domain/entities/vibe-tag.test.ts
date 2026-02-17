@@ -26,4 +26,27 @@ describe('VibeTag Entity', () => {
     const tag = VibeTag.create('chill', 'ai', existingId);
     expect(tag.id.value).toBe(existingId);
   });
+
+  it('should throw ValidationError for empty name', () => {
+    expect(() => VibeTag.create('', 'ai')).toThrow('VibeTag name cannot be empty');
+  });
+
+  it('should throw ValidationError for whitespace-only name', () => {
+    expect(() => VibeTag.create('   ', 'ai')).toThrow('VibeTag name cannot be empty');
+  });
+
+  it('should trim whitespace from name', () => {
+    const tag = VibeTag.create('  chill  ', 'ai');
+    expect(tag.name).toBe('chill');
+  });
+
+  it('should store description when provided', () => {
+    const tag = VibeTag.create('chill', 'ai', undefined, 'Relaxed and calm');
+    expect(tag.description).toBe('Relaxed and calm');
+  });
+
+  it('should set description to null when not provided', () => {
+    const tag = VibeTag.create('chill', 'ai');
+    expect(tag.description).toBeNull();
+  });
 });

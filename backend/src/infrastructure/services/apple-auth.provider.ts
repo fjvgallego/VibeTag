@@ -1,12 +1,13 @@
 import appleSignin from 'apple-signin-auth';
 import { AppleUserData, IAuthProvider } from '../../application/ports/auth-provider';
-import { config } from '../../composition/config/config';
 
 export class AppleAuthProvider implements IAuthProvider {
+  constructor(private readonly appleClientId: string) {}
+
   async verifyAppleToken(identityToken: string): Promise<AppleUserData> {
     try {
       const { sub, email } = await appleSignin.verifyIdToken(identityToken, {
-        audience: config.APPLE_CLIENT_ID,
+        audience: this.appleClientId,
         ignoreExpiration: false,
       });
 

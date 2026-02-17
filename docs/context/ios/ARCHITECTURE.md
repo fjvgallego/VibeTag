@@ -62,3 +62,19 @@ This codebase strictly adheres to modern iOS development standards:
 * **SOLID Principles:** Classes and structs have a single responsibility. Dependencies are injected via protocols (Dependency Inversion).
 * **Clean Architecture:** Inner layers (Domain) never import or depend on outer layers (Core/UI).
 * **Offline-First (Optimistic UI):** SwiftData acts as the Single Source of Truth. The UI reads from local storage instantly, while background services (`SyncEngine`) handle API synchronization to ensure a snappy user experience.
+
+---
+
+## 🎨 Design System
+
+### Visual Identity
+- **Primary Brand Color:** `#FF4E6B` (Apple Music Pink/Red).
+- **Backgrounds:** Light Mode `#FFFBFB` (Off-white/Blush) · Dark Mode Midnight Blue.
+- **Style:** "Soft Glass" — native iOS Glassmorphism with translucent materials.
+- **Typography:** Nunito (Rounded Google Font).
+
+### Component Conventions
+- **Song Cells:** Minimalist. Artwork (left) + Title/Artist (middle) + Tag Chips (bottom). No "three-dots" menu — keep the interface clean.
+- **Tag Chips:** Pill-shaped with a pastel color palette.
+- **AI Search Bar:** Animated multi-color glowing stroke (Cyan/Purple/Pink) inspired by Apple Intelligence aesthetics.
+- **Header:** Provider Selector pill (top-left) + User Avatar (top-right).

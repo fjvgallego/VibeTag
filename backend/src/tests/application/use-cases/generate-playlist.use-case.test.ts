@@ -51,6 +51,7 @@ describe('GeneratePlaylistUseCase', () => {
     expect(mockSongRepository.findSongsByTags).toHaveBeenCalledWith(
       ['Coding', 'Focus'],
       'user-123',
+      100,
     );
   });
 
@@ -79,6 +80,7 @@ describe('GeneratePlaylistUseCase', () => {
     expect(mockSongRepository.findSongsByTags).toHaveBeenCalledWith(
       ['Nostalgia', 'Relationships'],
       'user-123',
+      100,
     );
   });
 
@@ -94,5 +96,72 @@ describe('GeneratePlaylistUseCase', () => {
     expect(result.success).toBe(true);
     expect(result.getValue().songs).toHaveLength(0);
     expect(result.getValue().usedTags).toEqual(['Rare Vibe']);
+  });
+
+  it('Scenario 4: should return failure if AI service throws', async () => {
+    // Arrange
+    vi.mocked(mockAiService.analyzeUserSentiment).mockRejectedValue(
+      new Error('AI service unavailable'),
+    );
+
+    // Act
+    const result = await useCase.execute(request);
+
+    // Assert
+    expect(result.success).toBe(false);
+    expect(result.error).toBeDefined();
+  });
+
+  it('Scenario 5: should rank songs by keyword match count (multi-tag match first)', async () => {
+    // Arrange
+    const aiKeywords = ['Chill', 'Focus'];
+    vi.mocked(mockAiService.analyzeUserSentiment).mockResolvedValue(aiKeywords);
+
+    const singleMatchSong = Song.create(
+      's1',
+      'Song A',
+      'Artist A',
+      [VibeTag.create('Chill', 'ai')],
+      new Date('2025-01-01'),
+    );
+    const doubleMatchSong = Song.create(
+      's2',
+      'Song B',
+      'Artist B',
+      [VibeTag.create('Chill', 'ai'), VibeTag.create('Focus', 'ai')],
+      new Date('2025-01-01'),
+    );
+
+    vi.mocked(mockSongRepository.findSongsByTags).mockResolvedValue([
+      singleMatchSong,
+      doubleMatchSong,
+    ]);
+
+    // Act
+    const result = await useCase.execute(request);
+
+    // Assert
+    expect(result.success).toBe(true);
+    const songs = result.getValue().songs;
+    expect(songs).toHaveLength(2);
+    // Song B matches both keywords so should be ranked first
+    expect(songs[0].id).toBe('s2');
+    expect(songs[1].id).toBe('s1');
+  });
+
+  it('Scenario 6: should generate correct playlist title and description', async () => {
+    // Arrange
+    vi.mocked(mockAiService.analyzeUserSentiment).mockResolvedValue(['Dreamy']);
+    vi.mocked(mockSongRepository.findSongsByTags).mockResolvedValue([]);
+
+    // Act
+    const result = await useCase.execute(request);
+
+    // Assert
+    expect(result.success).toBe(true);
+    const data = result.getValue();
+    expect(data.playlistTitle).toBe('Mix: Música para programar');
+    expect(data.description).toContain('Música para programar');
+    expect(data.description).toContain('Dreamy');
   });
 });
