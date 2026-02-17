@@ -5,7 +5,6 @@ import { UpdateSongTagsUseCase } from '../../application/use-cases/update-song-t
 import { GetUserLibraryUseCase } from '../../application/use-cases/get-user-library.use-case';
 import { GeneratePlaylistUseCase } from '../../application/use-cases/generate-playlist.use-case';
 import { IAIService } from '../../domain/services/ai-service.interface';
-// import { GroqAIService } from '../../infrastructure/services/groq-ai.service';
 import { TextSanitizer } from '../../shared/text-sanitizer';
 import { config } from '../config/config';
 import { PrismaUserRepository } from '../../infrastructure/persistence/repositories/prisma-user.repository';
@@ -41,8 +40,8 @@ export function buildContainer(): Dependencies {
   const aiService = new GeminiAIService(config.GEMINI_API_KEY ?? '', sanitizer);
 
   const userRepo = new PrismaUserRepository(prisma);
-  const authProvider = new AppleAuthProvider();
-  const tokenService = new JwtTokenService();
+  const authProvider = new AppleAuthProvider(config.APPLE_CLIENT_ID ?? '');
+  const tokenService = new JwtTokenService(config.JWT_SECRET ?? '');
 
   const analyzeUseCase = new AnalyzeUseCase(analysisRepo, aiService);
   const updateSongTagsUseCase = new UpdateSongTagsUseCase(analysisRepo);

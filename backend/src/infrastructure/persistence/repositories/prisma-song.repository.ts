@@ -69,7 +69,7 @@ export class PrismaSongRepository implements ISongRepository {
           },
         },
       },
-      take: limit * 2, // Fetch extra for in-memory ranking
+      take: limit,
       include: {
         songTags: {
           where: {
@@ -82,24 +82,6 @@ export class PrismaSongRepository implements ISongRepository {
       },
     });
 
-    const domainSongs = songs.map((s) => SongMapper.toDomain(s));
-
-    // Simple in-memory ranking: count how many input tags match the song's tags (User + System)
-    const rankedSongs = domainSongs
-      .map((song) => {
-        const matchingTagsCount = song.tags.filter((songTag) =>
-          tags.some(
-            (t) =>
-              t.toLowerCase() === songTag.name.toLowerCase() ||
-              (songTag.description?.toLowerCase().includes(t.toLowerCase()) ?? false),
-          ),
-        ).length;
-        return { song, score: matchingTagsCount };
-      })
-      .sort((a, b) => b.score - a.score)
-      .map((item) => item.song)
-      .slice(0, limit);
-
-    return rankedSongs;
+    return songs.map((s) => SongMapper.toDomain(s));
   }
 }

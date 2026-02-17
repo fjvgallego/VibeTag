@@ -1,8 +1,10 @@
-import { Router } from 'express';
+import { Router, RequestHandler } from 'express';
 import { SongController } from '../controllers/song.controller';
-import { verifyToken } from '../middleware/AuthMiddleware';
 
-export function createSongRouter(songController: SongController): Router {
+export function createSongRouter(
+  songController: SongController,
+  verifyToken: RequestHandler,
+): Router {
   const router = Router();
 
   router.get('/synced', verifyToken, (req, res) => songController.getSyncedSongs(req, res));

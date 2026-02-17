@@ -8,9 +8,13 @@ import { createAnalyzeRouter } from './analyze.routes';
 import { createAuthRouter } from './auth.routes';
 import { createSongRouter } from './song.routes';
 import { createPlaylistRouter } from './playlist.routes';
+import { createVerifyToken } from '../middleware/auth-middleware';
 
 export function createAppRouter(container: Dependencies): Router {
   const router = Router();
+
+  // Create middleware from injected token service
+  const verifyToken = createVerifyToken(container.tokenService);
 
   // Instantiate controllers
   const analyzeController = new AnalyzeController(container.analyzeUseCase);
@@ -26,10 +30,10 @@ export function createAppRouter(container: Dependencies): Router {
 
   // Register routes
   const apiV1Router = Router();
-  apiV1Router.use('/analyze', createAnalyzeRouter(analyzeController));
-  apiV1Router.use('/auth', createAuthRouter(authController));
-  apiV1Router.use('/songs', createSongRouter(songController));
-  apiV1Router.use('/playlists', createPlaylistRouter(playlistController));
+  apiV1Router.use('/analyze', createAnalyzeRouter(analyzeController, verifyToken));
+  apiV1Router.use('/auth', createAuthRouter(authController, verifyToken));
+  apiV1Router.use('/songs', createSongRouter(songController, verifyToken));
+  apiV1Router.use('/playlists', createPlaylistRouter(playlistController, verifyToken));
 
   router.use('/api/v1', apiV1Router);
 

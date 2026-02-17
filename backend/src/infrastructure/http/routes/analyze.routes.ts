@@ -1,10 +1,12 @@
-import { Router } from 'express';
+import { Router, RequestHandler } from 'express';
 import { AnalyzeController } from '../controllers/analyze.controller';
-import { softVerifyToken } from '../middleware/AuthMiddleware';
 
-export function createAnalyzeRouter(controller: AnalyzeController): Router {
+export function createAnalyzeRouter(
+  controller: AnalyzeController,
+  verifyToken: RequestHandler,
+): Router {
   const router = Router();
-  router.post('/song', softVerifyToken, controller.analyze.bind(controller));
-  router.post('/batch', softVerifyToken, controller.analyzeBatch.bind(controller));
+  router.post('/song', verifyToken, controller.analyze.bind(controller));
+  router.post('/batch', verifyToken, controller.analyzeBatch.bind(controller));
   return router;
 }
