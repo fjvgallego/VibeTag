@@ -443,7 +443,7 @@
 				CODE_SIGN_ENTITLEMENTS = VibeTag/VibeTag.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = MJWN87DYML;
 				ENABLE_PREVIEWS = YES;
@@ -486,7 +486,7 @@
 				CODE_SIGN_ENTITLEMENTS = VibeTag/VibeTag.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = MJWN87DYML;
 				ENABLE_PREVIEWS = YES;
